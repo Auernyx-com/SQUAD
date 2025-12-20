@@ -1,0 +1,69 @@
+﻿
+Host Name:                     AESIR101
+OS Name:                       Microsoft Windows 11 Home
+OS Version:                    10.0.26200 N/A Build 26200
+OS Manufacturer:               Microsoft Corporation
+OS Configuration:              Standalone Workstation
+OS Build Type:                 Multiprocessor Free
+Registered Owner:              Jhughes@auernyx.com
+Registered Organization:       N/A
+Product ID:                    00342-21497-79684-AAOEM
+Original Install Date:         11/22/2025, 1:37:46 PM
+System Boot Time:              12/19/2025, 3:17:15 AM
+System Manufacturer:           ASUSTeK COMPUTER INC.
+System Model:                  ASUS TUF Gaming F16 FX608JMR_FX608JMR
+System Type:                   x64-based PC
+Processor(s):                  1 Processor(s) Installed.
+                               [01]: Intel64 Family 6 Model 183 Stepping 1 GenuineIntel ~2200 Mhz
+BIOS Version:                  American Megatrends International, LLC. FX608JMR.308, 10/16/2025
+Windows Directory:             C:\Windows
+System Directory:              C:\Windows\system32
+Boot Device:                   \Device\HarddiskVolume1
+System Locale:                 en-us;English (United States)
+Input Locale:                  en-us;English (United States)
+Time Zone:                     (UTC-07:00) Mountain Time (US & Canada)
+Total Physical Memory:         32,371 MB
+Available Physical Memory:     20,737 MB
+Virtual Memory: Max Size:      34,419 MB
+Virtual Memory: Available:     21,336 MB
+Virtual Memory: In Use:        13,083 MB
+Page File Location(s):         C:\pagefile.sys
+Domain:                        WORKGROUP
+Logon Server:                  \\AESIR101
+Hotfix(s):                     6 Hotfix(s) Installed.
+                               [01]: KB5067931
+                               [02]: KB5050575
+                               [03]: KB5054156
+                               [04]: KB5071430
+                               [05]: KB5072033
+                               [06]: KB5071142
+Network Card(s):               2 NIC(s) Installed.
+                               [01]: Realtek 8852CE WiFi 6E PCI-E NIC
+                                     Connection Name: Wi-Fi
+                                     DHCP Enabled:    Yes
+                                     DHCP Server:     172.20.26.1
+                                     IP address(es)
+                                     [01]: 172.20.26.28
+                                     [02]: fe80::a320:5fd7:e72b:fece
+                               [02]: Realtek PCIe GbE Family Controller
+                                     Connection Name: Ethernet
+                                     Status:          Media disconnected
+Virtualization-based security: Status: Running
+                               Required Security Properties:
+                                     Base Virtualization Support
+                               Available Security Properties:
+                                     Base Virtualization Support
+                                     Secure Boot
+                                     DMA Protection
+                                     UEFI Code Readonly
+                                     SMM Security Mitigations 1.0
+                                     Mode Based Execution Control
+                                     APIC Virtualization
+                               Services Configured:
+                                     Hypervisor enforced Code Integrity
+                               Services Running:
+                                     Hypervisor enforced Code Integrity
+                               App Control for Business policy: Enforced
+                               App Control for Business user mode policy: Enforced
+                               Security Features Enabled:
+Hyper-V Requirements:          A hypervisor has been detected. Features required for Hyper-V will not be displayed.

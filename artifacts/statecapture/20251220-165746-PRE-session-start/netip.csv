@@ -1,0 +1,3 @@
+﻿"InterfaceAlias","IPv4Address","IPv6Address","DNSServer","IPv4DefaultGateway"
+"Wi-Fi","Microsoft.Management.Infrastructure.CimInstance[]","Microsoft.Management.Infrastructure.CimInstance[]","Microsoft.Management.Infrastructure.CimInstance[]","Microsoft.Management.Infrastructure.CimInstance[]"
+"Ethernet","Microsoft.Management.Infrastructure.CimInstance[]","Microsoft.Management.Infrastructure.CimInstance[]","Microsoft.Management.Infrastructure.CimInstance[]",
