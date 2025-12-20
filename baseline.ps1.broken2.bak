@@ -47,15 +47,14 @@ function Write-ReportMd([string]$preDir, [string]$postDir, [string]$outPath) {
   $lines = New-Object System.Collections.Generic.List[string]
   $lines.Add("# Baseline Drift Report")
   $lines.Add("")
-   $lines.Add(('Generated (local): {0}' -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss')))
+  $lines.Add(("**Generated (local):** {0}" -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss")))
 
   if ($preM -and $postM) {
-    $lines.Add(('PRE: {0} | POST: {1}' -f $preM.timestamp_local, $postM.timestamp_local))
-    $lines.Add(('PRE Dir: {0}' -f ($preDir.Substring($RepoRoot.Length + 1))))
-    $lines.Add(('POST Dir: {0}' -f ($postDir.Substring($RepoRoot.Length + 1))))
+    $lines.Add(("**PRE:** {0}  | **POST:** {1}" -f $preM.timestamp_local, $postM.timestamp_local))
+    $lines.Add(("**PRE Dir:** `{0}`" -f ($preDir.Substring($RepoRoot.Length + 1))))
+    $lines.Add(("**POST Dir:** `{0}`" -f ($postDir.Substring($RepoRoot.Length + 1))))
   }
   $lines.Add("")
-
 
   # --- Services diff ---
   $preServices  = Read-CsvSafe (Join-Path $preDir  "services.csv")
@@ -138,10 +137,9 @@ function Write-ReportMd([string]$preDir, [string]$postDir, [string]$outPath) {
     } else {
       $lines.Add("- Differences detected (raw line diff):")
       $lines.Add("")
-           $lines.Add("---- Firewall line diff ----")
+      $lines.Add("```")
       foreach ($d in $diff) { $lines.Add($d) }
-      $lines.Add("---- end diff ----")
-
+      $lines.Add("```")
     }
   } else {
     $lines.Add("- Missing firewall_profiles.txt in one or both bundles.")
