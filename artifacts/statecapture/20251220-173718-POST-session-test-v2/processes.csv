@@ -1,0 +1,253 @@
+﻿"ProcessName","Id","CPU","WS","StartTime","Path"
+"AcPowerNotification","10284","44.0625","14270464","12/19/2025 3:17:38 AM",
+"AppActions","10524","0.8125","45776896","12/19/2025 3:27:39 AM","C:\Windows\SystemApps\MicrosoftWindows.Client.CBS_cw5n1h2txyewy\AppActions.exe"
+"ApplicationFrameHost","16824","3.890625","77312000","12/19/2025 3:19:46 AM","C:\Windows\system32\ApplicationFrameHost.exe"
+"ArmouryHtmlDebugServer","9492","0","1118208","12/19/2025 3:17:38 AM",
+"ArmourySocketServer","10872","0.203125","1028096","12/19/2025 3:17:38 AM",
+"ArmourySwAgent","1388","2.15625","1200128","12/19/2025 6:35:46 AM",
+"AsHotplugCtrl","5584","0.4375","1867776","12/19/2025 3:17:38 AM",
+"AsMonitorControl","10432","0.046875","1880064","12/19/2025 3:17:38 AM",
+"AsMsControl","6216",,"8384512",,
+"asus_framework","17388","0.96875","11968512","12/19/2025 3:17:44 AM",
+"asus_framework","18924","1.4375","7462912","12/19/2025 6:35:43 AM",
+"asus_framework","15920","21.125","24014848","12/19/2025 3:17:41 AM",
+"asus_framework","17096","0.484375","6762496","12/19/2025 3:17:44 AM","C:\Program Files (x86)\ASUS\ArmouryDevice\asus_framework.exe"
+"AsusAppService","6208",,"32743424",,
+"AsusCertService","3716",,"9031680",,
+"AsusHotkey","2204",,"8986624",,
+"AsusOptimization","5012",,"14307328",,
+"AsusOptimizationStartupTask","10100","0.390625","23662592","12/19/2025 3:17:38 AM","C:\Windows\System32\DriverStore\FileRepository\asussci2.inf_amd64_f44825bb5b746f1a\ASUSOptimization\AsusOptimizationStartupTask.exe"
+"AsusOSD","22296","0.171875","16064512","12/19/2025 3:18:38 AM",
+"AsusPTPService","4728",,"7581696",,
+"AsusScreenXpertHostService","6292",,"30810112",,
+"AsusScreenXpertUI","11812",,"18006016",,
+"ASUSSmartDisplayControl","9320","0.8125","2863104","12/19/2025 3:17:38 AM",
+"AsusSwitch","6180",,"10825728",,
+"AuraWallpaperService","6712",,"52350976",,
+"ChatGPT","12048","20.40625","69480448","12/19/2025 3:17:57 AM","C:\Program Files\WindowsApps\OpenAI.ChatGPT-Desktop_1.2025.328.0_x64__2p2nqsd0c76g0\app\ChatGPT.exe"
+"ChatGPT","18768","2289.578125","2520096768","12/19/2025 3:17:59 AM","C:\Program Files\WindowsApps\OpenAI.ChatGPT-Desktop_1.2025.328.0_x64__2p2nqsd0c76g0\app\ChatGPT.exe"
+"ChatGPT","8308","278.671875","293023744","12/19/2025 3:17:57 AM","C:\Program Files\WindowsApps\OpenAI.ChatGPT-Desktop_1.2025.328.0_x64__2p2nqsd0c76g0\app\ChatGPT.exe"
+"ChatGPT","3496","0.046875","39845888","12/19/2025 3:17:57 AM","C:\Program Files\WindowsApps\OpenAI.ChatGPT-Desktop_1.2025.328.0_x64__2p2nqsd0c76g0\app\ChatGPT.exe"
+"ChatGPT","7820","272.34375","235073536","12/19/2025 3:17:56 AM","C:\Program Files\WindowsApps\OpenAI.ChatGPT-Desktop_1.2025.328.0_x64__2p2nqsd0c76g0\app\ChatGPT.exe"
+"conhost","14836","0.046875","10108928","12/20/2025 3:09:48 PM","C:\Windows\system32\conhost.exe"
+"Copilot","20948","18.859375","226258944","12/19/2025 3:18:04 AM","C:\Program Files\WindowsApps\Microsoft.Copilot_1.25121.60.0_x64__8wekyb3d8bbwe\Copilot.exe"
+"CrossDeviceResume","10764","1.140625","86384640","12/19/2025 3:17:38 AM","C:\Windows\SystemApps\MicrosoftWindows.Client.CBS_cw5n1h2txyewy\CrossDeviceResume.exe"
+"CrossDeviceService","4500","41.859375","145174528","12/19/2025 3:18:07 AM","C:\Program Files\WindowsApps\MicrosoftWindows.CrossDevice_1.25112.60.0_x64__cw5n1h2txyewy\CrossDeviceService.exe"
+"csrss","1660",,"7278592",,
+"csrss","1548",,"7221248",,
+"ctfmon","15308","14.421875","42729472","12/19/2025 3:17:40 AM",
+"dasHost","28360",,"10526720",,
+"DataExchangeHost","30092","1.328125","50339840","12/20/2025 4:47:30 PM","C:\Windows\System32\DataExchangeHost.exe"
+"DAX3API","9172",,"16113664",,
+"DAX3API","6372",,"23175168",,
+"dllhost","23572","0.203125","19427328","12/20/2025 3:03:01 PM","C:\Windows\system32\DllHost.exe"
+"dwm","2068",,"165482496",,
+"emedtray","18364","0.3125","11231232","12/19/2025 3:17:50 AM","C:\Program Files\WindowsApps\Emurasoft.EmEditor64UWP_25.4.3.0_x64__ws7rg9hnwrpxm\emedtray.exe"
+"explorer","10808","261.640625","504045568","12/19/2025 3:17:38 AM","C:\Windows\Explorer.EXE"
+"FileCoAuth","3272","0.46875","46313472","12/20/2025 3:42:12 PM","C:\Program Files\Microsoft OneDrive\25.222.1112.0002\FileCoAuth.exe"
+"FileSyncHelper","11756",,"29388800",,
+"Fing","18112","13.4375","88993792","12/19/2025 3:17:49 AM","C:\Program Files\Fing\Fing.exe"
+"Fing","18244","18.234375","43532288","12/19/2025 3:17:50 AM","C:\Program Files\Fing\Fing.exe"
+"Fing","15744","74.5625","184041472","12/19/2025 3:19:49 AM","C:\Program Files\Fing\Fing.exe"
+"Fing","17984","44.515625","245071872","12/19/2025 3:17:49 AM","C:\Program Files\Fing\Fing.exe"
+"fontdrvhost","1920",,"9019392",,
+"fontdrvhost","1912",,"5316608",,
+"GameSDK","4764",,"9703424",,
+"Idle","0",,"8192",,
+"IntelAudioService","6300",,"61702144",,
+"IntelCpHDCPSvc","2864",,"7475200",,
+"ipf_helper","10072","16.546875","12726272","12/19/2025 3:17:38 AM","C:\Windows\System32\DriverStore\FileRepository\ipf_cpu.inf_amd64_fe2967a6eb0d3a7d\ipf_helper.exe"
+"ipf_uf","6512",,"9158656",,
+"ipfsvc","6188",,"7872512",,
+"jhi_service","6276",,"8765440",,
+"LsaIso","1776",,"4706304",,
+"lsass","1796",,"38252544",,
+"M365Copilot","19656","1.765625","148336640","12/19/2025 3:18:02 AM","C:\Program Files\WindowsApps\Microsoft.MicrosoftOfficeHub_19.2512.46071.0_x64__8wekyb3d8bbwe\M365Copilot.exe"
+"Memory Compression","3972",,"151793664",,
+"MicrosoftEdgeUpdate","9528",,"5885952",,
+"MicrosoftSecurityApp","5076","47.984375","214478848","12/19/2025 3:17:51 AM","C:\Program Files\WindowsApps\Microsoft.6365217CE6EB4_102.2504.16004.0_x64__8wekyb3d8bbwe\MicrosoftSecurityApp\MicrosoftSecurityApp.exe"
+"MpDefenderCoreService","5776",,"34033664",,
+"msedge","26780","1.484375","48214016","12/20/2025 2:13:15 PM","C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+"msedge","27048","0.328125","57307136","12/20/2025 2:13:15 PM","C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+"msedge","31348","0.078125","34451456","12/20/2025 2:13:36 PM","C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+"msedge","24748","0.0625","10043392","12/20/2025 2:13:15 PM","C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+"msedge","7304","2.671875","126124032","12/20/2025 2:13:35 PM","C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+"msedge","10556","8.109375","197423104","12/20/2025 2:13:15 PM","C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+"msedge","15560","0.140625","21778432","12/20/2025 2:13:15 PM","C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+"msedgewebview2","19040","7.015625","10534912","12/19/2025 3:18:02 AM","C:\Program Files (x86)\Microsoft\EdgeWebView\Application\143.0.3650.96\msedgewebview2.exe"
+"msedgewebview2","19648","2.265625","36589568","12/19/2025 3:18:02 AM","C:\Program Files (x86)\Microsoft\EdgeWebView\Application\143.0.3650.96\msedgewebview2.exe"
+"msedgewebview2","14384","0.28125","24473600","12/19/2025 3:17:40 AM","C:\Program Files (x86)\Microsoft\EdgeWebView\Application\143.0.3650.96\msedgewebview2.exe"
+"msedgewebview2","14692","6.765625","149553152","12/19/2025 3:17:40 AM","C:\Program Files (x86)\Microsoft\EdgeWebView\Application\143.0.3650.96\msedgewebview2.exe"
+"msedgewebview2","19756","1.59375","10788864","12/19/2025 3:18:02 AM","C:\Program Files (x86)\Microsoft\EdgeWebView\Application\143.0.3650.96\msedgewebview2.exe"
+"msedgewebview2","20292","0.015625","11935744","12/19/2025 3:18:02 AM","C:\Program Files (x86)\Microsoft\EdgeWebView\Application\143.0.3650.96\msedgewebview2.exe"
+"msedgewebview2","20312","40.796875","606208","12/19/2025 3:18:41 AM","C:\Program Files (x86)\Microsoft\EdgeWebView\Application\143.0.3650.96\msedgewebview2.exe"
+"msedgewebview2","19792","0.078125","5173248","12/19/2025 3:18:02 AM","C:\Program Files (x86)\Microsoft\EdgeWebView\Application\143.0.3650.96\msedgewebview2.exe"
+"msedgewebview2","20160","2.4375","24956928","12/19/2025 3:18:02 AM","C:\Program Files (x86)\Microsoft\EdgeWebView\Application\143.0.3650.96\msedgewebview2.exe"
+"msedgewebview2","14144","3.515625","614400","12/19/2025 3:18:41 AM","C:\Program Files (x86)\Microsoft\EdgeWebView\Application\143.0.3650.96\msedgewebview2.exe"
+"msedgewebview2","3884","0.421875","561152","12/19/2025 5:10:48 AM","C:\Program Files (x86)\Microsoft\EdgeWebView\Application\143.0.3650.96\msedgewebview2.exe"
+"msedgewebview2","12668","6.359375","135307264","12/19/2025 3:17:40 AM","C:\Program Files (x86)\Microsoft\EdgeWebView\Application\143.0.3650.96\msedgewebview2.exe"
+"msedgewebview2","3276","8.734375","4952064","12/19/2025 3:18:40 AM","C:\Program Files (x86)\Microsoft\EdgeWebView\Application\143.0.3650.96\msedgewebview2.exe"
+"msedgewebview2","3476","0.65625","45056","12/19/2025 3:18:41 AM","C:\Program Files (x86)\Microsoft\EdgeWebView\Application\143.0.3650.96\msedgewebview2.exe"
+"msedgewebview2","12740","9.1875","2609152","12/19/2025 3:18:41 AM","C:\Program Files (x86)\Microsoft\EdgeWebView\Application\143.0.3650.96\msedgewebview2.exe"
+"msedgewebview2","13044","3.265625","95567872","12/19/2025 3:17:40 AM","C:\Program Files (x86)\Microsoft\EdgeWebView\Application\143.0.3650.96\msedgewebview2.exe"
+"msedgewebview2","13448","0.046875","11849728","12/19/2025 3:17:40 AM","C:\Program Files (x86)\Microsoft\EdgeWebView\Application\143.0.3650.96\msedgewebview2.exe"
+"msedgewebview2","12920","0.046875","11948032","12/19/2025 3:18:40 AM","C:\Program Files (x86)\Microsoft\EdgeWebView\Application\143.0.3650.96\msedgewebview2.exe"
+"msedgewebview2","12956","1.359375","44646400","12/19/2025 3:17:40 AM","C:\Program Files (x86)\Microsoft\EdgeWebView\Application\143.0.3650.96\msedgewebview2.exe"
+"MsMpEng","5848",,"234565632",,
+"NgcIso","6892",,"5509120",,
+"NisSrv","16744",,"15613952",,
+"nvcontainer","9784",,"58605568",,
+"nvcontainer","9432","31.109375","62640128","12/19/2025 3:17:38 AM","C:\Program Files\NVIDIA Corporation\NvContainer\nvcontainer.exe"
+"nvcontainer","6380",,"42872832",,
+"NVDisplay.Container","8076",,"95539200",,
+"NVDisplay.Container","3524",,"61992960",,
+"OfficeClickToRun","6824",,"78110720",,
+"OneApp.IGCC.WinService","6236",,"51220480",,
+"OneDrive","12064","92.203125","275673088","12/19/2025 3:29:44 AM","C:\Program Files\Microsoft OneDrive\OneDrive.exe"
+"OneDrive.Sync.Service","32148","1.765625","6492160","12/20/2025 7:17:44 AM","C:\Program Files\Microsoft OneDrive\25.222.1112.0002\OneDrive.Sync.Service.exe"
+"OpenConsole","7520","0.921875","20201472","12/20/2025 3:09:48 PM","C:\Program Files\WindowsApps\Microsoft.WindowsTerminal_1.23.12811.0_x64__8wekyb3d8bbwe\OpenConsole.exe"
+"PhoneExperienceHost","17104","63.890625","280166400","12/19/2025 3:17:43 AM","C:\Program Files\WindowsApps\Microsoft.YourPhone_1.25112.36.0_x64__8wekyb3d8bbwe\PhoneExperienceHost.exe"
+"powershell","8108","11.1875","192106496","12/20/2025 3:09:48 PM","C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
+"Registry","376",,"49311744",,
+"ROGLiveService","6928",,"44646400",,
+"RstMwService","6424",,"11227136",,
+"RtkAudUService64","11672","1.609375","3514368","12/19/2025 3:18:08 AM","C:\Windows\System32\DriverStore\FileRepository\realtekservice.inf_amd64_9fd384f90914e61a\RtkAudUService64.exe"
+"RtkAudUService64","7648",,"20221952",,
+"RtkAudUService64","5756",,"20078592",,
+"RtkBtManServ","6244",,"6672384",,
+"RtkUWP","25368","0.765625","79642624","12/19/2025 6:30:12 AM","C:\Program Files\WindowsApps\RealtekSemiconductorCorp.RealtekAudioControl_1.52.357.0_x64__dt26b99r8h8gj\RtkUWP.exe"
+"RuntimeBroker","14176","0.875","28344320","12/19/2025 3:29:39 AM","C:\Windows\System32\RuntimeBroker.exe"
+"RuntimeBroker","19832","0.53125","14589952","12/19/2025 3:18:02 AM","C:\Windows\System32\RuntimeBroker.exe"
+"RuntimeBroker","20840","0.4375","14614528","12/19/2025 3:18:08 AM","C:\Windows\System32\RuntimeBroker.exe"
+"RuntimeBroker","12480","15.28125","83808256","12/19/2025 3:17:39 AM","C:\Windows\System32\RuntimeBroker.exe"
+"RuntimeBroker","1792","0.515625","15065088","12/19/2025 6:30:12 AM","C:\Windows\System32\RuntimeBroker.exe"
+"RuntimeBroker","10236","0.4375","14610432","12/19/2025 3:17:54 AM","C:\Windows\System32\RuntimeBroker.exe"
+"RuntimeBroker","11596","0.75","22007808","12/19/2025 3:18:09 AM","C:\Windows\System32\RuntimeBroker.exe"
+"SearchHost","11316","7.765625","170655744","12/19/2025 3:17:39 AM","C:\Windows\SystemApps\MicrosoftWindows.Client.CBS_cw5n1h2txyewy\SearchHost.exe"
+"SearchIndexer","13160",,"45969408",,
+"Secure System","332",,"117133312",,
+"SecurityHealthService","17768",,"27557888",,
+"SecurityHealthSystray","17748","0.1875","13897728","12/19/2025 3:17:45 AM","C:\Windows\System32\SecurityHealthSystray.exe"
+"services","1728",,"13324288",,
+"ShellExperienceHost","16392","6.078125","117506048","12/19/2025 3:29:39 AM","C:\Windows\SystemApps\ShellExperienceHost_cw5n1h2txyewy\ShellExperienceHost.exe"
+"ShellHost","28124","0.734375","64065536","12/19/2025 6:18:03 PM","C:\Windows\System32\ShellHost.exe"
+"sihost","9296","84.15625","54206464","12/19/2025 3:17:38 AM","C:\Windows\system32\sihost.exe"
+"smss","1040",,"1617920",,
+"spoolsv","5272",,"21393408",,
+"StartMenuExperienceHost","12264","5.546875","188964864","12/19/2025 3:17:39 AM","C:\Windows\SystemApps\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\StartMenuExperienceHost.exe"
+"svchost","8340",,"30691328",,
+"svchost","8676",,"12959744",,
+"svchost","7508",,"12726272",,
+"svchost","6004",,"16244736",,
+"svchost","6860",,"11202560",,
+"svchost","9392",,"8183808",,
+"svchost","10076",,"28164096",,
+"svchost","10836",,"26099712",,
+"svchost","9608","5.4375","37519360","12/19/2025 3:17:38 AM","C:\Windows\system32\svchost.exe"
+"svchost","9488","0.59375","15564800","12/19/2025 3:19:47 AM","C:\Windows\system32\svchost.exe"
+"svchost","9556","0.375","11534336","12/19/2025 3:17:38 AM","C:\Windows\system32\svchost.exe"
+"svchost","5736",,"7888896",,
+"svchost","5748",,"54640640",,
+"svchost","5724",,"11558912",,
+"svchost","5556",,"9224192",,
+"svchost","5704",,"16035840",,
+"svchost","5768",,"8060928",,
+"svchost","5808",,"12152832",,
+"svchost","5984",,"15249408",,
+"svchost","5800",,"30113792",,
+"svchost","5784",,"10506240",,
+"svchost","5792",,"27209728",,
+"svchost","10860",,"17502208",,
+"svchost","17856",,"23396352",,
+"svchost","18964",,"9957376",,
+"svchost","16388",,"17162240",,
+"svchost","15520",,"32206848",,
+"svchost","16376","0.796875","17547264","12/19/2025 3:17:41 AM","C:\Windows\system32\svchost.exe"
+"svchost","19124",,"11186176",,
+"svchost","22372",,"44933120",,
+"svchost","24992",,"8941568",,
+"svchost","22036",,"14135296",,
+"svchost","19272",,"18616320",,
+"svchost","21000",,"15810560",,
+"svchost","11588",,"46485504",,
+"svchost","12452","0.859375","25645056","12/19/2025 3:17:39 AM","C:\Windows\system32\svchost.exe"
+"svchost","11572","2.265625","28782592","12/19/2025 3:17:38 AM","C:\Windows\system32\svchost.exe"
+"svchost","10932",,"35028992",,
+"svchost","11000",,"12169216",,
+"svchost","13636",,"26304512",,
+"svchost","14816",,"7622656",,
+"svchost","15428",,"27742208",,
+"svchost","14236",,"10260480",,
+"svchost","13672",,"15790080",,
+"svchost","13740",,"18411520",,
+"svchost","2700",,"15998976",,
+"svchost","2880",,"9895936",,
+"svchost","2672",,"14528512",,
+"svchost","2604",,"10829824",,
+"svchost","2644",,"9633792",,
+"svchost","2888",,"15331328",,
+"svchost","3380",,"25788416",,
+"svchost","3420",,"18669568",,
+"svchost","3252",,"15470592",,
+"svchost","3012",,"14770176",,
+"svchost","3236",,"11571200",,
+"svchost","2220","4.203125","49602560","12/19/2025 3:17:38 AM","C:\Windows\system32\svchost.exe"
+"svchost","2320",,"6156288",,
+"svchost","2008",,"51818496",,
+"svchost","1160",,"22073344",,
+"svchost","1892",,"14503936",,
+"svchost","2328",,"7516160",,
+"svchost","2532",,"12959744",,
+"svchost","2596",,"23715840",,
+"svchost","2368",,"28225536",,
+"svchost","2344",,"12111872",,
+"svchost","2352",,"9973760",,
+"svchost","3560",,"14458880",,
+"svchost","4644",,"18210816",,
+"svchost","4836",,"26222592",,
+"svchost","4540",,"10874880",,
+"svchost","4216",,"40828928",,
+"svchost","4476",,"13373440",,
+"svchost","4884",,"20008960",,
+"svchost","5428",,"14323712",,
+"svchost","5468",,"10694656",,
+"svchost","5412",,"15368192",,
+"svchost","5000",,"9773056",,
+"svchost","5232",,"28352512",,
+"svchost","3844",,"8019968",,
+"svchost","3852",,"10956800",,
+"svchost","3764",,"9621504",,
+"svchost","3604",,"24584192",,
+"svchost","3688",,"23535616",,
+"svchost","3868",,"20516864",,
+"svchost","4080","0.53125","16740352","12/19/2025 3:19:38 AM","C:\Windows\system32\svchost.exe"
+"svchost","4124",,"10014720",,
+"svchost","4068",,"12546048",,
+"svchost","4012",,"12029952",,
+"svchost","4060",,"15335424",,
+"System","4",,"5328896",,
+"SystemSettings","31296","2.5625","2158592","12/20/2025 4:49:29 PM","C:\Windows\ImmersiveControlPanel\SystemSettings.exe"
+"taskhostw","9448","4.515625","25731072","12/19/2025 3:17:38 AM","C:\Windows\system32\taskhostw.exe"
+"TbtP2pShortcutService","6324",,"7909376",,
+"ThunderboltService","6200",,"28176384",,
+"TiWorker","632",,"18395136",,
+"TrustedInstaller","5124",,"10215424",,
+"UMonit64","17964","0.5625","11575296","12/19/2025 3:17:47 AM","C:\Windows\SysWOW64\UMonit64.exe"
+"unsecapp","8724",,"9977856",,
+"UserOOBEBroker","22712","0.03125","12025856","12/20/2025 4:37:25 PM","C:\Windows\System32\oobe\UserOOBEBroker.exe"
+"Widgets","12360","9.71875","75014144","12/19/2025 3:17:39 AM","C:\Program Files\WindowsApps\MicrosoftWindows.Client.WebExperience_525.31002.150.0_x64__cw5n1h2txyewy\Dashboard\Widgets.exe"
+"WidgetService","13084","1.578125","30183424","12/19/2025 3:17:39 AM","C:\Program Files\WindowsApps\Microsoft.WidgetsPlatformRuntime_1.6.14.0_x64__8wekyb3d8bbwe\WidgetService\WidgetService.exe"
+"WindowsTerminal","33148","34.875","107872256","12/20/2025 3:09:48 PM","C:\Program Files\WindowsApps\Microsoft.WindowsTerminal_1.23.12811.0_x64__8wekyb3d8bbwe\WindowsTerminal.exe"
+"wininit","1652",,"7925760",,
+"winlogon","1756",,"16756736",,
+"WmiPrvSE","28296",,"15519744",,
+"WmiPrvSE","32492",,"14970880",,
+"WmiPrvSE","7968",,"23576576",,
+"WmiPrvSE","26280",,"29458432",,
+"WMIRegistrationService","6332",,"17129472",,
+"wslservice","6284",,"29876224",,
+"WUDFCompanionHost","8080",,"4460544",,
+"WUDFCompanionHost","7320",,"4460544",,
+"WUDFCompanionHost","2768",,"5881856",,
+"WUDFHost","2152",,"19382272",,
+"WUDFHost","1120",,"35602432",,
