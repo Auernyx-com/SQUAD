@@ -10,7 +10,9 @@ param(
 
   [switch]$VerifyHashes,
 
-  [string]$ProjectRoot
+  [string]$ProjectRoot,
+
+  [string]$LedgerRoot
 )
 
 $ErrorActionPreference = "Stop"
@@ -22,8 +24,17 @@ if (-not (Test-Path $Marker)) { throw "Not a baseline repo root (missing .baseli
 $CaptureScript = Join-Path $RepoRoot "scripts\modules\Invoke-BaselineStateCapture.ps1"
 if (-not (Test-Path $CaptureScript)) { throw "Missing module: $CaptureScript" }
 
-$ArtifactsRoot = Join-Path $RepoRoot "artifacts\statecapture"
-$ReportsRoot   = Join-Path $RepoRoot "artifacts\reports"
+# Determine ledger location (where authoritative artifacts are stored)
+if ([string]::IsNullOrWhiteSpace($LedgerRoot)) {
+  $LedgerRoot = $env:BASELINE_LEDGER_ROOT
+}
+if ([string]::IsNullOrWhiteSpace($LedgerRoot)) {
+  $LedgerRoot = $RepoRoot
+}
+$LedgerRoot = (Resolve-Path -LiteralPath $LedgerRoot).Path
+
+$ArtifactsRoot = Join-Path $LedgerRoot "artifacts\statecapture"
+$ReportsRoot   = Join-Path $LedgerRoot "artifacts\reports"
 New-Item -ItemType Directory -Path $ReportsRoot -Force | Out-Null
 
 function Write-BaselineReceipt {
@@ -225,6 +236,7 @@ if ($Mode -eq "pre") {
     if ($ProjectRoot) {
       Write-BaselineReceipt -ProjectRoot $ProjectRoot -Mode "pre" -RepoRoot $RepoRoot -Label $Label -Data @{
         baselineCommit = (git -C $RepoRoot rev-parse HEAD 2>$null)
+        ledgerRoot     = $LedgerRoot
       }
     }
     if ($Commit) {
@@ -267,6 +279,7 @@ if ($Mode -eq "post") {
       Write-BaselineReceipt -ProjectRoot $ProjectRoot -Mode "post" -RepoRoot $RepoRoot -Label $Label -Data @{
         baselineCommit = (git -C $RepoRoot rev-parse HEAD 2>$null)
         verifyHashes   = [bool]$VerifyHashes
+        ledgerRoot     = $LedgerRoot
       }
     }
 
