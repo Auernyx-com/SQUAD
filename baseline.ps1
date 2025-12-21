@@ -148,7 +148,7 @@ function Write-ReportMd([string]$preDir, [string]$postDir, [string]$outPath) {
   }
   $lines.Add("")
 
-  $lines | Out-File -Path $outPath -Encoding utf8
+  $lines | Out-File -FilePath $outPath -Encoding utf8
 }
 
 function Verify-BundleHashes([string]$bundleDir) {
