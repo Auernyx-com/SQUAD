@@ -29,8 +29,10 @@ function Assert-SafePath($path) {
 }
 
 function Write-FileHashList($targetDir, $outFile) {
-    $items = Get-ChildItem -Path $targetDir -File -Recurse |
-        Sort-Object FullName
+  $items = Get-ChildItem -Path $targetDir -File -Recurse |
+    Where-Object { $_.Name -notin @("run.log", "hashes.sha256") } |
+    Sort-Object FullName
+
 
     $lines = foreach ($f in $items) {
         $h = Get-FileHash -Algorithm SHA256 -Path $f.FullName
