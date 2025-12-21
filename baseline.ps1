@@ -231,6 +231,7 @@ if ($Mode -eq "verify") {
 if ($Mode -eq "pre") {
   Push-Location $RepoRoot
   try {
+    $env:BASELINE_ARTIFACTS_ROOT = $ArtifactsRoot
     & $CaptureScript -Phase PRE -Label $Label
     Write-Host "PRE capture complete."
     if ($ProjectRoot) {
@@ -244,6 +245,7 @@ if ($Mode -eq "pre") {
       git commit -m ("chore: baseline PRE capture {0}" -f $Label)
     }
   } finally {
+    Remove-Item env:BASELINE_ARTIFACTS_ROOT -ErrorAction SilentlyContinue
     Pop-Location
   }
   exit 0
@@ -255,6 +257,7 @@ if ($Mode -eq "post") {
 
   Push-Location $RepoRoot
   try {
+    $env:BASELINE_ARTIFACTS_ROOT = $ArtifactsRoot
     & $CaptureScript -Phase POST -Label $Label
 
     $latestPost = Get-LatestBundle "POST"
@@ -288,6 +291,7 @@ if ($Mode -eq "post") {
       git commit -m ("feat: baseline POST capture + drift report {0}" -f $Label)
     }
   } finally {
+    Remove-Item env:BASELINE_ARTIFACTS_ROOT -ErrorAction SilentlyContinue
     Pop-Location
   }
   exit 0

@@ -10,6 +10,13 @@ $RepoMarker = ".baseline-repo.marker"
 $RepoRoot = (Get-Location).Path
 $MarkerPath = Join-Path $RepoRoot $RepoMarker
 
+# Use custom artifacts root if provided (for ledger separation)
+if ($env:BASELINE_ARTIFACTS_ROOT) {
+  $ArtifactsBase = $env:BASELINE_ARTIFACTS_ROOT
+} else {
+  $ArtifactsBase = Join-Path $RepoRoot "artifacts\statecapture"
+}
+
 function Write-BaselineError {
     [CmdletBinding()]
     param(
@@ -67,7 +74,7 @@ $ts = Get-Date -Format "yyyyMMdd-HHmmss"
 $slug = @($ts, $Phase) + $(if ($Label.Trim()) { $Label.Trim().Replace(" ","_") } else { @() })
 $bundleName = ($slug -join "-")
 
-$outRoot = Join-Path $RepoRoot "artifacts\statecapture\$bundleName"
+$outRoot = Join-Path $ArtifactsBase $bundleName
 Assert-SafePath $outRoot
 
 if ($PSCmdlet.ShouldProcess($outRoot, 'Create output bundle directory')) {
