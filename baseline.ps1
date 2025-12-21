@@ -8,14 +8,16 @@ param(
 
   [switch]$Commit,
 
-  [switch]$VerifyHashes
+  [switch]$VerifyHashes,
+
+  [string]$ProjectRoot
 )
 
 $ErrorActionPreference = "Stop"
 
-$RepoRoot = (Get-Location).Path
+$RepoRoot = (Resolve-Path -LiteralPath $PSScriptRoot).Path
 $Marker = Join-Path $RepoRoot ".baseline-repo.marker"
-if (-not (Test-Path $Marker)) { throw "Not a baseline repo root (missing .baseline-repo.marker)." }
+if (-not (Test-Path $Marker)) { throw "Not a baseline repo root (missing .baseline-repo.marker): $RepoRoot" }
 
 $CaptureScript = Join-Path $RepoRoot "scripts\modules\Invoke-BaselineStateCapture.ps1"
 if (-not (Test-Path $CaptureScript)) { throw "Missing module: $CaptureScript" }
@@ -23,6 +25,42 @@ if (-not (Test-Path $CaptureScript)) { throw "Missing module: $CaptureScript" }
 $ArtifactsRoot = Join-Path $RepoRoot "artifacts\statecapture"
 $ReportsRoot   = Join-Path $RepoRoot "artifacts\reports"
 New-Item -ItemType Directory -Path $ReportsRoot -Force | Out-Null
+
+function Write-BaselineReceipt {
+  param(
+    [Parameter(Mandatory)] [string] $ProjectRoot,
+    [Parameter(Mandatory)] [ValidateSet("pre","post")] [string] $Mode,
+    [Parameter(Mandatory)] [string] $RepoRoot,
+    [Parameter(Mandatory)] [string] $Label,
+    [Parameter(Mandatory)] [hashtable] $Data
+  )
+
+  if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { return }
+
+  $Proj = (Resolve-Path -LiteralPath $ProjectRoot).Path
+  $OutDir = Join-Path $Proj ".baseline"
+  New-Item -ItemType Directory -Path $OutDir -Force | Out-Null
+
+  $okName = "last-$Mode.ok.json"
+  $jsonPath = Join-Path $OutDir $okName
+
+  $payload = [ordered]@{
+    schema        = "baseline-receipt.v1"
+    mode          = $Mode
+    label         = $Label
+    projectRoot   = $Proj
+    baselineRoot  = $RepoRoot
+    timestampUtc  = (Get-Date).ToUniversalTime().ToString("o")
+    data          = $Data
+  }
+
+  $json = ($payload | ConvertTo-Json -Depth 10)
+  Set-Content -LiteralPath $jsonPath -Value $json -Encoding UTF8
+
+  $hash = (Get-FileHash -LiteralPath $jsonPath -Algorithm SHA256).Hash.ToLowerInvariant()
+  $shaPath = Join-Path $OutDir "$okName.sha256"
+  Set-Content -LiteralPath $shaPath -Value "$hash  $okName" -Encoding ASCII
+}
 
 function Get-LatestBundle([string]$phase) {
   if (-not (Test-Path $ArtifactsRoot)) { return $null }
@@ -180,11 +218,21 @@ if ($Mode -eq "verify") {
 }
 
 if ($Mode -eq "pre") {
-  & $CaptureScript -Phase PRE -Label $Label
-  Write-Host "PRE capture complete."
-  if ($Commit) {
-    git add .
-    git commit -m ("chore: baseline PRE capture {0}" -f $Label)
+  Push-Location $RepoRoot
+  try {
+    & $CaptureScript -Phase PRE -Label $Label
+    Write-Host "PRE capture complete."
+    if ($ProjectRoot) {
+      Write-BaselineReceipt -ProjectRoot $ProjectRoot -Mode "pre" -RepoRoot $RepoRoot -Label $Label -Data @{
+        baselineCommit = (git -C $RepoRoot rev-parse HEAD 2>$null)
+      }
+    }
+    if ($Commit) {
+      git add .
+      git commit -m ("chore: baseline PRE capture {0}" -f $Label)
+    }
+  } finally {
+    Pop-Location
   }
   exit 0
 }
@@ -193,29 +241,41 @@ if ($Mode -eq "post") {
   $latestPre = Get-LatestBundle "PRE"
   if (-not $latestPre) { throw "No PRE bundle found. Run: .\baseline.ps1 pre" }
 
-  & $CaptureScript -Phase POST -Label $Label
+  Push-Location $RepoRoot
+  try {
+    & $CaptureScript -Phase POST -Label $Label
 
-  $latestPost = Get-LatestBundle "POST"
-  if (-not $latestPost) { throw "POST bundle not found after capture." }
+    $latestPost = Get-LatestBundle "POST"
+    if (-not $latestPost) { throw "POST bundle not found after capture." }
 
-  if ($VerifyHashes) {
-    $badPre  = Verify-BundleHashes $latestPre
-    $badPost = Verify-BundleHashes $latestPost
-    if ($badPre -ne 0 -or $badPost -ne 0) {
-      throw ("Hash verify failed. PRE bad={0} POST bad={1}" -f $badPre, $badPost)
+    if ($VerifyHashes) {
+      $badPre  = Verify-BundleHashes $latestPre
+      $badPost = Verify-BundleHashes $latestPost
+      if ($badPre -ne 0 -or $badPost -ne 0) {
+        throw ("Hash verify failed. PRE bad={0} POST bad={1}" -f $badPre, $badPost)
+      }
     }
-  }
 
-  $reportName = "drift-{0}_TO_{1}.md" -f (Split-Path $latestPre -Leaf), (Split-Path $latestPost -Leaf)
-  $reportPath = Join-Path $ReportsRoot $reportName
-  Write-ReportMd -preDir $latestPre -postDir $latestPost -outPath $reportPath
+    $reportName = "drift-{0}_TO_{1}.md" -f (Split-Path $latestPre -Leaf), (Split-Path $latestPost -Leaf)
+    $reportPath = Join-Path $ReportsRoot $reportName
+    Write-ReportMd -preDir $latestPre -postDir $latestPost -outPath $reportPath
 
-  Write-Host "POST capture complete."
-  Write-Host ("Drift report: {0}" -f $reportPath)
+    Write-Host "POST capture complete."
+    Write-Host ("Drift report: {0}" -f $reportPath)
 
-  if ($Commit) {
-    git add .
-    git commit -m ("feat: baseline POST capture + drift report {0}" -f $Label)
+    if ($ProjectRoot) {
+      Write-BaselineReceipt -ProjectRoot $ProjectRoot -Mode "post" -RepoRoot $RepoRoot -Label $Label -Data @{
+        baselineCommit = (git -C $RepoRoot rev-parse HEAD 2>$null)
+        verifyHashes   = [bool]$VerifyHashes
+      }
+    }
+
+    if ($Commit) {
+      git add .
+      git commit -m ("feat: baseline POST capture + drift report {0}" -f $Label)
+    }
+  } finally {
+    Pop-Location
   }
   exit 0
 }
