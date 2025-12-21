@@ -1,0 +1,61 @@
+"strategy": {
+  "objective": "Achieve probation-compliant housing stability using currently available programs and verified eligibility.",
+  "status": "verification_phase",
+
+  "constraints": {
+    "probation_compliance_required": true,
+    "jurisdiction_limited": true,
+    "income_verification_required": true,
+    "housing_program_availability_limited": true
+  },
+
+  "current_programs_considered": [
+    "VA Health Care Enrollment",
+    "VA Disability Claim (if applicable)",
+    "HUD-VASH (if eligibility criteria met)",
+    "Local Housing Authority programs",
+    "Emergency or transitional shelter options (probation-dependent)"
+  ],
+
+  "action_steps": [
+    {
+      "step": 1,
+      "action": "Verify veteran status and obtain DD214 or equivalent service documentation",
+      "blocking": true
+    },
+    {
+      "step": 2,
+      "action": "Confirm VA enrollment status and initiate enrollment if not active",
+      "blocking": true
+    },
+    {
+      "step": 3,
+      "action": "Assess HUD-VASH eligibility based on homelessness definition and VA status",
+      "blocking": false
+    },
+    {
+      "step": 4,
+      "action": "Confirm probation housing constraints and jurisdiction requirements with supervising officer",
+      "blocking": true
+    },
+    {
+      "step": 5,
+      "action": "Document current income status and obtain required verification or zero-income affidavit",
+      "blocking": false
+    },
+    {
+      "step": 6,
+      "action": "Evaluate currently available housing options that meet probation and program requirements",
+      "blocking": false
+    }
+  ],
+
+  "explicit_exclusions": [
+    "Unverified housing initiatives",
+    "Proposed or pilot programs",
+    "Programs without confirmed intake criteria",
+    "Housing options not approved by probation"
+  ],
+
+  "strategy_notes": "This strategy intentionally limits scope to verified programs and confirmed constraints. No housing placement is assumed at this stage."
+}

@@ -1,0 +1,172 @@
+{
+  "case_id": "PO_DEMO_GENERIC_0001",
+  "created_utc": null,
+  "status": "active",
+  "intake": {
+    "intake_version": "1.0",
+    "intake_status": "incomplete_pending_verification",
+    "last_updated_utc": null,
+    "identity": {
+      "pii_policy": "minimal",
+      "first_name": null,
+      "last_name": null,
+      "preferred_name": null,
+      "dob": null,
+      "age_range": "unknown",
+      "gender": "unknown",
+      "contact": {
+        "phone": null,
+        "email": null,
+        "preferred_method": "unknown"
+      }
+    },
+    "service": {
+      "veteran_claimed": true,
+      "veteran_verified": false,
+      "verification_method": "unknown",
+      "branch": "unknown",
+      "component": "unknown",
+      "rank_at_separation": "unknown",
+      "service_dates": {
+        "start": null,
+        "end": null
+      },
+      "discharge": {
+        "type": "unknown_pending_verification",
+        "date": null
+      },
+      "documents": {
+        "dd214_available": "unknown",
+        "other_service_proof_available": "unknown",
+        "evidence_notes": null
+      }
+    },
+    "va_status": {
+      "enrolled_in_va_health_care": "unknown",
+      "va_enrollment_verified": false,
+      "service_connected_claim": {
+        "has_claim": "unknown",
+        "claim_status": "unknown",
+        "rating_percent": null
+      },
+      "evidence_required": [
+        "DD214 or equivalent proof of service",
+        "VA enrollment confirmation (if enrolled)",
+        "VA decision letters (if any)"
+      ]
+    },
+    "legal": {
+      "under_supervision": "unknown",
+      "supervision_type": "unknown",
+      "jurisdiction": "unknown",
+      "supervision_officer": {
+        "name": null,
+        "agency": null,
+        "contact": null
+      },
+      "housing_requirement": {
+        "stable_housing_required": "unknown",
+        "details_verified": false,
+        "verification_source": "unknown"
+      },
+      "other_conditions": {
+        "income_verification_required": "unknown",
+        "check_in_schedule": "unknown",
+        "curfew_or_location_limits": "unknown"
+      }
+    },
+    "housing": {
+      "current_status": "unknown",
+      "current_situation": "unknown",
+      "has_safe_place_tonight": "unknown",
+      "risk_level": "unknown",
+      "homelessness_definition_met": "unknown",
+      "constraints": {
+        "must_remain_in_jurisdiction": "unknown",
+        "transportation_limits": "unknown"
+      },
+      "evidence_notes": null
+    },
+    "income": {
+      "employment_status": "unknown",
+      "monthly_income_estimate": null,
+      "income_sources": [],
+      "verification_status": "pending",
+      "evidence_required": [
+        "Pay stubs (if employed)",
+        "Benefit letters (if receiving benefits)",
+        "Zero-income affidavit (if applicable)"
+      ]
+    },
+    "known_facts": [],
+    "unknowns": [
+      "Veteran verification status",
+      "VA enrollment status",
+      "Probation housing requirements details",
+      "Current housing situation specifics",
+      "Income verification status"
+    ],
+    "data_sources": [],
+    "intake_notes": "Factual intake only. No program eligibility or housing placement is assumed until verified."
+  },
+  "strategy": {
+    "objective": "Achieve probation-compliant housing stability using currently available programs and verified eligibility.",
+    "status": "verification_phase",
+    "constraints": {
+      "probation_compliance_required": true,
+      "jurisdiction_limited": true,
+      "income_verification_required": true,
+      "housing_program_availability_limited": true
+    },
+    "current_programs_considered": [
+      "VA Health Care Enrollment",
+      "VA Disability Claim (if applicable)",
+      "HUD-VASH (if eligibility criteria met)",
+      "Local Housing Authority programs",
+      "Emergency or transitional shelter options (probation-dependent)"
+    ],
+    "action_steps": [
+      {
+        "step": 1,
+        "action": "Verify veteran status and obtain DD214 or equivalent service documentation",
+        "blocking": true
+      },
+      {
+        "step": 2,
+        "action": "Confirm VA enrollment status and initiate enrollment if not active",
+        "blocking": true
+      },
+      {
+        "step": 3,
+        "action": "Assess HUD-VASH eligibility based on homelessness definition and VA status",
+        "blocking": false
+      },
+      {
+        "step": 4,
+        "action": "Confirm probation housing constraints and jurisdiction requirements with supervising officer",
+        "blocking": true
+      },
+      {
+        "step": 5,
+        "action": "Document current income status and obtain required verification or zero-income affidavit",
+        "blocking": false
+      },
+      {
+        "step": 6,
+        "action": "Evaluate currently available housing options that meet probation and program requirements",
+        "blocking": false
+      }
+    ],
+    "explicit_exclusions": [
+      "Unverified housing initiatives",
+      "Proposed or pilot programs",
+      "Programs without confirmed intake criteria",
+      "Housing options not approved by probation"
+    ],
+    "strategy_notes": "This strategy intentionally limits scope to verified programs and confirmed constraints. No housing placement is assumed at this stage."
+  },
+  "benefits": {},
+  "docs": {},
+  "comms": {},
+  "history": []
+}

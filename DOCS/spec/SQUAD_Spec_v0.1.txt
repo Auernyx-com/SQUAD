@@ -1,0 +1,128 @@
+SQUAD v0.1 — Project Specification (Draft)
+1. Purpose
+
+SQUAD is a veteran support navigation system that helps vets identify and access:
+
+housing resources
+
+benefits
+
+crisis support
+
+documentation assistance
+
+local programs
+
+transportation and employment pathways
+
+Its goal is to eliminate confusion, shorten wait times, and prevent vets from falling through bureaucratic cracks.
+
+2. Target Users
+
+Veterans experiencing homelessness
+
+Veterans at risk of losing housing
+
+Veterans unfamiliar with VA benefits
+
+Veterans recently discharged
+
+Veterans with cognitive overload, PTSD, or executive dysfunction
+
+3. Core Features (v0.1)
+A. Housing Routing Engine
+
+Inputs: housing status, income, VA status, disability rating, dependents, risk level, chronic homelessness, location
+
+Output: primary recommended path + alternative options
+
+Logic stored in Houseingv0.1.txt
+
+B. Battle Buddy AI
+
+Plain-language explanation of next steps
+
+Converts government-speak into human speak
+
+Guides users through forms, documents, and eligibility checks
+
+Helps prepare for appointments
+
+C. Resource Directory (Phase 1 Placeholder)
+
+List of local shelters
+
+SSVF contacts
+
+HUD-VASH contact info
+
+Crisis lines
+
+Local VA clinic/benefits office
+
+(This is static data for now — no database yet.)
+
+4. User Flow (v0.1)
+
+User opens SQUAD (eventually an app or web portal).
+
+They answer a small set of questions (housing status, income, VA status, etc.).
+
+The housing engine runs and outputs recommended paths.
+
+Battle Buddy explains the results in simple, supportive language.
+
+User is given contact info and outline next steps.
+
+User can optionally save results or print a checklist.
+
+5. Constraints / What SQUAD is NOT Yet
+
+No live database connections
+
+No VA API integration
+
+No identity verification
+
+No advanced AI models
+
+No automated forms submission
+
+
+
+6. Phase Roadmap
+Phase 0 (Now)
+
+Housing logic file
+
+Project specification
+
+Basic resource list
+
+Phase 1
+
+Battle Buddy skeleton (command-line or basic UI)
+
+Simple Python version of the housing engine
+
+Phase 2
+
+Web-based interface
+
+Save/load user profiles
+
+Map-based resource lookup
+
+Phase 3
+
+Organization partnerships
+
+VA liaison input
+
+Funding applications
+
+7. Motivation
+
+A short, simple, professional statement:
+
+As a veteran who has personally experienced gaps in the system, I am creating SQUAD to help others avoid the confusion and instability I endured. This is not a business play — it is a community need.

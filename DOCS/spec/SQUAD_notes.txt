@@ -1,0 +1,29 @@
+IF immediate_danger == True:
+    PATH = "Crisis Shelter / DV Shelter / 988 Veterans Line"
+
+ELSE:
+    IF housing_status == "unsheltered" OR "car":
+        IF has_VA AND disability_rating >= 50:
+            PATH = "HUD-VASH (high priority)"
+            SECONDARY = ["SSVF", "Emergency shelter", "Rapid rehousing"]
+        ELSE:
+            PATH = "SSVF / Emergency shelter"
+            SECONDARY = ["Rapid rehousing", "HUD-VASH (if eligible)"]
+
+    ELIF housing_status == "couch":
+        IF income_monthly < 1000:
+            PATH = "SSVF / Rapid rehousing"
+        ELSE:
+            PATH = "Rental stabilization / short-term assistance"
+
+    ELIF housing_status == "shelter":
+        IF chronic_homeless == True:
+            PATH = "Permanent supportive housing / HUD-VASH"
+        ELSE:
+            PATH = "Rapid rehousing / SSVF"
+
+    ELIF housing_status == "unstable_housed":
+        PATH = "Eviction prevention / rental assistance"
+
+    ELSE:
+        PATH = "Benefits, mental health, employment support"

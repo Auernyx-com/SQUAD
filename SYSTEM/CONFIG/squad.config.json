@@ -1,0 +1,14 @@
+﻿{
+  "project": "SQUAD",
+  "root": "C:\\\\Projects\\\\SQUAD",
+  "version": "0.1.0",
+  "ethics": {
+    "no_fraud": true,
+    "no_impersonation": true,
+    "no_medical_or_legal_diagnosis": true
+  },
+  "case_defaults": {
+    "max_actions_per_day": 3,
+    "plan_horizon_days": 7
+  }
+}

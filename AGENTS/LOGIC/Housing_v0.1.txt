@@ -1,0 +1,108 @@
+from dataclasses import dataclass
+
+@dataclass
+class VetProfile:
+    housing_status: str          # "unsheltered", "car", "couch", "shelter", "unstable_housed", "stable"
+    income_monthly: int          # dollars
+    has_va_care: bool            # already in VA system
+    disability_rating: int       # 0–100
+    has_dependents: bool
+    immediate_danger: bool       # DV / unsafe situation
+    chronic_homeless: bool       # long-term pattern (yes/no)
+    location: str                # zip or county string
+
+
+def route_housing(profile: VetProfile) -> dict:
+    """
+    Very rough v0.1 housing routing engine.
+    No mancamp / transitional camp paths yet.
+    Returns a dict with primary_path, secondary_options, and flags.
+    """
+
+    result = {
+        "primary_path": None,
+        "secondary_options": [],
+        "flags": []
+    }
+
+    # 1. Safety first
+    if profile.immediate_danger:
+        result["primary_path"] = "Crisis Shelter / DV Shelter / 988 Veterans Line"
+        result["secondary_options"] = [
+            "Local emergency shelter",
+            "VA ER or urgent care"
+        ]
+        result["flags"].append("high_risk_safety")
+        return result
+
+    # 2. Unsheltered or in a car
+    if profile.housing_status in ["unsheltered", "car"]:
+        if profile.has_va_care and profile.disability_rating >= 50:
+            result["primary_path"] = "HUD-VASH Referral"
+            result["secondary_options"] = [
+                "SSVF (Supportive Services for Veteran Families)",
+                "Local emergency shelter",
+                "Rapid rehousing programs"
+            ]
+            result["flags"].append("priority_housing_candidate")
+        else:
+            result["primary_path"] = "SSVF / Emergency Shelter"
+            result["secondary_options"] = [
+                "Rapid rehousing programs",
+                "HUD-VASH (if eligible)"
+            ]
+        return result
+
+    # 3. Couch-surfing
+    if profile.housing_status == "couch":
+        if profile.income_monthly < 1000:
+            result["primary_path"] = "SSVF / Rapid Rehousing"
+            result["secondary_options"] = [
+                "Emergency shelter if situation collapses",
+                "Rental assistance programs",
+                "Case management via VA or local provider"
+            ]
+        else:
+            result["primary_path"] = "Rental stabilization / short-term assistance"
+            result["secondary_options"] = [
+                "Short-term rental assistance",
+                "Roommate / shared housing options",
+                "SSVF if income changes"
+            ]
+        return result
+
+    # 4. In a shelter currently
+    if profile.housing_status == "shelter":
+        if profile.chronic_homeless:
+            result["primary_path"] = "Permanent Supportive Housing / HUD-VASH"
+            result["secondary_options"] = [
+                "SSVF",
+                "Local permanent supportive housing providers"
+            ]
+            result["flags"].append("chronic_homeless")
+        else:
+            result["primary_path"] = "Rapid Rehousing"
+            result["secondary_options"] = [
+                "SSVF",
+                "HUD-VASH (if eligible)"
+            ]
+        return result
+
+    # 5. Housed but unstable
+    if profile.housing_status == "unstable_housed":
+        result["primary_path"] = "Eviction Prevention / Rental Assistance"
+        result["secondary_options"] = [
+            "Mediation / landlord negotiation",
+            "SSVF (if veteran-eligible)",
+            "Local emergency fund programs"
+        ]
+        return result
+
+    # 6. Stable, but needing support
+    result["primary_path"] = "Benefits optimization / mental health / employment support"
+    result["secondary_options"] = [
+        "File or update VA disability claim",
+        "Connect with VA mental health / peer support",
+        "Employment / retraining services"
+    ]
+    return result
