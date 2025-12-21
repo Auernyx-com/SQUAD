@@ -1,0 +1,6 @@
+# Ignore generated artifacts and logs
+/artifacts/
+/logs/
+
+# Optional: ignore local temp helpers
+temp_*.ps1
