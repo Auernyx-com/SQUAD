@@ -210,11 +210,10 @@ function Verify-BundleHashes([string]$bundleDir) {
     $parts = $line -split "\s\s+", 2
     if ($parts.Count -ne 2) { continue }
     $expected = $parts[0].Trim()
-    $rel = $parts[1].Trim()
-    # Paths in hash file are relative to LedgerRoot (where artifacts are stored)
-    $abs = Join-Path $LedgerRoot $rel
-    if (-not (Test-Path $abs)) { $bad++; continue }
-    $actual = (Get-FileHash -Algorithm SHA256 -Path $abs).Hash
+    $path = $parts[1].Trim()
+    # Hash file contains absolute paths
+    if (-not (Test-Path $path)) { $bad++; continue }
+    $actual = (Get-FileHash -Algorithm SHA256 -Path $path).Hash
     if ($actual -ne $expected) { $bad++ }
   }
   return $bad
