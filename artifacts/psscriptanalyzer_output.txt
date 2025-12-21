@@ -1,0 +1,22 @@
+﻿
+RuleName                            Severity     ScriptName Line  Message                                              
+--------                            --------     ---------- ----  -------                                              
+PSUseSingularNouns                  Warning      Invoke-Bas 34    The cmdlet 'Assert-MarkerExists' uses a plural noun. 
+                                                 elineClerk       A singular noun should be used instead.              
+                                                 .ps1                                                                  
+PSUseApprovedVerbs                  Warning      Invoke-Bas 23    The cmdlet 'Throw-Fatal' uses an unapproved verb.    
+                                                 elineClerk                                                            
+                                                 .ps1                                                                  
+PSAvoidUsingWriteHost               Warning      Invoke-Bas 137   File 'Invoke-BaselineStateCapture.ps1' uses          
+                                                 elineState       Write-Host. Avoid using Write-Host because it might  
+                                                 Capture.ps       not work in all hosts, does not work when there is   
+                                                 1                no host, and (prior to PS 5.0) cannot be suppressed, 
+                                                                  captured, or redirected. Instead, use Write-Output,  
+                                                                  Write-Verbose, or Write-Information.                 
+PSUseApprovedVerbs                  Warning      Invoke-Bas 13    The cmdlet 'Throw-Fatal' uses an unapproved verb.    
+                                                 elineState                                                            
+                                                 Capture.ps                                                            
+                                                 1                                                                     
+
+
+

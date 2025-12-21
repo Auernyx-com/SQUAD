@@ -1,4 +1,4 @@
-[CmdletBinding(SupportsShouldProcess)]
+[CmdletBinding(SupportsShouldProcess=$true)]
 param(
     [switch]$Init,
     [switch]$VerifyOnly,
@@ -20,27 +20,31 @@ $LogFile = Join-Path $LogDir "baseline-clerk-$Timestamp.log"
 # -------------------------------
 # Safety checks
 # -------------------------------
-function Throw-Fatal($msg) {
-    Write-Error $msg
+function Write-BaselineError {
+    [CmdletBinding()]
+    param(
+        [string]$Message
+    )
+    Write-Error $Message
     exit 1
 }
 
 function Assert-InRepoRoot {
     if (-not (Test-Path $RepoRoot)) {
-        Throw-Fatal "Repo root does not exist."
+        Stop-Baseline "Repo root does not exist."
     }
 }
 
-function Assert-MarkerExists {
+function Assert-BaselineMarker {
     if (-not (Test-Path (Join-Path $RepoRoot $RepoMarker))) {
-        Throw-Fatal "Baseline marker missing. Refusing to run without -Init."
+        Stop-Baseline "Baseline marker missing. Refusing to run without -Init."
     }
 }
 
 function Assert-SafePath($path) {
     $full = [System.IO.Path]::GetFullPath($path)
-    if (-not $full.StartsWith($RepoRoot)) {
-        Throw-Fatal "Path escape detected: $path"
+    if (-not $full.StartsWith($RepoRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
+        Stop-Baseline "Path escape detected: $path"
     }
 }
 
@@ -55,10 +59,31 @@ function Write-Log($msg) {
 # -------------------------------
 # Hash helper
 # -------------------------------
-function Write-Hash($target) {
+function Write-Hash {
+    [CmdletBinding(SupportsShouldProcess=$true)]
+    param(
+        [string]$target
+    )
     $hash = Get-FileHash -Algorithm SHA256 -Path $target
-    $hash.Path | Out-File "$($target).sha256"
-    $hash.Hash | Add-Content "$($target).sha256"
+    $rel = $hash.Path
+    if ([System.IO.Path].GetMethod("GetRelativePath")) {
+        try {
+            $rel = [System.IO.Path]::GetRelativePath($RepoRoot, $rel)
+        } catch {
+                if ($rel.StartsWith($RepoRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
+                $rel = $rel.Substring($RepoRoot.Length).TrimStart([char]92,[char]47)
+            }
+        }
+    } else {
+        if ($rel.StartsWith($RepoRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
+            $rel = $rel.Substring($RepoRoot.Length).TrimStart([char]92,[char]47)
+        }
+    }
+    $outPath = "$($target).sha256"
+    if ($PSCmdlet.ShouldProcess($outPath, 'Write hash file')) {
+        "{0}  {1}" -f $hash.Hash, $rel | Out-File $outPath -Encoding utf8
+        Write-Verbose "Wrote hash file: $outPath"
+    }
 }
 
 # -------------------------------
@@ -66,13 +91,16 @@ function Write-Hash($target) {
 # -------------------------------
 Assert-InRepoRoot
 
-if (-not $Init) {
-    Assert-MarkerExists
+    if (-not $Init) {
+    Assert-BaselineMarker
 }
 
 # Ensure log dir exists
 if (-not (Test-Path $LogDir)) {
-    New-Item -ItemType Directory -Path $LogDir | Out-Null
+    if ($PSCmdlet.ShouldProcess($LogDir, 'Create log directory')) {
+        New-Item -ItemType Directory -Path $LogDir | Out-Null
+        Write-Verbose "Created log directory: $LogDir"
+    }
 }
 
 Write-Log "Invoke-BaselineClerk v$ScriptVersion"
@@ -81,8 +109,12 @@ Write-Log "Init=$Init VerifyOnly=$VerifyOnly EmitHashes=$EmitHashes"
 
 if ($Init) {
     if (-not (Test-Path (Join-Path $RepoRoot $RepoMarker))) {
-        Write-Log "Creating baseline marker"
-        New-Item -ItemType File -Path (Join-Path $RepoRoot $RepoMarker) | Out-Null
+        $markerPath = (Join-Path $RepoRoot $RepoMarker)
+        if ($PSCmdlet.ShouldProcess($markerPath, 'Create baseline marker')) {
+            Write-Log "Creating baseline marker"
+            New-Item -ItemType File -Path $markerPath | Out-Null
+            Write-Verbose "Created baseline marker: $markerPath"
+        }
     }
 
     foreach ($dir in $AllowedDirs) {
@@ -90,9 +122,12 @@ if ($Init) {
         Assert-SafePath $target
 
         if (-not (Test-Path $target)) {
-            Write-Log "Creating directory: $dir"
-            New-Item -ItemType Directory -Path $target | Out-Null
-            New-Item -ItemType File -Path (Join-Path $target ".gitkeep") | Out-Null
+            if ($PSCmdlet.ShouldProcess($target, "Create directory $dir")) {
+                Write-Log "Creating directory: $dir"
+                New-Item -ItemType Directory -Path $target | Out-Null
+                New-Item -ItemType File -Path (Join-Path $target ".gitkeep") | Out-Null
+                Write-Verbose "Created directory and .gitkeep: $target"
+            }
         } else {
             Write-Log "Directory exists: $dir"
         }
@@ -103,7 +138,7 @@ if ($VerifyOnly) {
     foreach ($dir in $AllowedDirs) {
         $target = Join-Path $RepoRoot $dir
         if (-not (Test-Path $target)) {
-            Throw-Fatal "Missing required directory: $dir"
+            Stop-Baseline "Missing required directory: $dir"
         }
     }
     Write-Log "Verification passed"
