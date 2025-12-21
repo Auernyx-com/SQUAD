@@ -1,3 +1,7 @@
+#This repository is part of the ÆSIR governance toolchain and serves as the canonical baseline capture and verification layer for all ÆSIR-managed projects.#
+
+
+
 \# Baseline Algorithms and Programs
 
 
