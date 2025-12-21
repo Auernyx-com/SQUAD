@@ -34,6 +34,11 @@ function Assert-RepoRoot {
 
 function Assert-SafePath($path) {
     $full = [System.IO.Path]::GetFullPath($path)
+    # Allow paths under custom artifacts root (for ledger separation)
+    if ($env:BASELINE_ARTIFACTS_ROOT -and $full.StartsWith([System.IO.Path]::GetFullPath($env:BASELINE_ARTIFACTS_ROOT), [System.StringComparison]::OrdinalIgnoreCase)) {
+        return
+    }
+    # Otherwise, path must be under repo root
     if (-not $full.StartsWith($RepoRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
         Write-BaselineError -Message "Path escape detected: $path"
     }
