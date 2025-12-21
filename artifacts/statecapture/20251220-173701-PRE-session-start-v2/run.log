@@ -1,0 +1,5 @@
+﻿[2025-12-20 17:37:01Z] Invoke-BaselineStateCapture starting
+Phase=PRE Label=session-start-v2
+RepoRoot=C:\baseline-algorithms-and-programs
+Bundle=20251220-173701-PRE-session-start-v2
+[2025-12-20 17:37:07Z] Completed successfully

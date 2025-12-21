@@ -1,0 +1,10 @@
+﻿{
+    "schema_version":  "1.0",
+    "module":  "BaselineStateCapture",
+    "phase":  "PRE",
+    "label":  "session-start-v2",
+    "timestamp_local":  "2025-12-20 17:37:07",
+    "timestamp_utc":  "2025-12-21 00:37:07",
+    "repo_root":  "C:\\baseline-algorithms-and-programs",
+    "output_dir":  "C:\\baseline-algorithms-and-programs\\artifacts\\statecapture\\20251220-173701-PRE-session-start-v2"
+}
