@@ -1,4 +1,4 @@
-[CmdletBinding()]
+[CmdletBinding(SupportsShouldProcess=$true)]
 param(
     [ValidateSet("PRE","POST")]
     [string]$Phase = "PRE",
@@ -10,21 +10,25 @@ $RepoMarker = ".baseline-repo.marker"
 $RepoRoot = (Get-Location).Path
 $MarkerPath = Join-Path $RepoRoot $RepoMarker
 
-function Throw-Fatal($msg) {
-    Write-Error $msg
+function Write-BaselineError {
+    [CmdletBinding()]
+    param(
+        [string]$Message
+    )
+    Write-Error $Message
     exit 1
 }
 
 function Assert-RepoRoot {
     if (-not (Test-Path $MarkerPath)) {
-        Throw-Fatal "Baseline marker missing. Refusing to run outside a baseline repo root."
+        Write-BaselineError -Message "Baseline marker missing. Refusing to run outside a baseline repo root."
     }
 }
 
 function Assert-SafePath($path) {
     $full = [System.IO.Path]::GetFullPath($path)
-    if (-not $full.StartsWith($RepoRoot)) {
-        Throw-Fatal "Path escape detected: $path"
+    if (-not $full.StartsWith($RepoRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
+        Write-BaselineError -Message "Path escape detected: $path"
     }
 }
 
@@ -36,7 +40,22 @@ function Write-FileHashList($targetDir, $outFile) {
 
     $lines = foreach ($f in $items) {
         $h = Get-FileHash -Algorithm SHA256 -Path $f.FullName
-        "{0}  {1}" -f $h.Hash, ($h.Path.Substring($RepoRoot.Length + 1))
+                $rel = $h.Path
+                if ([System.IO.Path].GetMethod("GetRelativePath")) {
+                    try {
+                        $rel = [System.IO.Path]::GetRelativePath($RepoRoot, $rel)
+                    } catch {
+                        if ($rel.StartsWith($RepoRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
+                            $rel = $rel.Substring($RepoRoot.Length).TrimStart([char]92,[char]47)
+                        }
+                    }
+                } else {
+                    if ($rel.StartsWith($RepoRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
+                        $rel = $rel.Substring($RepoRoot.Length).TrimStart([char]92,[char]47)
+                    }
+                }
+                $entry = "{0}  {1}" -f $h.Hash, $rel
+                $entry
     }
 
     $lines | Out-File -FilePath $outFile -Encoding utf8
@@ -51,7 +70,10 @@ $bundleName = ($slug -join "-")
 $outRoot = Join-Path $RepoRoot "artifacts\statecapture\$bundleName"
 Assert-SafePath $outRoot
 
-New-Item -ItemType Directory -Path $outRoot -Force | Out-Null
+if ($PSCmdlet.ShouldProcess($outRoot, 'Create output bundle directory')) {
+    New-Item -ItemType Directory -Path $outRoot -Force | Out-Null
+    Write-Verbose "Created output directory: $outRoot"
+}
 
 $logFile = Join-Path $outRoot "run.log"
 "[$(Get-Date -Format u)] Invoke-BaselineStateCapture starting" | Out-File $logFile -Encoding utf8
@@ -61,11 +83,19 @@ $logFile = Join-Path $outRoot "run.log"
 
 # --- Capture outputs ---
 try {
-    systeminfo | Out-File (Join-Path $outRoot "systeminfo.txt") -Encoding utf8
+    $sf = (Join-Path $outRoot "systeminfo.txt")
+    if ($PSCmdlet.ShouldProcess($sf, 'Write systeminfo capture')) {
+        systeminfo | Out-File $sf -Encoding utf8
+        Write-Verbose "Wrote systeminfo to $sf"
+    }
 } catch { "systeminfo failed: $_" | Add-Content $logFile }
 
 try {
-    Get-ChildItem Env: | Sort-Object Name | Out-File (Join-Path $outRoot "env.txt") -Encoding utf8
+    $ef = (Join-Path $outRoot "env.txt")
+    if ($PSCmdlet.ShouldProcess($ef, 'Write env capture')) {
+        Get-ChildItem Env: | Sort-Object Name | Out-File $ef -Encoding utf8
+        Write-Verbose "Wrote env to $ef"
+    }
 } catch { "env capture failed: $_" | Add-Content $logFile }
 
 try {
@@ -100,7 +130,11 @@ try {
 } catch { "firewall profile capture failed: $_" | Add-Content $logFile }
 
 try {
-    netsh advfirewall export (Join-Path $outRoot "firewall_export.wfw") | Out-Null
+    $fwExp = (Join-Path $outRoot "firewall_export.wfw")
+    if ($PSCmdlet.ShouldProcess($fwExp, 'Export firewall configuration')) {
+        netsh advfirewall export $fwExp | Out-Null
+        Write-Verbose "Exported firewall to $fwExp"
+    }
 } catch { "firewall export failed: $_" | Add-Content $logFile }
 
 # --- Manifest ---
@@ -114,10 +148,16 @@ $manifest = [ordered]@{
     repo_root = $RepoRoot
     output_dir = $outRoot
 }
-$manifest | ConvertTo-Json -Depth 5 | Out-File (Join-Path $outRoot "manifest.json") -Encoding utf8
+if ($PSCmdlet.ShouldProcess((Join-Path $outRoot "manifest.json"), 'Write manifest')) {
+    $manifest | ConvertTo-Json -Depth 5 | Out-File (Join-Path $outRoot "manifest.json") -Encoding utf8
+    Write-Verbose "Wrote manifest.json"
+}
 
 # --- Hashes ---
-Write-FileHashList -targetDir $outRoot -outFile (Join-Path $outRoot "hashes.sha256")
+if ($PSCmdlet.ShouldProcess((Join-Path $outRoot "hashes.sha256"), 'Write hashes')) {
+    Write-FileHashList -targetDir $outRoot -outFile (Join-Path $outRoot "hashes.sha256")
+    Write-Verbose "Wrote hashes.sha256"
+}
 
 "[$(Get-Date -Format u)] Completed successfully" | Add-Content $logFile
-Write-Host "State capture bundle created: $outRoot"
+Write-Output "State capture bundle created: $outRoot"
