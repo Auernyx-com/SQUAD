@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Landlord_Outreach_Packet_v1_output",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "landlordCallScript": { "type": "string" },
+    "smsTemplate": { "type": "string" },
+    "emailTemplate": { "type": "string" },
+    "docChecklist": { "type": "array", "items": { "type": "string" } },
+    "fixList": { "type": "array", "items": { "type": "string" } },
+    "timeline": { "type": "array", "items": { "type": "string" } },
+    "phaQuestions": { "type": "array", "items": { "type": "string" } },
+    "notes": { "type": "array", "items": { "type": "string" } }
+  },
+  "required": [
+    "landlordCallScript",
+    "smsTemplate",
+    "emailTemplate",
+    "docChecklist",
+    "fixList",
+    "timeline",
+    "phaQuestions",
+    "notes"
+  ]
+}
