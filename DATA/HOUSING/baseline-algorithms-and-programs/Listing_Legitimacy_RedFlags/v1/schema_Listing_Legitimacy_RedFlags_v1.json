@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Listing_Legitimacy_RedFlags_v1",
+  "type": "object",
+  "properties": {
+    "listing": {
+      "type": "object",
+      "required": [
+        "platform",
+        "location",
+        "price",
+        "contact",
+        "paymentSignals",
+        "communicationSignals",
+        "contentSignals"
+      ],
+      "properties": {
+        "platform": {
+          "type": "string",
+          "enum": [
+            "zillow",
+            "apartments_dot_com",
+            "craigslist",
+            "facebook_marketplace",
+            "instagram",
+            "tiktok",
+            "whatsapp",
+            "unknown",
+            "other"
+          ]
+        },
+        "listingUrl": { "type": ["string", "null"] },
+
+        "location": {
+          "type": "object",
+          "required": ["addressOrArea"],
+          "properties": {
+            "addressOrArea": { "type": "string" },
+            "city": { "type": ["string", "null"] },
+            "state": { "type": ["string", "null"] },
+            "zip": { "type": ["string", "null"] }
+          }
+        },
+
+        "price": {
+          "type": "object",
+          "required": ["rentMonthly"],
+          "properties": {
+            "rentMonthly": { "type": "number", "minimum": 0 },
+            "deposit": { "type": ["number", "null"], "minimum": 0 },
+            "applicationFee": { "type": ["number", "null"], "minimum": 0 },
+            "rentSeemsFarBelowMarket": { "type": "string", "enum": ["yes", "no", "unknown"] }
+          }
+        },
+
+        "contact": {
+          "type": "object",
+          "required": ["identityClear"],
+          "properties": {
+            "contactName": { "type": ["string", "null"] },
+            "contactRole": {
+              "type": "string",
+              "enum": ["owner", "property_manager", "agent", "unknown"]
+            },
+            "identityClear": { "type": "string", "enum": ["yes", "no", "unknown"] },
+            "contactMethods": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["platform_messaging", "email", "sms", "phone_call", "whatsapp", "telegram", "other"]
+              }
+            }
+          }
+        },
+
+        "paymentSignals": {
+          "type": "object",
+          "required": [
+            "requestsUpfrontPaymentBeforeViewing",
+            "requestsDepositToHoldWithoutLease",
+            "paymentMethodRequested",
+            "requestsCashAppVenmoZelleOnly"
+          ],
+          "properties": {
+            "requestsUpfrontPaymentBeforeViewing": { "type": "string", "enum": ["yes", "no", "unknown"] },
+            "requestsDepositToHoldWithoutLease": { "type": "string", "enum": ["yes", "no", "unknown"] },
+            "requestsApplicationFeeBeforeTour": { "type": "string", "enum": ["yes", "no", "unknown"] },
+            "paymentMethodRequested": {
+              "type": "string",
+              "enum": ["cash", "check", "money_order", "zelle", "cashapp", "venmo", "paypal", "wire", "gift_cards", "crypto", "unknown", "other"]
+            },
+            "requestsCashAppVenmoZelleOnly": { "type": "string", "enum": ["yes", "no", "unknown"] },
+            "asksForSocialSecurityOrIDBeforeTour": { "type": "string", "enum": ["yes", "no", "unknown"] }
+          }
+        },
+
+        "communicationSignals": {
+          "type": "object",
+          "required": [
+            "pushesOffPlatformCommunication",
+            "createsUrgencyPressure",
+            "refusesLiveCallOrVideoTour",
+            "avoidsInPersonShowing"
+          ],
+          "properties": {
+            "pushesOffPlatformCommunication": { "type": "string", "enum": ["yes", "no", "unknown"] },
+            "createsUrgencyPressure": { "type": "string", "enum": ["yes", "no", "unknown"] },
+            "refusesLiveCallOrVideoTour": { "type": "string", "enum": ["yes", "no", "unknown"] },
+            "avoidsInPersonShowing": { "type": "string", "enum": ["yes", "no", "unknown"] },
+            "claimsOutOfStateOrMissionaryOrMilitaryStory": { "type": "string", "enum": ["yes", "no", "unknown"] }
+          }
+        },
+
+        "contentSignals": {
+          "type": "object",
+          "required": [
+            "hasExactAddress",
+            "hasInteriorPhotos",
+            "photoCount",
+            "descriptionHasManyTyposOrGenericText",
+            "claimsNoBackgroundCheckNoCreditCheck"
+          ],
+          "properties": {
+            "hasExactAddress": { "type": "string", "enum": ["yes", "no", "unknown"] },
+            "hasInteriorPhotos": { "type": "string", "enum": ["yes", "no", "unknown"] },
+            "photoCount": { "type": "integer", "minimum": 0 },
+            "descriptionHasManyTyposOrGenericText": { "type": "string", "enum": ["yes", "no", "unknown"] },
+            "claimsNoBackgroundCheckNoCreditCheck": { "type": "string", "enum": ["yes", "no", "unknown"] },
+            "mentionsVoucherFriendly": { "type": "string", "enum": ["yes", "no", "unknown"] }
+          }
+        },
+
+        "notesText": { "type": ["string", "null"] }
+      }
+    }
+  },
+  "required": ["listing"]
+}
