@@ -1,0 +1,50 @@
+{
+  "unit": {
+    "address": "123 Example St",
+    "unitType": "apartment",
+    "listingUrl": null,
+    "bedroomsAdvertised": 2,
+    "bathroomsAdvertised": 1.0,
+    "sqft": 900,
+    "yearBuilt": 1975,
+    "floorLevel": 2,
+    "hasBasementBedroom": false,
+
+    "utilities": {
+      "hasWorkingHeat": "unknown",
+      "heatSource": "unknown",
+      "heatProvidedBy": "unknown",
+      "hotWater": "unknown",
+      "cookingAppliance": "stove",
+      "oven": "yes",
+      "washerDryer": "on_site"
+    },
+
+    "ventilation": {
+      "bathroomHasWindow": "unknown",
+      "bathroomHasFanDuctedOutside": "unknown",
+      "kitchenHasVent": "unknown"
+    },
+
+    "safety": {
+      "smokeDetectors": "unknown",
+      "coDetectors": "unknown",
+      "gfciInKitchenBath": "unknown",
+      "handrailsOnStairs": "unknown",
+      "exteriorDoorDeadbolt": "unknown",
+      "egressWindowsInBedrooms": "unknown"
+    },
+
+    "conditionSignals": {
+      "visibleMold": "unknown",
+      "pestSigns": "unknown",
+      "brokenWindows": "unknown",
+      "exposedWiring": "unknown",
+      "missingOutletCovers": "unknown",
+      "leaksWaterDamage": "unknown"
+    },
+
+    "photosProvided": 6,
+    "notesText": "Nice unit, limited photos."
+  }
+}

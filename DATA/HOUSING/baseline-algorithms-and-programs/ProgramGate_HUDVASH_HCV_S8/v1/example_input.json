@@ -1,0 +1,33 @@
+{
+  "programType": "HUD-VASH",
+  "voucherBedroomSize": 1,
+  "listingBedroomCount": 2,
+  "approvalBedroomCapSize": 1,
+  "zip": "81501",
+  "rentToOwner": 1200,
+  "TTP": 420,
+  "incomeAdjustedMonthly": 2400,
+  "isInitialLeaseUp": true,
+  "offBookSidePayments": false,
+  "rentReasonablenessRisk": "MED",
+  "rentReasonablenessPolicy": "FLAG_ONLY",
+  "phaPolicyFlags": ["example"],
+  "utilityResponsibility": {
+    "electric": "tenant",
+    "gas": "tenant",
+    "water": "owner",
+    "sewer": "owner",
+    "trash": "tenant",
+    "internet": "ignore"
+  },
+  "paymentStandardByZip": {
+    "81501": {"0": 1050, "1": 1210, "2": 1535, "3": 1990, "4": 2200}
+  },
+  "utilityAllowanceSchedule": {
+    "81501": {
+      "1": {
+        "electric=tenant;gas=tenant;water=owner;sewer=owner;trash=tenant;internet=ignore": 142
+      }
+    }
+  }
+}
