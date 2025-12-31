@@ -1,0 +1,34 @@
+{
+  "contract_id": "AUERNYX.BattleBuddy.Contract.v1",
+  "schema_version": 1,
+  "timestamp": "2025-12-31T00:00:00Z",
+  "input": {
+    "stage": "CLARIFY",
+    "case": {
+      "case_id": "DEMO_CASE_0001",
+      "domain": "HOUSING",
+      "location": {"city": "", "state": ""},
+      "program": {"name": "", "notes": ""},
+      "timeline": {"today": "2025-12-31", "event_summary": ""},
+      "narrative": "I found a listing and they want a deposit before viewing. I’m worried it’s a scam and I also have a notice with a deadline.",
+      "known_facts": ["User saw listing online", "Deposit requested before viewing"],
+      "unknowns": ["What platform is the listing on?", "What is the deadline date on the notice?", "Which program/rep (if any) is involved?"],
+      "deadlines": [],
+      "people": [{"role": "USER"}]
+    },
+    "constraints": {},
+    "artifacts": [],
+    "flags": {
+      "housing_instability": true,
+      "deadline_risk": true,
+      "fraud_or_phishing_risk": true,
+      "privacy_risk": true
+    },
+    "config": {
+      "enabled_modules": ["BB-Core", "BB-Governance", "BB-Truth"],
+      "max_next_actions": 3,
+      "plan_horizon_days": 7
+    },
+    "module_results": {}
+  }
+}

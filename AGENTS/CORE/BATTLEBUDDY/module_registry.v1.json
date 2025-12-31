@@ -1,0 +1,40 @@
+{
+  "registry_id": "AUERNYX.BattleBuddy.ModuleRegistry.v1",
+  "modules": [
+    {
+      "module_id": "BB-Core",
+      "version": 1,
+      "description": "Stage tracking + standard Battle Buddy plan formatting",
+      "entrypoint": "AGENTS/CORE/BATTLEBUDDY/bb_core_runner_v1.py",
+      "can_disable": false
+    },
+    {
+      "module_id": "BB-Governance",
+      "version": 1,
+      "description": "Allowed/disallowed behaviors + refusal rules + escalation triggers",
+      "entrypoint": "DOCS/AUERNYX_BattleBuddy_Policy_v1.md",
+      "can_disable": true
+    },
+    {
+      "module_id": "BB-Truth",
+      "version": 1,
+      "description": "Cite-or-caveat discipline and confidence gating",
+      "entrypoint": "AGENTS/CORE/BATTLEBUDDY/bb_truth_v1.py",
+      "can_disable": true
+    },
+    {
+      "module_id": "BB-FraudShield",
+      "version": 1,
+      "description": "Fraud/phishing pattern recognition (optional)",
+      "entrypoint": "AGENTS/CORE/BATTLEBUDDY/bb_fraudshield_v1.py",
+      "can_disable": true
+    },
+    {
+      "module_id": "BB-Crisis",
+      "version": 1,
+      "description": "Crisis detection and safe redirect language (optional)",
+      "entrypoint": "AGENTS/CORE/BATTLEBUDDY/bb_crisis_v1.py",
+      "can_disable": true
+    }
+  ]
+}

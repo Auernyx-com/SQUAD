@@ -1,0 +1,11 @@
+{
+  "id": "AUERNYX.BattleBuddy.Config.v1",
+  "enabled_modules": ["BB-Core", "BB-Governance", "BB-Truth"],
+  "max_next_actions": 3,
+  "plan_horizon_days": 7,
+  "safety": {
+    "enable_crisis_redirect": true,
+    "enable_fraud_shield": true,
+    "enable_privacy_warnings": true
+  }
+}

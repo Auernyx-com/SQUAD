@@ -1,0 +1,327 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "squad://schemas/BattleBuddy_Contract_v1.schema.json",
+  "title": "Auernyx BattleBuddy Contract v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract_id", "schema_version", "timestamp", "input"],
+  "properties": {
+    "contract_id": {
+      "type": "string",
+      "const": "AUERNYX.BattleBuddy.Contract.v1"
+    },
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "timestamp": {
+      "type": "string",
+      "description": "ISO-8601 timestamp",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$"
+    },
+    "input": {
+      "$ref": "#/$defs/InputEnvelope"
+    },
+    "output": {
+      "$ref": "#/$defs/OutputEnvelope"
+    }
+  },
+  "$defs": {
+    "Stage": {
+      "type": "string",
+      "enum": [
+        "STABILIZE",
+        "CLARIFY",
+        "LOCK_FACTS",
+        "PICK_LANE",
+        "PREP_OUTREACH",
+        "TRACK_FOLLOW_UP"
+      ]
+    },
+    "Domain": {
+      "type": "string",
+      "enum": [
+        "HOUSING",
+        "BENEFITS",
+        "LEGAL",
+        "INCOME",
+        "INTAKE",
+        "MISC",
+        "UNKNOWN"
+      ]
+    },
+    "Confidence": {
+      "type": "string",
+      "enum": ["HIGH", "MEDIUM", "LOW", "VERIFY_REQUIRED"]
+    },
+    "ISODate": {
+      "type": "string",
+      "description": "ISO-8601 date (YYYY-MM-DD)",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "PersonRole": {
+      "type": "string",
+      "enum": ["USER", "ADVOCATE", "LANDLORD", "AGENCY", "VA", "PHA", "UNKNOWN"]
+    },
+    "Artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_id", "type"],
+      "properties": {
+        "artifact_id": { "type": "string" },
+        "type": {
+          "type": "string",
+          "description": "e.g., NOTICE_TO_VACATE, EMAIL_THREAD, SCREENSHOT, LEASE, VOUCHER_LETTER"
+        },
+        "source": { "type": "string", "description": "where it came from" },
+        "received_date": { "$ref": "#/$defs/ISODate" },
+        "summary": { "type": "string" },
+        "path": { "type": "string", "description": "workspace-relative path if saved" },
+        "redactions_applied": { "type": "boolean", "default": false }
+      }
+    },
+    "Deadline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "date"],
+      "properties": {
+        "label": { "type": "string" },
+        "date": { "$ref": "#/$defs/ISODate" },
+        "source": { "type": "string", "description": "artifact_id or note" },
+        "hard": { "type": "boolean", "default": false }
+      }
+    },
+    "RiskFlags": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "immediate_safety_risk": { "type": "boolean", "default": false },
+        "housing_instability": { "type": "boolean", "default": false },
+        "deadline_risk": { "type": "boolean", "default": false },
+        "fraud_or_phishing_risk": { "type": "boolean", "default": false },
+        "privacy_risk": { "type": "boolean", "default": false },
+        "legal_advice_needed": { "type": "boolean", "default": false },
+        "medical_or_crisis_support_needed": { "type": "boolean", "default": false }
+      }
+    },
+    "Case": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "case_id": { "type": "string" },
+        "domain": { "$ref": "#/$defs/Domain" },
+        "location": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "city": { "type": "string" },
+            "state": { "type": "string", "minLength": 2, "maxLength": 2 }
+          }
+        },
+        "program": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": { "type": "string", "description": "e.g., HUD-VASH, HCV, S8" },
+            "notes": { "type": "string" }
+          }
+        },
+        "timeline": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "today": { "$ref": "#/$defs/ISODate" },
+            "event_summary": { "type": "string" }
+          }
+        },
+        "narrative": { "type": "string", "description": "messy story" },
+        "known_facts": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": []
+        },
+        "unknowns": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": []
+        },
+        "deadlines": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Deadline" },
+          "default": []
+        },
+        "people": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["role"],
+            "properties": {
+              "role": { "$ref": "#/$defs/PersonRole" },
+              "name": { "type": "string" },
+              "org": { "type": "string" },
+              "contact": { "type": "string" }
+            }
+          },
+          "default": []
+        }
+      }
+    },
+    "Config": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled_modules": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": ["BB-Core", "BB-Governance", "BB-Truth"]
+        },
+        "max_next_actions": { "type": "integer", "minimum": 1, "maximum": 10, "default": 3 },
+        "plan_horizon_days": { "type": "integer", "minimum": 1, "maximum": 60, "default": 7 }
+      }
+    },
+    "InputEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stage", "case"],
+      "properties": {
+        "stage": { "$ref": "#/$defs/Stage" },
+        "case": { "$ref": "#/$defs/Case" },
+        "constraints": {
+          "type": "object",
+          "description": "structured constraints from program modules",
+          "additionalProperties": true
+        },
+        "artifacts": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Artifact" },
+          "default": []
+        },
+        "flags": { "$ref": "#/$defs/RiskFlags" },
+        "config": { "$ref": "#/$defs/Config" },
+        "module_results": {
+          "type": "object",
+          "description": "structured facts emitted by other SQUAD modules",
+          "additionalProperties": true
+        }
+      }
+    },
+    "Task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task_id", "title", "owner", "priority"],
+      "properties": {
+        "task_id": { "type": "string" },
+        "title": { "type": "string" },
+        "why": { "type": "string" },
+        "owner": { "type": "string", "enum": ["user", "advocate", "system"] },
+        "priority": { "type": "integer", "minimum": 1, "maximum": 5, "description": "1=highest" },
+        "due_date": { "$ref": "#/$defs/ISODate" },
+        "status": { "type": "string", "enum": ["OPEN", "IN_PROGRESS", "DONE", "BLOCKED"], "default": "OPEN" },
+        "blockers": { "type": "array", "items": { "type": "string" }, "default": [] },
+        "evidence_links": { "type": "array", "items": { "type": "string" }, "default": [] }
+      }
+    },
+    "EvidenceItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["item_id", "label"],
+      "properties": {
+        "item_id": { "type": "string" },
+        "label": { "type": "string" },
+        "why": { "type": "string" },
+        "source": { "type": "string", "description": "artifact_id or module" },
+        "confidence": { "$ref": "#/$defs/Confidence", "default": "VERIFY_REQUIRED" }
+      }
+    },
+    "ScriptTemplate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["script_id", "audience", "channel", "template"],
+      "properties": {
+        "script_id": { "type": "string" },
+        "audience": { "type": "string", "description": "e.g., landlord, PHA, VA rep" },
+        "channel": { "type": "string", "enum": ["PHONE", "EMAIL", "TEXT", "IN_PERSON", "PORTAL"] },
+        "template": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    },
+    "Warning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["warning_id", "label", "severity"],
+      "properties": {
+        "warning_id": { "type": "string" },
+        "label": { "type": "string" },
+        "details": { "type": "string" },
+        "severity": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"] },
+        "confidence": { "$ref": "#/$defs/Confidence", "default": "VERIFY_REQUIRED" }
+      }
+    },
+    "HandoffPacket": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["handoff_id", "summary"],
+      "properties": {
+        "handoff_id": { "type": "string" },
+        "summary": { "type": "string" },
+        "key_facts": { "type": "array", "items": { "type": "string" }, "default": [] },
+        "open_questions": { "type": "array", "items": { "type": "string" }, "default": [] },
+        "artifacts": { "type": "array", "items": { "type": "string" }, "default": [] }
+      }
+    },
+    "BattleBuddyPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["situation", "goal", "next_3_actions", "evidence_needed", "risks_traps", "if_blocked_do_this"],
+      "properties": {
+        "situation": { "type": "string" },
+        "goal": { "type": "string" },
+        "next_3_actions": { "type": "array", "items": { "type": "string" }, "minItems": 0, "maxItems": 3 },
+        "evidence_needed": { "type": "array", "items": { "type": "string" }, "default": [] },
+        "risks_traps": { "type": "array", "items": { "type": "string" }, "default": [] },
+        "if_blocked_do_this": { "type": "array", "items": { "type": "string" }, "default": [] }
+      }
+    },
+    "OutputEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stage", "confidence", "battle_buddy_plan"],
+      "properties": {
+        "stage": { "$ref": "#/$defs/Stage" },
+        "confidence": { "$ref": "#/$defs/Confidence" },
+        "updates": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": []
+        },
+        "tasks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Task" },
+          "default": []
+        },
+        "evidence": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/EvidenceItem" },
+          "default": []
+        },
+        "scripts": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ScriptTemplate" },
+          "default": []
+        },
+        "warnings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Warning" },
+          "default": []
+        },
+        "handoffs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/HandoffPacket" },
+          "default": []
+        },
+        "battle_buddy_plan": { "$ref": "#/$defs/BattleBuddyPlan" }
+      }
+    }
+  }
+}
