@@ -74,7 +74,7 @@ function Resolve-SafePath {
   $pathFull = [System.IO.Path]::GetFullPath($Path)
 
   if (-not $pathFull.StartsWith($rootFull, [System.StringComparison]::OrdinalIgnoreCase)) {
-    throw "Unsafe path: '$Path' escapes root '$Root'."
+    throw ("Unsafe path: {0} escapes root {1}." -f $Path, $Root)
   }
   return $pathFull
 }
@@ -387,14 +387,14 @@ if ($ExportCase) { $ExportCase = $ExportCase.Trim().ToUpperInvariant() }
 $config = Load-Config -Root $SquadRoot
 if ($config -and $config.root -and ($config.root -ne $SquadRoot)) {
   # Do NOT auto-switch roots silently. Log only.
-  Write-ClerkLog $logDir "Config root differs from -SquadRoot. ConfigRoot='$($config.root)' ParamRoot='$SquadRoot' (no auto-switch)" "WARN"
+  Write-ClerkLog $logDir ("Config root differs from -SquadRoot. ConfigRoot={0} ParamRoot={1} (no auto-switch)" -f $config.root, $SquadRoot) "WARN"
 }
 
 # --------------------------
 # Locking (single instance)
 # --------------------------
 
-$lockFile = Join-Path $logDir "clerk.lock"
+$lockFile = Join-Path $logDir 'clerk.lock'
 $lockHandle = $null
 
 function Acquire-Lock {
@@ -414,16 +414,16 @@ function Release-Lock {
 # Handle explicit lock break (authorized only)
 if ($BreakLock) {
   if (-not $BreakLockReason -or -not $BreakLockReason.Trim()) {
-    throw "-BreakLock requires -BreakLockReason (human authorization note)."
+    throw '-BreakLock requires -BreakLockReason (human authorization note).'
   }
 
   if (Test-Path -LiteralPath $lockFile) {
-    Write-ClerkLog $logDir "AUTH_BREAK_LOCK requested. Reason: $BreakLockReason" "WARN"
+    Write-ClerkLog $logDir ('AUTH_BREAK_LOCK requested. Reason: {0}' -f $BreakLockReason) 'WARN'
     Remove-Item -LiteralPath $lockFile -Force
-    Write-ClerkLog $logDir "AUTH_BREAK_LOCK executed. Lock removed. Reason: $BreakLockReason" "WARN"
-    Write-Host "Lock removed (authorized)."
+    Write-ClerkLog $logDir ('AUTH_BREAK_LOCK executed. Lock removed. Reason: {0}' -f $BreakLockReason) 'WARN'
+    Write-Host 'Lock removed (authorized).'
   } else {
-    Write-Host "No lock present."
+    Write-Host 'No lock present.'
   }
   exit 0
 }
@@ -431,10 +431,10 @@ if ($BreakLock) {
 try {
   $lockHandle = Acquire-Lock -LockFile $lockFile
 } catch {
-  Write-ClerkLog $logDir "Lock acquisition failed — concurrent run detected." "ERROR"
-  Write-Host "Another Clerk instance is running (or a lock file exists)."
-  Write-Host "If you verified it's stale and you authorize it, run:"
-  Write-Host "  .\Invoke-SquadAdminClerk.ps1 -BreakLock -BreakLockReason ""<why this is authorized>"""
+  Write-ClerkLog $logDir 'Lock acquisition failed - concurrent run detected.' 'ERROR'
+  Write-Host 'Another Clerk instance is running (or a lock file exists).'
+  Write-Host 'If you verified it is stale and you authorize it, run:'
+  Write-Host '  .\Invoke-SquadAdminClerk.ps1 -BreakLock -BreakLockReason why_this_is_authorized'
   exit 2
 }
 
@@ -446,21 +446,21 @@ $null = Register-EngineEvent PowerShell.Exiting -Action { Release-Lock -Handle $
 # --------------------------
 
 if ($ExportCase) {
-  $caseFolder = Join-Path $SquadRoot "CASES\ACTIVE\$ExportCase"
+  $caseFolder = Join-Path $SquadRoot ('CASES\ACTIVE\' + $ExportCase)
   if (-not (Test-Path -LiteralPath $caseFolder)) {
-    throw "Case '$ExportCase' not found in CASES\ACTIVE."
+    throw ('Case {0} not found in CASES\ACTIVE.' -f $ExportCase)
   }
 
-  $zipName = "CASE_$ExportCase`_$(Get-Date -Format yyyyMMdd_HHmm).zip"
-  $zipPath = Join-Path $SquadRoot "OUTPUTS\EXPORTS\$zipName"
+  $zipName = ('CASE_{0}_{1}.zip' -f $ExportCase, (Get-Date -Format yyyyMMdd_HHmm))
+  $zipPath = Join-Path $SquadRoot ('OUTPUTS\EXPORTS\' + $zipName)
   Ensure-Dir (Split-Path -Parent $zipPath)
 
-  if ($PSCmdlet.ShouldProcess($zipPath, "Export case '$ExportCase' to ZIP")) {
-    Compress-Archive -Path (Join-Path $caseFolder "*") -DestinationPath $zipPath -Force
+  if ($PSCmdlet.ShouldProcess($zipPath, ('Export case {0} to ZIP' -f $ExportCase))) {
+    Compress-Archive -Path (Join-Path $caseFolder '*') -DestinationPath $zipPath -Force
     $zipHash = Get-FileSha256 $zipPath
-    Write-ClerkLog $logDir "Exported case $ExportCase -> $zipPath | SHA256=$zipHash" "INFO"
-    Write-Host "Exported: $zipPath"
-    Write-Host "SHA256:   $zipHash"
+    Write-ClerkLog $logDir ('Exported case {0} -> {1} | SHA256={2}' -f $ExportCase, $zipPath, $zipHash) 'INFO'
+    Write-Host ('Exported: {0}' -f $zipPath)
+    Write-Host ('SHA256:   {0}' -f $zipHash)
   }
 
   Release-Lock -Handle $lockHandle -LockFile $lockFile
@@ -476,26 +476,26 @@ if ($Init) {
   foreach ($d in $dirs) {
     Ensure-Dir (Join-Path $SquadRoot $d)
   }
-  Write-ClerkLog $logDir "Initialized/verified Squad structure at: $SquadRoot" "INFO"
+  Write-ClerkLog $logDir ('Initialized/verified Squad structure at: {0}' -f $SquadRoot) 'INFO'
 
   if ($Scaffold) {
     $count = Scaffold-SquadFiles -Root $SquadRoot -LogDir $logDir -Force:$ForceScaffold
-    Write-ClerkLog $logDir "Scaffold complete. Files created/updated: $count (Force=$ForceScaffold)" "INFO"
-    Write-Host "Scaffold complete. Files created/updated: $count"
+    Write-ClerkLog $logDir ('Scaffold complete. Files created/updated: {0} (Force={1})' -f $count, $ForceScaffold) 'INFO'
+    Write-Host ('Scaffold complete. Files created/updated: {0}' -f $count)
   }
 
   if ($InitGit) {
-    $repoPath = Join-Path $SquadRoot "REPO"
+    $repoPath = Join-Path $SquadRoot 'REPO'
     Ensure-Dir $repoPath
-    if (-not (Test-Path -LiteralPath (Join-Path $repoPath ".git"))) {
+    if (-not (Test-Path -LiteralPath (Join-Path $repoPath '.git'))) {
       Push-Location $repoPath
       git init | Out-Null
       Pop-Location
-      Write-ClerkLog $logDir "Initialized git repo in: $repoPath" "INFO"
-      Write-Host "Git initialized in: $repoPath"
+      Write-ClerkLog $logDir ('Initialized git repo in: {0}' -f $repoPath) 'INFO'
+      Write-Host ('Git initialized in: {0}' -f $repoPath)
     } else {
-      Write-ClerkLog $logDir "Git repo already exists in: $repoPath" "WARN"
-      Write-Host "Git already exists in: $repoPath"
+      Write-ClerkLog $logDir ('Git repo already exists in: {0}' -f $repoPath) 'WARN'
+      Write-Host ('Git already exists in: {0}' -f $repoPath)
     }
   }
 }
@@ -512,8 +512,8 @@ if ($InPath) {
   $resolvedInput = [System.IO.Path]::GetFullPath($InPath)
 
   if (-not (Test-Path -LiteralPath $resolvedInput)) {
-    Write-ClerkLog $logDir "Input path not found: $resolvedInput" "ERROR"
-    throw "Input path not found: $resolvedInput"
+    Write-ClerkLog $logDir ('Input path not found: {0}' -f $resolvedInput) 'ERROR'
+    throw ('Input path not found: {0}' -f $resolvedInput)
   }
 
   $item = Get-Item -LiteralPath $resolvedInput
@@ -525,7 +525,7 @@ if ($InPath) {
   }
 
   # Case guard: allow typical case artifacts only
-  $caseLikeExts = @(".json",".pdf",".docx",".txt",".md",".csv",".png",".jpg",".jpeg")
+  $caseLikeExts = @('.json','.pdf','.docx','.txt','.md','.csv','.png','.jpg','.jpeg')
   $maxCollisions = 999
 
   # Plan mode summary buckets
@@ -551,55 +551,55 @@ if ($InPath) {
       $e = [IO.Path]::GetExtension($f.Name)
       $n = 1
       do {
-        $destPath = Join-Path $targetDir ("{0}__{1}{2}" -f $baseName, $n, $e)
+        $destPath = Join-Path $targetDir ('{0}__{1}{2}' -f $baseName, $n, $e)
         $n++
         if ($n -gt $maxCollisions) {
-          throw "Collision limit exceeded ($maxCollisions) for: $($f.Name) in $targetDir"
+          throw ('Collision limit exceeded ({0}) for: {1} in {2}' -f $maxCollisions, $f.Name, $targetDir)
         }
       } while (Test-Path -LiteralPath $destPath)
     }
 
     # CaseId guard for non-case extensions (human verification logged)
     if ($CaseId -and ($caseLikeExts -notcontains $ext)) {
-      $msg = "CaseGuard: Non-case extension '$ext' would be routed into CASE '$CaseId'. Source='$($f.FullName)' Dest='$destPath'"
+      $msg = ('CaseGuard: Non-case extension {0} would be routed into CASE {1}. Source={2} Dest={3}' -f $ext, $CaseId, $f.FullName, $destPath)
       Write-Host $msg
-      $answer = Read-Host "Authorize this move? Type YES to proceed, NO to skip"
+      $answer = Read-Host 'Authorize this move? Type YES to proceed, NO to skip'
       $answerNorm = ($answer | ForEach-Object { $_.Trim().ToUpperInvariant() })
 
-      Write-ClerkLog $logDir "HUMAN_VERIFY | $msg | ANSWER=$answerNorm" "WARN"
+      Write-ClerkLog $logDir ('HUMAN_VERIFY :: {0} :: ANSWER={1}' -f $msg, $answerNorm) 'WARN'
 
-      if ($answerNorm -ne "YES") {
-        Write-ClerkLog $logDir "SKIPPED by human verify: $($f.FullName)" "WARN"
+      if ($answerNorm -ne 'YES') {
+        Write-ClerkLog $logDir ('SKIPPED by human verify: {0}' -f $f.FullName) 'WARN'
         continue
       }
     }
 
-    if ($PSCmdlet.ShouldProcess("$($f.FullName) -> $destPath", "Move file")) {
+    if ($PSCmdlet.ShouldProcess(('{0} -> {1}' -f $f.FullName, $destPath), 'Move file')) {
       Move-Item -LiteralPath $f.FullName -Destination $destPath -Force -WhatIf:$WhatIfPreference
 
       if (-not $WhatIfPreference) {
-        $hashLog = ""
+        $hashLog = ''
         if ($LogHash) {
-          $hashLog = " | SHA256=$(Get-FileSha256 $destPath)"
+          $hashLog = ' | SHA256=' + (Get-FileSha256 $destPath)
         }
-        Write-ClerkLog $logDir "Moved '$($f.FullName)' -> '$destPath'$hashLog" "INFO"
+        Write-ClerkLog $logDir ('Moved {0} -> {1}{2}' -f $f.FullName, $destPath, $hashLog) 'INFO'
       } else {
-        Write-ClerkLog $logDir "WHATIF: Would move '$($f.FullName)' -> '$destPath'" "INFO"
+        Write-ClerkLog $logDir ('WHATIF: Would move {0} -> {1}' -f $f.FullName, $destPath) 'INFO'
       }
     }
   }
 
   if ($Plan) {
-    Write-Host ""
-    Write-Host "=== ROUTE PLAN SUMMARY ==="
+    Write-Host ''
+    Write-Host '=== ROUTE PLAN SUMMARY ==='
     $total = 0
     foreach ($k in ($planMap.Keys | Sort-Object)) {
       $c = $planMap[$k]
       $total += $c
-      "{0,-6} {1}" -f $c, $k | Write-Host
+      '{0,-6} {1}' -f $c, $k | Write-Host
     }
-    Write-Host "TOTAL: $total files"
-    Write-ClerkLog $logDir "PLAN: Route plan generated for InPath='$resolvedInput' CaseId='$CaseId' Total=$total" "INFO"
+    Write-Host ('TOTAL: {0} files' -f $total)
+    Write-ClerkLog $logDir ('PLAN: Route plan generated for InPath={0} CaseId={1} Total={2}' -f $resolvedInput, $CaseId, $total) 'INFO'
   }
 }
 
@@ -608,15 +608,14 @@ if ($InPath) {
 # --------------------------
 
 if (-not $Init -and -not $InPath -and -not $ExportCase -and -not $BreakLock) {
-  Write-Host "Squad Admin Clerk v1.3"
-  Write-Host ""
-  Write-Host "Examples:"
-  Write-Host "  .\Invoke-SquadAdminClerk.ps1 -Init -Scaffold -InitGit"
-  Write-Host "  .\Invoke-SquadAdminClerk.ps1 -InPath C:\Temp\somefile.json"
-  Write-Host "  .\Invoke-SquadAdminClerk.ps1 -InPath C:\Temp\CaseStuff -CaseId VET_0001"
-  Write-Host "  .\Invoke-SquadAdminClerk.ps1 -InPath C:\Temp\CaseStuff -CaseId VET_0001 -Plan"
-  Write-Host "  .\Invoke-SquadAdminClerk.ps1 -ExportCase VET_0001"
-  Write-Host "  .\Invoke-SquadAdminClerk.ps1 -BreakLock -BreakLockReason ""Verified stale lock; authorized by operator"""
+  Write-Host 'Squad Admin Clerk v1.3'
+  Write-Host ''
+  Write-Host 'Examples:'
+  Write-Host '  .\Invoke-SquadAdminClerk.ps1 -Init -Scaffold -InitGit'
+  Write-Host '  .\Invoke-SquadAdminClerk.ps1 -InPath C:\Temp\CaseStuff -CaseId VET_0001 -Plan'
+  Write-Host '  .\Invoke-SquadAdminClerk.ps1 -ExportCase VET_0001'
+  Write-Host '  .\Invoke-SquadAdminClerk.ps1 -BattleBuddyInput .\AGENTS\CORE\BATTLEBUDDY\example_input.contract.v1.json'
+  Write-Host '  .\Invoke-SquadAdminClerk.ps1 -BreakLock -BreakLockReason Verified_stale_lock_authorized_by_operator'
 }
 
 # Release lock

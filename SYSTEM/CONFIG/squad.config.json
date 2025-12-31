@@ -1,6 +1,6 @@
 ﻿{
   "project": "SQUAD",
-  "root": "C:\\\\Projects\\\\SQUAD",
+  "root": "C:\\Projects\\SQUAD",
   "version": "0.1.0",
   "ethics": {
     "no_fraud": true,
