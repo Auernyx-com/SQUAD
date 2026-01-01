@@ -48,6 +48,16 @@ Run these from the repo root:
 - `git remote -v`
 - Run the module demo / smoke test (command depends on module)
 
+Repo QA (recommended for any “done” claim):
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\qa\Invoke-RepoCheck.ps1`
+
+Optional CRA fixtures gate (schema-only; OFF by default):
+- Enable by switch: `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\qa\Invoke-RepoCheck.ps1 -ValidateCRA`
+- Or enable by env var (current session): `$env:SQUAD_VALIDATE_CRA = '1'` then run RepoCheck
+
+Phase 5 governed-change discipline (opt-in):
+- `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\qa\Invoke-RepoCheck.ps1 -StrictGoverned -ConfirmGoverned`
+
 ## Notes (fill in per module)
 - Module:
 - Version:

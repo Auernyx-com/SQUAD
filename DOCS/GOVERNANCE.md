@@ -8,6 +8,9 @@
 ## Editor config policy (.vscode)
 Editor config policy (.vscode): .vscode/settings.json may be tracked only to enforce repository contracts (e.g., JSON schema bindings for governed artifacts). No other editor preferences (theme/UI, formatting opinions, keybindings, extensions, personal workflow settings) are permitted in tracked .vscode files. If a setting is not required to validate or enforce a governed contract, it must remain untracked.
 
+## Quarantine invariant
+`SYSTEM/META/QUARANTINE/` is append-only evidence storage and must never be treated as valid runtime output; validators and runners must exclude it from normal processing.
+
 ## Auernyx roadmap
 - See: `DOCS/AUERNYX_Governance_Roadmap_v1.md`
 

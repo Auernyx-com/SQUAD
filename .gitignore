@@ -8,5 +8,12 @@ __pycache__/
 # Generated run artifacts (governed outputs; do not hand-edit)
 OUTPUTS/RUNS/
 
+# Case artifacts are local-only (templates are tracked)
+CASES/ACTIVE/
+CASES/ARCHIVE/
+
+# Quarantine + meta folders are local evidence storage (append-only)
+SYSTEM/META/
+
 # Clerk logs (runtime noise)
 SYSTEM/LOGS/CLERK/*.log

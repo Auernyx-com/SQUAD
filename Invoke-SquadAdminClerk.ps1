@@ -49,6 +49,14 @@ param(
   # Run Auernyx BattleBuddy (BB-Core) on a Contract v1 input envelope
   [string]$BattleBuddyInput,
 
+  # Run CRA (Claim Readiness Analysis) for a case (schema-only, no-fetch)
+  [switch]$CRARun,
+  [string]$CRAInput,
+
+  # Quarantine legacy OUTPUTS/RUNS artifacts that are invalid under current schemas.
+  # This is a governed move OUT of OUTPUTS (no in-place editing).
+  [switch]$QuarantineLegacyOutputs,
+
   # Lock break requires explicit authorization + reason (never silent)
   [switch]$BreakLock,
   [string]$BreakLockReason
@@ -66,6 +74,39 @@ function Ensure-Dir {
   if (-not (Test-Path -LiteralPath $Dir)) {
     New-Item -ItemType Directory -Path $Dir -Force | Out-Null
   }
+}
+
+function Get-UniquePath {
+  param(
+    [Parameter(Mandatory=$true)][string]$Path
+  )
+
+  if (-not (Test-Path -LiteralPath $Path)) { return $Path }
+
+  $parent = Split-Path -Parent $Path
+  $leaf = Split-Path -Leaf $Path
+
+  $n = 1
+  do {
+    $candidate = Join-Path $parent ($leaf + '__' + $n)
+    $n++
+    if ($n -gt 999) { throw ('Collision limit exceeded for: {0}' -f $Path) }
+  } while (Test-Path -LiteralPath $candidate)
+
+  return $candidate
+}
+
+function Read-JsonFile {
+  param([Parameter(Mandatory=$true)][string]$Path)
+  $raw = Get-Content -LiteralPath $Path -Raw -Encoding UTF8
+  return ($raw | ConvertFrom-Json)
+}
+
+function Get-StringLengthOrMinus1 {
+  param([object]$Value)
+  if ($null -eq $Value) { return -1 }
+  if (-not ($Value -is [string])) { return -1 }
+  return $Value.Length
 }
 
 function Resolve-SafePath {
@@ -111,6 +152,18 @@ function Write-ClerkLog {
 function Get-FileSha256 {
   param([Parameter(Mandatory=$true)][string]$Path)
   (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash
+}
+
+function Get-PythonExeForRuns {
+  param([Parameter(Mandatory=$true)][string]$Root)
+
+  $venvPy = Join-Path $Root '.venv\Scripts\python.exe'
+  if (Test-Path -LiteralPath $venvPy) { return $venvPy }
+
+  $pythonCmd = (Get-Command python -ErrorAction SilentlyContinue)
+  if ($pythonCmd) { return 'python' }
+
+  throw 'Python not found. Create .venv or add python to PATH.'
 }
 
 function Ensure-File {
@@ -360,6 +413,7 @@ $dirs = @(
   "SYSTEM\CONFIG",
   "SYSTEM\LOGS\CLERK",
   "SYSTEM\META\DOTFILES",
+  "SYSTEM\META\QUARANTINE",
   "AGENTS\PROMPTS",
   "AGENTS\SCHEMAS",
   "AGENTS\CORE",
@@ -471,10 +525,105 @@ if ($ExportCase) {
 }
 
 # --------------------------
+# QUARANTINE LEGACY OUTPUTS MODE
+# --------------------------
+
+if ($QuarantineLegacyOutputs) {
+  # Ensure structure exists
+  Ensure-Dir $SquadRoot
+  foreach ($d in $dirs) { Ensure-Dir (Join-Path $SquadRoot $d) }
+
+  $runsDir = Join-Path $SquadRoot 'OUTPUTS\RUNS'
+  if (-not (Test-Path -LiteralPath $runsDir)) {
+    throw ('Missing runs directory: {0}' -f $runsDir)
+  }
+
+  $quarantineRoot = Join-Path $SquadRoot 'SYSTEM\META\QUARANTINE\legacy_outputs'
+  Ensure-Dir $quarantineRoot
+
+  # Only quarantine BattleBuddy runs for now, based on current schema expectations.
+  $candidates = Get-ChildItem -LiteralPath $runsDir -Directory -Filter 'battlebuddy_run_*' -ErrorAction SilentlyContinue
+  $qPlan = New-Object System.Collections.Generic.List[object]
+
+  foreach ($dirItem in $candidates) {
+    $inPath = Join-Path $dirItem.FullName 'battlebuddy_input.contract.v1.json'
+    if (-not (Test-Path -LiteralPath $inPath)) { continue }
+
+    try {
+      $contract = Read-JsonFile -Path $inPath
+    } catch {
+      # If it can't even parse, quarantine it.
+      $qPlan.Add([pscustomobject]@{ RunDir = $dirItem.FullName; Reason = 'input JSON failed to parse' })
+      continue
+    }
+
+    $state = $null
+    try {
+      $state = $contract.input.case.location.state
+    } catch { $state = $null }
+
+    $len = Get-StringLengthOrMinus1 $state
+    if ($len -ne 2) {
+      $qPlan.Add([pscustomobject]@{ RunDir = $dirItem.FullName; Reason = ('input.case.location.state invalid length ({0})' -f $len) })
+    }
+  }
+
+  if ($Plan) {
+    Write-Host ''
+    Write-Host '=== QUARANTINE PLAN (legacy outputs) ==='
+    if ($qPlan.Count -eq 0) {
+      Write-Host 'No legacy outputs matched quarantine criteria.'
+    } else {
+      foreach ($p in $qPlan) {
+        Write-Host ('MOVE  {0}' -f $p.RunDir)
+        Write-Host ('  ->  {0}' -f (Join-Path $quarantineRoot (Split-Path -Leaf $p.RunDir)))
+        Write-Host ('  WHY {0}' -f $p.Reason)
+      }
+      Write-Host ('TOTAL: {0} run folder(s)' -f $qPlan.Count)
+    }
+
+    Write-ClerkLog $logDir ('PLAN: QuarantineLegacyOutputs generated. Candidates={0}' -f $qPlan.Count) 'INFO'
+    Release-Lock -Handle $lockHandle -LockFile $lockFile
+    exit 0
+  }
+
+  if ($qPlan.Count -eq 0) {
+    Write-Host 'No legacy outputs matched quarantine criteria.'
+    Write-ClerkLog $logDir 'QuarantineLegacyOutputs: no candidates.' 'INFO'
+    Release-Lock -Handle $lockHandle -LockFile $lockFile
+    exit 0
+  }
+
+  foreach ($p in $qPlan) {
+    $src = [string]$p.RunDir
+    $destBase = Join-Path $quarantineRoot (Split-Path -Leaf $src)
+    $dest = Get-UniquePath -Path $destBase
+
+    if ($PSCmdlet.ShouldProcess(('{0} -> {1}' -f $src, $dest), 'Quarantine legacy output folder')) {
+      Move-Item -LiteralPath $src -Destination $dest -Force -WhatIf:$WhatIfPreference
+      if (-not $WhatIfPreference) {
+        Write-ClerkLog $logDir ('Quarantined legacy output folder | From={0} To={1} | Reason={2}' -f $src, $dest, $p.Reason) 'WARN'
+      } else {
+        Write-ClerkLog $logDir ('WHATIF: Would quarantine legacy output folder | From={0} To={1} | Reason={2}' -f $src, $dest, $p.Reason) 'INFO'
+      }
+    }
+  }
+
+  Write-Host ('Quarantined {0} legacy output folder(s) to: {1}' -f $qPlan.Count, $quarantineRoot)
+
+  Release-Lock -Handle $lockHandle -LockFile $lockFile
+  exit 0
+}
+
+# --------------------------
 # BATTLEBUDDY RUN MODE
 # --------------------------
 
 if ($BattleBuddyInput) {
+  if ($CRARun) {
+    throw 'Use either -BattleBuddyInput or -CRARun (not both in the same run).'
+  }
+
   # Ensure structure exists
   Ensure-Dir $SquadRoot
   foreach ($d in $dirs) { Ensure-Dir (Join-Path $SquadRoot $d) }
@@ -536,6 +685,83 @@ if ($BattleBuddyInput) {
       Write-ClerkLog $logDir ('BattleBuddy output copied to case artifacts | CaseId={0} | Path={1}' -f $CaseId, $caseOut) 'INFO'
       Write-Host ('Case artifact:    {0}' -f $caseOut)
     }
+  }
+
+  Release-Lock -Handle $lockHandle -LockFile $lockFile
+  exit 0
+}
+
+# --------------------------
+# CRA RUN MODE
+# --------------------------
+
+if ($CRARun) {
+  # Ensure structure exists
+  Ensure-Dir $SquadRoot
+  foreach ($d in $dirs) { Ensure-Dir (Join-Path $SquadRoot $d) }
+
+  if (-not $CaseId -or -not $CaseId.Trim()) {
+    throw '-CRARun requires -CaseId (target case for artifacts).'
+  }
+
+  $caseFolder = Join-Path $SquadRoot ('CASES\ACTIVE\' + $CaseId)
+  if (-not (Test-Path -LiteralPath $caseFolder)) {
+    throw ('Case {0} not found in CASES\ACTIVE.' -f $CaseId)
+  }
+
+  $runner = Join-Path $SquadRoot 'battlebuddy_cra\run_cra_v1.py'
+  if (-not (Test-Path -LiteralPath $runner)) {
+    throw ('CRA runner missing: {0}' -f $runner)
+  }
+
+  $pythonExe = Get-PythonExeForRuns -Root $SquadRoot
+
+  # Resolve input
+  $resolvedInput = $null
+  if ($CRAInput -and $CRAInput.Trim()) {
+    $resolvedInput = [System.IO.Path]::GetFullPath($CRAInput)
+  } else {
+    $resolvedInput = Join-Path $caseFolder 'ARTIFACTS\CRA\cra.input.v1.json'
+  }
+
+  if (-not (Test-Path -LiteralPath $resolvedInput)) {
+    throw ('CRA input not found: {0}' -f $resolvedInput)
+  }
+
+  $ts = Get-Date -Format yyyyMMdd_HHmmss
+  $runDir = Join-Path $SquadRoot ('OUTPUTS\RUNS\cra_run_' + $ts)
+  Ensure-Dir $runDir
+
+  $inCopyPath = Join-Path $runDir 'cra_input.v1.json'
+  $outPath = Join-Path $runDir 'cra_report.v1.json'
+  Copy-Item -LiteralPath $resolvedInput -Destination $inCopyPath -Force
+
+  if ($PSCmdlet.ShouldProcess($outPath, 'Run CRA (Claim Readiness Analysis)')) {
+    Write-ClerkLog $logDir ('CRA run start | CaseId={0} | Input={1} | RunDir={2}' -f $CaseId, $resolvedInput, $runDir) 'INFO'
+
+    & $pythonExe $runner --input $inCopyPath --out $outPath | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+      Write-ClerkLog $logDir ('CRA run failed: non-zero exit code {0}' -f $LASTEXITCODE) 'ERROR'
+      throw ('CRA run failed: non-zero exit code {0}' -f $LASTEXITCODE)
+    }
+
+    if (-not (Test-Path -LiteralPath $outPath)) {
+      Write-ClerkLog $logDir ('CRA run failed: output not created | Expected={0}' -f $outPath) 'ERROR'
+      throw ('CRA run failed: output not created. Expected: {0}' -f $outPath)
+    }
+
+    $outHash = Get-FileSha256 $outPath
+    Write-ClerkLog $logDir ('CRA run complete | Output={0} | SHA256={1}' -f $outPath, $outHash) 'INFO'
+    Write-Host ('CRA output: {0}' -f $outPath)
+    Write-Host ('SHA256:    {0}' -f $outHash)
+
+    # Copy into case artifacts
+    $caseArtifacts = Join-Path $caseFolder 'ARTIFACTS\CRA'
+    Ensure-Dir $caseArtifacts
+    $caseOut = Join-Path $caseArtifacts ('cra_report_' + $ts + '.v1.json')
+    Copy-Item -LiteralPath $outPath -Destination $caseOut -Force
+    Write-ClerkLog $logDir ('CRA output copied to case artifacts | CaseId={0} | Path={1}' -f $CaseId, $caseOut) 'INFO'
+    Write-Host ('Case artifact: {0}' -f $caseOut)
   }
 
   Release-Lock -Handle $lockHandle -LockFile $lockFile
@@ -690,6 +916,8 @@ if (-not $Init -and -not $InPath -and -not $ExportCase -and -not $BreakLock) {
   Write-Host '  .\Invoke-SquadAdminClerk.ps1 -InPath C:\Temp\CaseStuff -CaseId VET_0001 -Plan'
   Write-Host '  .\Invoke-SquadAdminClerk.ps1 -ExportCase VET_0001'
   Write-Host '  .\Invoke-SquadAdminClerk.ps1 -BattleBuddyInput .\AGENTS\CORE\BATTLEBUDDY\example_input.contract.v1.json'
+  Write-Host '  .\Invoke-SquadAdminClerk.ps1 -CRARun -CaseId VET_0001'
+  Write-Host '  .\Invoke-SquadAdminClerk.ps1 -QuarantineLegacyOutputs -Plan'
   Write-Host '  .\Invoke-SquadAdminClerk.ps1 -BreakLock -BreakLockReason Verified_stale_lock_authorized_by_operator'
 }
 

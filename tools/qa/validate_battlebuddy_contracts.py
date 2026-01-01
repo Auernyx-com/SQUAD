@@ -48,15 +48,36 @@ def _repo_root() -> Path:
     return Path(__file__).resolve().parents[2]
 
 
+def _is_under_quarantine(root: Path, path: Path) -> bool:
+    """Returns True if path is under SYSTEM/META/QUARANTINE (case-insensitive)."""
+
+    try:
+        rel = path.resolve().relative_to(root.resolve())
+    except Exception:
+        return False
+
+    parts = [p.lower() for p in rel.parts]
+    return len(parts) >= 3 and parts[0] == "system" and parts[1] == "meta" and parts[2] == "quarantine"
+
+
 def _iter_contract_files(root: Path, *, skip_dirs: set[str]) -> Iterable[Path]:
     root = root.resolve()
 
     for dirpath, dirnames, filenames in os.walk(root):
         dirnames[:] = [d for d in dirnames if d not in skip_dirs]
 
+        # Always skip quarantined artifacts regardless of scan mode.
+        here = Path(dirpath)
+        if _is_under_quarantine(root, here):
+            dirnames[:] = []
+            continue
+
         for name in filenames:
             if name.lower().endswith(".contract.v1.json"):
-                yield Path(dirpath) / name
+                candidate = Path(dirpath) / name
+                if _is_under_quarantine(root, candidate):
+                    continue
+                yield candidate
 
 
 def _load_json(path: Path) -> Any:

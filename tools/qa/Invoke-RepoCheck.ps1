@@ -16,7 +16,16 @@
 [CmdletBinding()]
 param(
   [switch]$IncludeOutputs,
-  [int]$MaxFailures = 50
+  [int]$MaxFailures = 50,
+
+  # Optional: validate CRA fixtures (schema-only). OFF by default.
+  [switch]$ValidateCRA,
+
+  # Phase 5 (opt-in): require explicit confirmation for governed writes
+  [switch]$StrictGoverned,
+
+  # Phase 5 (opt-in): explicit operator confirmation for governed changes
+  [switch]$ConfirmGoverned
 )
 
 Set-StrictMode -Version Latest
@@ -34,6 +43,23 @@ function Get-PythonPath([string]$Root) {
   throw "Python venv not found at: $py"
 }
 
+function Invoke-CraFixtureValidation {
+  param(
+    [Parameter(Mandatory = $true)][string]$Root,
+    [Parameter(Mandatory = $true)][string]$PythonPath
+  )
+
+  $craValidator = Join-Path $Root 'tools\qa\validate_cra_fixtures.py'
+  if (-not (Test-Path -LiteralPath $craValidator)) {
+    throw "Missing CRA validator script: $craValidator"
+  }
+
+  & $PythonPath $craValidator
+  if ($LASTEXITCODE -ne 0) {
+    throw 'CRA fixture/schema validation failed (see output above).'
+  }
+}
+
 function Invoke-Step([string]$Label, [scriptblock]$Action) {
   Write-Host ("[RUN] {0}" -f $Label)
   & $Action
@@ -42,6 +68,11 @@ function Invoke-Step([string]$Label, [scriptblock]$Action) {
 
 $root = Get-RepoRoot
 $py = Get-PythonPath -Root $root
+
+# Optional CRA fixture validation enablement (OFF by default)
+$craEnabled = $false
+if ($ValidateCRA) { $craEnabled = $true }
+elseif ($env:SQUAD_VALIDATE_CRA -eq '1') { $craEnabled = $true }
 
 $jsonSweep = Join-Path $root 'tools\qa\json_sweep.py'
 $pyCompile = Join-Path $root 'tools\qa\python_compile_sweep.py'
@@ -71,9 +102,19 @@ Invoke-Step 'Repo identity (SQUAD)' {
 
 # 0.5) Phase 2: Artifact classification + boundary crossing warnings
 Invoke-Step 'Artifact classification (working tree)' {
-  & $py $changeClassifier
-  if ($LASTEXITCODE -ne 0) {
-    $failures.Add([pscustomobject]@{ Type = 'artifact-classification'; Path = $root; Detail = 'Artifact classification reported errors/warnings (see JSON output above).' })
+  if ($StrictGoverned) {
+    $args = @('--plain', '--intent', '--require-governed-confirm')
+    if ($ConfirmGoverned) { $args += '--confirm-governed' }
+
+    & $py $changeClassifier @args
+    if ($LASTEXITCODE -ne 0) {
+      $failures.Add([pscustomobject]@{ Type = 'artifact-classification'; Path = $root; Detail = 'Strict governed mode: governed changes require explicit confirmation (--confirm-governed). See output above.' })
+    }
+  } else {
+    & $py $changeClassifier
+    if ($LASTEXITCODE -ne 0) {
+      $failures.Add([pscustomobject]@{ Type = 'artifact-classification'; Path = $root; Detail = 'Artifact classification reported errors/warnings (see JSON output above).' })
+    }
   }
 }
 
@@ -150,6 +191,17 @@ Invoke-Step 'Module registry entrypoints' {
   & $py $moduleRegistryCheck
   if ($LASTEXITCODE -ne 0) {
     $failures.Add([pscustomobject]@{ Type = 'module-registry'; Path = $root; Detail = 'One or more module registry entrypoints are invalid/missing (see output above).' })
+  }
+}
+
+# 5) Optional: CRA fixtures (schema-only, deterministic, offline)
+if ($craEnabled) {
+  Invoke-Step 'CRA fixture validation (optional)' {
+    try {
+      Invoke-CraFixtureValidation -Root $root -PythonPath $py
+    } catch {
+      $failures.Add([pscustomobject]@{ Type = 'cra-fixtures'; Path = $root; Detail = $_.Exception.Message })
+    }
   }
 }
 
