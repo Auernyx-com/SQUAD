@@ -6,11 +6,8 @@ Phase 3: Validation & QA Integration.
 - Does NOT auto-fix anything.
 
 Validation modes:
-- If the optional third-party package `jsonschema` is available, performs full
-  JSON Schema Draft 2020-12 validation against:
-    AGENTS/SCHEMAS/BattleBuddy_Contract_v1.schema.json
-- Otherwise performs a basic top-level validation and prints a warning that
-  full schema validation is unavailable.
+- Full JSON Schema Draft 2020-12 validation is REQUIRED. This check fails if
+    the `jsonschema` package (with Draft 2020-12 support) is not available.
 
 Exit codes:
   0 - all contract envelopes validated (or basic validation passed)
@@ -118,12 +115,14 @@ def _basic_validate_contract(doc: Any, *, file_path: Path) -> List[str]:
     return errs
 
 
-def _try_full_schema_validator(schema_path: Path):
+def _get_full_schema_validator(schema_path: Path):
     try:
-        import jsonschema  # type: ignore
         from jsonschema.validators import Draft202012Validator  # type: ignore
-    except Exception:
-        return None
+    except Exception as e:
+        raise RuntimeError(
+            "Missing required dependency 'jsonschema' with Draft 2020-12 support. "
+            "Install it in the repo venv (e.g., pip install jsonschema)."
+        ) from e
 
     schema = _load_json(schema_path)
     return Draft202012Validator(schema)
@@ -166,8 +165,12 @@ def main(argv: Sequence[str]) -> int:
         print(f"ERROR: Missing schema: {schema_path}")
         return 1
 
-    validator = _try_full_schema_validator(schema_path)
-    using_full = validator is not None
+    try:
+        validator = _get_full_schema_validator(schema_path)
+    except Exception as e:
+        print(f"ERROR: {e}")
+        print(f"Schema required: {schema_path}")
+        return 1
 
     findings: List[Finding] = []
     total = 0
@@ -180,34 +183,18 @@ def main(argv: Sequence[str]) -> int:
             findings.append(Finding(path=str(path), error=f"JSON parse error: {e}"))
             continue
 
-        if using_full:
-            assert validator is not None
-            errors = sorted(validator.iter_errors(doc), key=lambda er: list(er.absolute_path))
-            for er in errors:
-                at = _format_json_path(er.absolute_path)
-                findings.append(
-                    Finding(
-                        path=str(path),
-                        error=f"Schema violation at {at}: {er.message} (schema: {schema_path})",
-                    )
+        errors = sorted(validator.iter_errors(doc), key=lambda er: list(er.absolute_path))
+        for er in errors:
+            at = _format_json_path(er.absolute_path)
+            findings.append(
+                Finding(
+                    path=str(path),
+                    error=f"Schema violation at {at}: {er.message} (schema: {schema_path})",
                 )
-        else:
-            basic_errors = _basic_validate_contract(doc, file_path=path)
-            for msg in basic_errors:
-                findings.append(
-                    Finding(
-                        path=str(path),
-                        error=f"Basic contract check failed: {msg} (schema: {schema_path})",
-                    )
-                )
+            )
 
     print(f"battlebuddy contract files scanned: {total}")
-    if using_full:
-        print("validation mode: full (jsonschema)")
-    else:
-        print("validation mode: basic (jsonschema not installed)")
-        if total > 0:
-            print("WARNING: Install 'jsonschema' to enforce full schema validation.")
+    print("validation mode: full (jsonschema Draft 2020-12)")
 
     print(f"contract validation findings: {len(findings)}")
 

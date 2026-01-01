@@ -7,7 +7,7 @@
     "case": {
       "case_id": "DEMO_CASE_0001",
       "domain": "HOUSING",
-      "location": {"city": "", "state": ""},
+      "location": {"city": "", "state": "CA"},
       "program": {"name": "", "notes": ""},
       "timeline": {"today": "2025-12-31", "event_summary": ""},
       "narrative": "I found a listing and they want a deposit before viewing. I’m worried it’s a scam and I also have a notice with a deadline.",
