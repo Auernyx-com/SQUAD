@@ -46,14 +46,24 @@ $py = Get-PythonPath -Root $root
 $jsonSweep = Join-Path $root 'tools\qa\json_sweep.py'
 $pyCompile = Join-Path $root 'tools\qa\python_compile_sweep.py'
 $moduleRegistryCheck = Join-Path $root 'tools\qa\validate_module_registries.py'
+$repoIdentityCheck = Join-Path $root 'tools\qa\verify_squad_repo.py'
 
 if (-not (Test-Path -LiteralPath $jsonSweep)) { throw "Missing: $jsonSweep" }
 if (-not (Test-Path -LiteralPath $pyCompile)) { throw "Missing: $pyCompile" }
 if (-not (Test-Path -LiteralPath $moduleRegistryCheck)) { throw "Missing: $moduleRegistryCheck" }
+if (-not (Test-Path -LiteralPath $repoIdentityCheck)) { throw "Missing: $repoIdentityCheck" }
 
 $skipOutputs = -not $IncludeOutputs
 
 $failures = New-Object System.Collections.Generic.List[object]
+
+# 0) Repo identity / context check (Phase 1: Repo Awareness)
+Run-Step 'Repo identity (SQUAD)' {
+  & $py $repoIdentityCheck
+  if ($LASTEXITCODE -ne 0) {
+    $failures.Add([pscustomobject]@{ Type = 'repo-identity'; Path = $root; Detail = 'Repo is not recognized as SQUAD (see JSON output above).' })
+  }
+}
 
 # 1) PowerShell parse check
 Run-Step 'PowerShell parse (.ps1)' {
