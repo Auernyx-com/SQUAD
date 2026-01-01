@@ -180,6 +180,18 @@
         "plan_horizon_days": { "type": "integer", "minimum": 1, "maximum": 60, "default": 7 }
       }
     },
+    "Constraints": {
+      "type": "object",
+      "description": "Structured constraints from program modules. review_mode is a BattleBuddy-specific opt-in for truth review modes.",
+      "additionalProperties": true,
+      "properties": {
+        "review_mode": {
+          "type": "string",
+          "description": "Enables review-oriented modes (truth review, not authorship).",
+          "enum": ["INTAKE_REVIEW", "STRATEGY_REVIEW", "INTAKE", "STRATEGY"]
+        }
+      }
+    },
     "InputEnvelope": {
       "type": "object",
       "additionalProperties": false,
@@ -188,9 +200,7 @@
         "stage": { "$ref": "#/$defs/Stage" },
         "case": { "$ref": "#/$defs/Case" },
         "constraints": {
-          "type": "object",
-          "description": "structured constraints from program modules",
-          "additionalProperties": true
+          "$ref": "#/$defs/Constraints"
         },
         "artifacts": {
           "type": "array",

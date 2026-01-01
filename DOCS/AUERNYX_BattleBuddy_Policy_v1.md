@@ -135,6 +135,12 @@ In **case review modes**, BattleBuddy must be stricter than the default guidance
 - It must **not claim eligibility**.
 - It must keep output **review-oriented** (verification and completeness), not prescriptive.
 
+Reference examples (inputs + generated outputs):
+- `AGENTS/CORE/BATTLEBUDDY/example_input.intake_review.contract.v1.json`
+- `AGENTS/CORE/BATTLEBUDDY/example_output.intake_review.contract.v1.json`
+- `AGENTS/CORE/BATTLEBUDDY/example_input.strategy_review.contract.v1.json`
+- `AGENTS/CORE/BATTLEBUDDY/example_output.strategy_review.contract.v1.json`
+
 ---
 
 ## 8) Governance boundary recap
