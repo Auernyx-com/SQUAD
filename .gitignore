@@ -7,3 +7,6 @@ __pycache__/
 
 # Generated run artifacts (governed outputs; do not hand-edit)
 OUTPUTS/RUNS/
+
+# Clerk logs (runtime noise)
+SYSTEM/LOGS/CLERK/*.log
