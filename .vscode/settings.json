@@ -1,0 +1,8 @@
+{
+    "json.schemas": [
+        {
+            "fileMatch": ["AGENTS/CORE/BATTLEBUDDY/**/*.json"],
+            "url": "./AGENTS/SCHEMAS/BattleBuddy_Contract_v1.schema.json"
+        }
+    ]
+}
