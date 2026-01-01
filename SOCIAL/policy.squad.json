@@ -1,0 +1,52 @@
+{
+  "policy_id": "SQUAD.Social.Policy.v1",
+  "account": "SQUAD",
+  "platforms": ["x", "linkedin"],
+  "tone": {
+    "style": ["direct", "practical", "respectful"],
+    "banned_phrases": ["guaranteed", "life-changing", "miracle", "100%"],
+    "banned_tactics": ["fake urgency", "engagement bait", "shaming"]
+  },
+  "limits": {
+    "max_chars_x": 280,
+    "max_hashtags": 3,
+    "max_emojis": 2
+  },
+  "claims": {
+    "allowed": [
+      "We are building <module>.",
+      "This update adds <feature>.",
+      "We are seeking testers/feedback."
+    ],
+    "forbidden": [
+      "numbers_not_in_source",
+      "implied_va_partnership",
+      "medical_advice",
+      "outcome_promises",
+      "pretend_published"
+    ]
+  },
+  "cta": {
+    "allowed": ["request_feedback", "join_waitlist", "share_post", "support_campaign"],
+    "forbidden": ["donation_cta_for_auernyx"]
+  },
+  "compliance_notes": [
+    "Never imply accreditation, endorsement, or partnership with VA.",
+    "No clinical interpretation. Process-only."
+  ],
+  "banned_phrases": [
+    "official VA partner",
+    "VA partnership",
+    "partnered with the VA",
+    "endorsed by the VA",
+    "VA endorsed",
+    "VA-approved",
+    "VA approved",
+    "VA affiliated",
+    "authorized by the VA",
+    "send money",
+    "wire transfer",
+    "gift cards",
+    "crypto"
+  ]
+}

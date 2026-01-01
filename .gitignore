@@ -17,3 +17,9 @@ SYSTEM/META/
 
 # Clerk logs (runtime noise)
 SYSTEM/LOGS/CLERK/*.log
+
+# SOCIALOPS artifacts (generated; local-only unless explicitly promoted)
+SOCIAL/DRAFTS/
+SOCIAL/RECEIPTS/
+SOCIAL/QUEUE/
+SOCIAL/SOURCES/

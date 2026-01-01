@@ -1,0 +1,54 @@
+{
+  "policy_id": "AUERNYX.Social.Policy.v1",
+  "account": "AUERNYX",
+  "platforms": ["x", "linkedin"],
+  "tone": {
+    "style": ["technical", "precise", "no-hype"],
+    "banned_phrases": ["revolutionary", "game-changer", "unbreakable", "zero-risk"],
+    "banned_tactics": ["vague claims", "fear mongering"]
+  },
+  "limits": {
+    "max_chars_x": 280,
+    "max_hashtags": 2,
+    "max_emojis": 0,
+    "thread": {
+      "enabled": true,
+      "max_posts": 8,
+      "max_chars_x": 280
+    }
+  },
+  "claims": {
+    "allowed": [
+      "Release notes summary",
+      "Security posture statements that are verifiable from repo artifacts",
+      "Governance constraints and refusal rules"
+    ],
+    "forbidden": [
+      "performance_numbers_not_in_source",
+      "customer_claims_not_in_source",
+      "posting_on_behalf_of_others",
+      "pretend_published"
+    ]
+  },
+  "cta": {
+    "allowed": ["read_docs", "try_alpha", "request_demo"],
+    "forbidden": ["donations", "fundraising", "support_campaign"]
+  },
+  "banned_phrases": [
+    "donate",
+    "donations",
+    "support us",
+    "Patreon",
+    "sponsor",
+    "official VA",
+    "official VA partner",
+    "VA partnership",
+    "partnered with the VA",
+    "endorsed by the VA",
+    "VA endorsed",
+    "VA-approved",
+    "VA approved",
+    "VA affiliated",
+    "authorized by the VA"
+  ]
+}
