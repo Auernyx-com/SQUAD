@@ -34,7 +34,7 @@ function Get-PythonPath([string]$Root) {
   throw "Python venv not found at: $py"
 }
 
-function Run-Step([string]$Label, [scriptblock]$Action) {
+function Invoke-Step([string]$Label, [scriptblock]$Action) {
   Write-Host ("[RUN] {0}" -f $Label)
   & $Action
   Write-Host ("[OK ] {0}" -f $Label)
@@ -62,7 +62,7 @@ $skipOutputs = -not $IncludeOutputs
 $failures = New-Object System.Collections.Generic.List[object]
 
 # 0) Repo identity / context check (Phase 1: Repo Awareness)
-Run-Step 'Repo identity (SQUAD)' {
+Invoke-Step 'Repo identity (SQUAD)' {
   & $py $repoIdentityCheck
   if ($LASTEXITCODE -ne 0) {
     $failures.Add([pscustomobject]@{ Type = 'repo-identity'; Path = $root; Detail = 'Repo is not recognized as SQUAD (see JSON output above).' })
@@ -70,7 +70,7 @@ Run-Step 'Repo identity (SQUAD)' {
 }
 
 # 0.5) Phase 2: Artifact classification + boundary crossing warnings
-Run-Step 'Artifact classification (working tree)' {
+Invoke-Step 'Artifact classification (working tree)' {
   & $py $changeClassifier
   if ($LASTEXITCODE -ne 0) {
     $failures.Add([pscustomobject]@{ Type = 'artifact-classification'; Path = $root; Detail = 'Artifact classification reported errors/warnings (see JSON output above).' })
@@ -78,7 +78,7 @@ Run-Step 'Artifact classification (working tree)' {
 }
 
 # 1) PowerShell parse check
-Run-Step 'PowerShell parse (.ps1)' {
+Invoke-Step 'PowerShell parse (.ps1)' {
   $ps1Files = Get-ChildItem -LiteralPath $root -Recurse -Filter *.ps1 -File |
     Where-Object {
       $_.FullName -notmatch '\\\.venv\\' -and
@@ -104,41 +104,41 @@ Run-Step 'PowerShell parse (.ps1)' {
 }
 
 # 2) JSON parse sweep (Python)
-Run-Step 'JSON parse (.json)' {
-  $args = @(
+Invoke-Step 'JSON parse (.json)' {
+  $jsonArgs = @(
     $jsonSweep,
     '--root', $root,
     '--max-failures', [string]$MaxFailures
   )
   if ($IncludeOutputs) {
-    $args += '--include-outputs'
+    $jsonArgs += '--include-outputs'
   }
 
-  & $py @args
+  & $py @jsonArgs
   if ($LASTEXITCODE -ne 0) {
     $failures.Add([pscustomobject]@{ Type = 'json-parse'; Path = $root; Detail = 'One or more JSON files failed to parse (see output above).' })
   }
 }
 
 # 2.5) Phase 3: BattleBuddy contract v1 schema-aware validation
-Run-Step 'BattleBuddy contract validation (v1)' {
-  $args = @(
+Invoke-Step 'BattleBuddy contract validation (v1)' {
+  $bbArgs = @(
     $battlebuddyContractCheck,
     '--root', $root,
     '--max-failures', [string]$MaxFailures
   )
   if ($IncludeOutputs) {
-    $args += '--include-outputs'
+    $bbArgs += '--include-outputs'
   }
 
-  & $py @args
+  & $py @bbArgs
   if ($LASTEXITCODE -ne 0) {
     $failures.Add([pscustomobject]@{ Type = 'bb-contract-schema'; Path = $root; Detail = 'One or more BattleBuddy contract envelopes failed validation (see output above).' })
   }
 }
 
 # 3) Python compile sweep
-Run-Step 'Python compile (.py)' {
+Invoke-Step 'Python compile (.py)' {
   & $py $pyCompile --root $root
   if ($LASTEXITCODE -ne 0) {
     $failures.Add([pscustomobject]@{ Type = 'py-compile'; Path = $root; Detail = 'One or more Python files failed to compile.' })
@@ -146,7 +146,7 @@ Run-Step 'Python compile (.py)' {
 }
 
 # 4) Module registry entrypoint validation
-Run-Step 'Module registry entrypoints' {
+Invoke-Step 'Module registry entrypoints' {
   & $py $moduleRegistryCheck
   if ($LASTEXITCODE -ne 0) {
     $failures.Add([pscustomobject]@{ Type = 'module-registry'; Path = $root; Detail = 'One or more module registry entrypoints are invalid/missing (see output above).' })
