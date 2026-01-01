@@ -1,7 +1,7 @@
 {
   "policy_id": "SQUAD.Social.Policy.v1",
   "account": "SQUAD",
-  "platforms": ["x", "linkedin"],
+  "platforms": ["x", "linkedin", "facebook", "instagram", "reddit"],
   "tone": {
     "style": ["direct", "practical", "respectful"],
     "banned_phrases": ["guaranteed", "life-changing", "miracle", "100%"],
@@ -10,7 +10,14 @@
   "limits": {
     "max_chars_x": 280,
     "max_hashtags": 3,
-    "max_emojis": 2
+    "max_emojis": 2,
+    "by_platform": {
+      "x": { "max_chars": 280, "max_hashtags": 3, "max_emojis": 2 },
+      "linkedin": { "max_chars": 900, "max_hashtags": 3, "max_emojis": 2 },
+      "facebook": { "max_chars": 500, "max_hashtags": 2, "max_emojis": 2 },
+      "instagram": { "max_chars": 1200, "max_hashtags": 8, "max_emojis": 2 },
+      "reddit": { "max_chars": 1200, "max_hashtags": 0, "max_emojis": 0 }
+    }
   },
   "claims": {
     "allowed": [

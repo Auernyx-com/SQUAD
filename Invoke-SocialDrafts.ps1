@@ -29,7 +29,7 @@ param(
 
   # Target platform (policy may support multiple platforms; currently used for headers + filenames)
   [Parameter(Mandatory=$false)]
-  [ValidateSet('x','linkedin')]
+  [ValidateSet('x','linkedin','facebook','instagram','reddit')]
   [string]$Platform = 'x',
 
   # Generation intent
@@ -156,18 +156,79 @@ function Enforce-MaxLen([string]$text, [int]$max) {
 }
 
 function Get-MaxCharsX($policy) {
+  return (Get-MaxCharsForPlatform -policy $policy -platform 'x')
+}
+
+function Get-PlatformLimits($policy, [string]$platform) {
+  $p = ([string]$platform).Trim().ToLowerInvariant()
   $limits = Try-GetProp $policy 'limits' $null
-  $maxCharsX = Try-GetProp $limits 'max_chars_x' $null
-  if ($null -ne $maxCharsX) { return [int]$maxCharsX }
+  if ($null -eq $limits) { return $null }
+
+  $byPlatform = Try-GetProp $limits 'by_platform' $null
+  if ($null -ne $byPlatform) {
+    $pObj = Try-GetProp $byPlatform $p $null
+    if ($null -ne $pObj) { return $pObj }
+  }
+
+  return $null
+}
+
+function Get-MaxCharsForPlatform($policy, [string]$platform) {
+  $p = ([string]$platform).Trim().ToLowerInvariant()
+  $pLimits = Get-PlatformLimits -policy $policy -platform $p
+  $pMax = Try-GetProp $pLimits 'max_chars' $null
+  if ($null -ne $pMax) { return [int]$pMax }
+
+  $limits = Try-GetProp $policy 'limits' $null
+  if ($p -eq 'x') {
+    $maxCharsX = Try-GetProp $limits 'max_chars_x' $null
+    if ($null -ne $maxCharsX) { return [int]$maxCharsX }
+  }
 
   $format = Try-GetProp $policy 'format' $null
   $legacy = Try-GetProp $format 'max_chars_per_post' $null
   if ($null -ne $legacy) { return [int]$legacy }
 
+  # Conservative fallback
   return 280
 }
 
+function Get-MaxHashtagsForPlatform($policy, [string]$platform) {
+  $p = ([string]$platform).Trim().ToLowerInvariant()
+  $pLimits = Get-PlatformLimits -policy $policy -platform $p
+  $pMax = Try-GetProp $pLimits 'max_hashtags' $null
+  if ($null -ne $pMax) { return [int]$pMax }
+
+  $limits = Try-GetProp $policy 'limits' $null
+  $maxHash = Try-GetProp $limits 'max_hashtags' $null
+  if ($null -ne $maxHash) { return [int]$maxHash }
+
+  $hashtagsObj = Try-GetProp $policy 'hashtags' $null
+  $legacyHash = Try-GetProp $hashtagsObj 'max' $null
+  if ($null -ne $legacyHash) { return [int]$legacyHash }
+
+  return 2
+}
+
+function Get-MaxEmojisForPlatform($policy, [string]$platform) {
+  $p = ([string]$platform).Trim().ToLowerInvariant()
+  $pLimits = Get-PlatformLimits -policy $policy -platform $p
+  $pMax = Try-GetProp $pLimits 'max_emojis' $null
+  if ($null -ne $pMax) { return [int]$pMax }
+
+  $limits = Try-GetProp $policy 'limits' $null
+  $maxE = Try-GetProp $limits 'max_emojis' $null
+  if ($null -ne $maxE) { return [int]$maxE }
+
+  return $null
+}
+
 function Get-ThreadConfig($policy) {
+  # Prefer per-platform thread config if present (x is the common case)
+  $xLimits = Get-PlatformLimits -policy $policy -platform 'x'
+  $t0 = Try-GetProp $xLimits 'thread' $null
+  if ($null -ne $t0) { return $t0 }
+
   $limits = Try-GetProp $policy 'limits' $null
   $t1 = Try-GetProp $limits 'thread' $null
   if ($null -ne $t1) { return $t1 }
@@ -324,7 +385,7 @@ function Build-Header(
 }
 
 function Build-XDrafts($policy, $anchorLines, [int]$count) {
-  $max = Get-MaxCharsX $policy
+  $max = Get-MaxCharsForPlatform -policy $policy -platform $Platform
   $drafts = New-Object System.Collections.Generic.List[object]
 
   if ($anchorLines.Count -eq 0) {
@@ -361,9 +422,12 @@ function Build-Thread($policy, $anchorLines) {
 
   $max = 280
   $tMaxLegacy = Try-GetProp $threadCfg 'max_chars_per_post' $null
+  $tMax = Try-GetProp $threadCfg 'max_chars' $null
   $tMaxX = Try-GetProp $threadCfg 'max_chars_x' $null
   if ($null -ne $tMaxLegacy) {
     $max = [int]$tMaxLegacy
+  } elseif ($null -ne $tMax) {
+    $max = [int]$tMax
   } elseif ($null -ne $tMaxX) {
     $max = [int]$tMaxX
   }
@@ -398,7 +462,7 @@ function Rewrite-Neutral($policy, [string]$inputText) {
     throw 'REWRITE_NEUTRAL requires -InputPost.'
   }
 
-  $max = Get-MaxCharsX $policy
+  $max = Get-MaxCharsForPlatform -policy $policy -platform $Platform
   $t = Normalize-Whitespace $inputText
 
   # Minimal neutralizer: remove obvious hype words and exclamation density.
@@ -416,7 +480,7 @@ function Rewrite-Neutral($policy, [string]$inputText) {
 }
 
 function Bullets-To-Post($policy, $anchorLines) {
-  $max = Get-MaxCharsX $policy
+  $max = Get-MaxCharsForPlatform -policy $policy -platform $Platform
   if ($anchorLines.Count -eq 0) { throw 'Source has no usable lines.' }
 
   $bullets = $anchorLines | Select-Object -First 3
@@ -527,20 +591,8 @@ switch ($Mode) {
 }
 
 # Policy checks
-$maxHashtags = 0
-$limits2 = Try-GetProp $policy 'limits' $null
-$maxHash = Try-GetProp $limits2 'max_hashtags' $null
-if ($null -ne $maxHash) {
-  $maxHashtags = [int]$maxHash
-} else {
-  $hashtagsObj = Try-GetProp $policy 'hashtags' $null
-  $legacyHash = Try-GetProp $hashtagsObj 'max' $null
-  $maxHashtags = $(if ($null -ne $legacyHash) { [int]$legacyHash } else { 2 })
-}
-
-$maxEmojis = $null
-$maxE = Try-GetProp $limits2 'max_emojis' $null
-if ($null -ne $maxE) { $maxEmojis = [int]$maxE }
+$maxHashtags = Get-MaxHashtagsForPlatform -policy $policy -platform $Platform
+$maxEmojis = Get-MaxEmojisForPlatform -policy $policy -platform $Platform
 
 $banned = @()
 $toneObj = Try-GetProp $policy 'tone' $null

@@ -1,7 +1,7 @@
 {
   "policy_id": "AUERNYX.Social.Policy.v1",
   "account": "AUERNYX",
-  "platforms": ["x", "linkedin"],
+  "platforms": ["x", "linkedin", "facebook", "instagram", "reddit"],
   "tone": {
     "style": ["technical", "precise", "no-hype"],
     "banned_phrases": ["revolutionary", "game-changer", "unbreakable", "zero-risk"],
@@ -15,6 +15,18 @@
       "enabled": true,
       "max_posts": 8,
       "max_chars_x": 280
+    },
+    "by_platform": {
+      "x": {
+        "max_chars": 280,
+        "max_hashtags": 2,
+        "max_emojis": 0,
+        "thread": { "enabled": true, "max_posts": 8, "max_chars": 280 }
+      },
+      "linkedin": { "max_chars": 1200, "max_hashtags": 3, "max_emojis": 0 },
+      "facebook": { "max_chars": 600, "max_hashtags": 0, "max_emojis": 0 },
+      "instagram": { "max_chars": 1000, "max_hashtags": 0, "max_emojis": 0 },
+      "reddit": { "max_chars": 1500, "max_hashtags": 0, "max_emojis": 0 }
     }
   },
   "claims": {
