@@ -1,1 +1,9 @@
 .baseline/
+
+# Python bytecode / caches
+__pycache__/
+*.pyc
+*.pyo
+
+# Generated run artifacts (governed outputs; do not hand-edit)
+OUTPUTS/RUNS/
