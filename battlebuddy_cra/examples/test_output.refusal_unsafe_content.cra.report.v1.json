@@ -1,0 +1,10 @@
+{
+  "module": "battlebuddy.cra",
+  "version": "1.0.0",
+  "created_at": "2026-01-01T20:00:05Z",
+  "status": "refused",
+  "refusal": {
+    "reason_codes": ["unsafe_content_detected"],
+    "message": "I can’t analyze medical records or determine service connection. I can help identify common documentation or process gaps that affect claims outcomes."
+  }
+}

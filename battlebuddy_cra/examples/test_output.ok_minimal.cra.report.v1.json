@@ -1,0 +1,33 @@
+{
+  "module": "battlebuddy.cra",
+  "version": "1.0.0",
+  "created_at": "2026-01-01T20:10:05Z",
+  "status": "ok",
+  "summary": {
+    "readiness": "incomplete_common_gaps",
+    "notes": [
+      "This is a process-only gap map; it does not assess eligibility or outcomes."
+    ]
+  },
+  "gap_map": [
+    {
+      "gap": "nexus_opinion_missing_or_unknown",
+      "presence": "missing",
+      "safe_rationale": "A nexus opinion is marked as not present/unknown; CRA does not evaluate content, only presence."
+    },
+    {
+      "gap": "service_records_missing_or_unknown",
+      "presence": "unknown",
+      "safe_rationale": "Service records availability is unknown; record requests may be needed to confirm." 
+    }
+  ],
+  "procedural_patterns": [
+    "missing_nexus_is_common_denial_reason",
+    "service_records_requests_can_take_time"
+  ],
+  "next_safe_steps": [
+    {"step": "request_service_records", "notes": "Confirm whether service records can be obtained via official channels."},
+    {"step": "obtain_prior_va_decision_letters", "notes": "Keep decision letters for timelines, deadlines, and stated reasons."},
+    {"step": "build_one_page_timeline", "notes": "Write key dates and outcomes; avoid medical details."}
+  ]
+}
