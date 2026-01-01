@@ -45,9 +45,11 @@ $py = Get-PythonPath -Root $root
 
 $jsonSweep = Join-Path $root 'tools\qa\json_sweep.py'
 $pyCompile = Join-Path $root 'tools\qa\python_compile_sweep.py'
+$moduleRegistryCheck = Join-Path $root 'tools\qa\validate_module_registries.py'
 
 if (-not (Test-Path -LiteralPath $jsonSweep)) { throw "Missing: $jsonSweep" }
 if (-not (Test-Path -LiteralPath $pyCompile)) { throw "Missing: $pyCompile" }
+if (-not (Test-Path -LiteralPath $moduleRegistryCheck)) { throw "Missing: $moduleRegistryCheck" }
 
 $skipOutputs = -not $IncludeOutputs
 
@@ -101,6 +103,14 @@ Run-Step 'Python compile (.py)' {
   & $py $pyCompile --root $root
   if ($LASTEXITCODE -ne 0) {
     $failures.Add([pscustomobject]@{ Type = 'py-compile'; Path = $root; Detail = 'One or more Python files failed to compile.' })
+  }
+}
+
+# 4) Module registry entrypoint validation
+Run-Step 'Module registry entrypoints' {
+  & $py $moduleRegistryCheck
+  if ($LASTEXITCODE -ne 0) {
+    $failures.Add([pscustomobject]@{ Type = 'module-registry'; Path = $root; Detail = 'One or more module registry entrypoints are invalid/missing (see output above).' })
   }
 }
 

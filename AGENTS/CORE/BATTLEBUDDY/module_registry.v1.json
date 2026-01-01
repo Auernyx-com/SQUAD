@@ -21,20 +21,6 @@
       "description": "Cite-or-caveat discipline and confidence gating",
       "entrypoint": "AGENTS/CORE/BATTLEBUDDY/bb_truth_v1.py",
       "can_disable": true
-    },
-    {
-      "module_id": "BB-FraudShield",
-      "version": 1,
-      "description": "Fraud/phishing pattern recognition (optional)",
-      "entrypoint": "AGENTS/CORE/BATTLEBUDDY/bb_fraudshield_v1.py",
-      "can_disable": true
-    },
-    {
-      "module_id": "BB-Crisis",
-      "version": 1,
-      "description": "Crisis detection and safe redirect language (optional)",
-      "entrypoint": "AGENTS/CORE/BATTLEBUDDY/bb_crisis_v1.py",
-      "can_disable": true
     }
   ]
 }
