@@ -8,6 +8,9 @@
 ## Editor config policy (.vscode)
 Editor config policy (.vscode): .vscode/settings.json may be tracked only to enforce repository contracts (e.g., JSON schema bindings for governed artifacts). No other editor preferences (theme/UI, formatting opinions, keybindings, extensions, personal workflow settings) are permitted in tracked .vscode files. If a setting is not required to validate or enforce a governed contract, it must remain untracked.
 
+## Auernyx roadmap
+- See: `DOCS/AUERNYX_Governance_Roadmap_v1.md`
+
 ## Repo boundary
 - **Rule:** SQUAD must never have a git remote pointing at the baseline repository (`baseline-algorithms-and-programs`).
 - **Default posture:** keep SQUAD local-only until the publish boundary is explicitly defined.
