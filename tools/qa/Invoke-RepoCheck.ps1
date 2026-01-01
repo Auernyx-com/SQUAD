@@ -47,11 +47,13 @@ $jsonSweep = Join-Path $root 'tools\qa\json_sweep.py'
 $pyCompile = Join-Path $root 'tools\qa\python_compile_sweep.py'
 $moduleRegistryCheck = Join-Path $root 'tools\qa\validate_module_registries.py'
 $repoIdentityCheck = Join-Path $root 'tools\qa\verify_squad_repo.py'
+$changeClassifier = Join-Path $root 'tools\qa\classify_changes.py'
 
 if (-not (Test-Path -LiteralPath $jsonSweep)) { throw "Missing: $jsonSweep" }
 if (-not (Test-Path -LiteralPath $pyCompile)) { throw "Missing: $pyCompile" }
 if (-not (Test-Path -LiteralPath $moduleRegistryCheck)) { throw "Missing: $moduleRegistryCheck" }
 if (-not (Test-Path -LiteralPath $repoIdentityCheck)) { throw "Missing: $repoIdentityCheck" }
+if (-not (Test-Path -LiteralPath $changeClassifier)) { throw "Missing: $changeClassifier" }
 
 $skipOutputs = -not $IncludeOutputs
 
@@ -62,6 +64,14 @@ Run-Step 'Repo identity (SQUAD)' {
   & $py $repoIdentityCheck
   if ($LASTEXITCODE -ne 0) {
     $failures.Add([pscustomobject]@{ Type = 'repo-identity'; Path = $root; Detail = 'Repo is not recognized as SQUAD (see JSON output above).' })
+  }
+}
+
+# 0.5) Phase 2: Artifact classification + boundary crossing warnings
+Run-Step 'Artifact classification (working tree)' {
+  & $py $changeClassifier
+  if ($LASTEXITCODE -ne 0) {
+    $failures.Add([pscustomobject]@{ Type = 'artifact-classification'; Path = $root; Detail = 'Artifact classification reported errors/warnings (see JSON output above).' })
   }
 }
 
