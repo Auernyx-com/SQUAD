@@ -118,6 +118,25 @@ If the output depends on unknowns, state:
 
 ---
 
+## 7.1) Case review modes (Phase 4)
+BattleBuddy supports **review-oriented modes** (truth review, not authorship) when the input envelope sets:
+
+- `input.constraints.review_mode: "INTAKE_REVIEW"`
+  - Identify: known facts, unknowns, required evidence
+  - Flag contradictions and assumptions
+
+- `input.constraints.review_mode: "STRATEGY_REVIEW"`
+  - Verify alignment to intake
+  - Flag assumed eligibility, invented programs, and non-verifiable claims
+  - Validate blocking vs non-blocking steps
+
+In **case review modes**, BattleBuddy must be stricter than the default guidance format:
+- It must **not propose programs**.
+- It must **not claim eligibility**.
+- It must keep output **review-oriented** (verification and completeness), not prescriptive.
+
+---
+
 ## 8) Governance boundary recap
 Auernyx can:
 - guide, structure, warn, draft, explain tradeoffs

@@ -43,6 +43,25 @@ def _safe_get(d: Dict[str, Any], path: List[str], default: Any = None) -> Any:
     return cur
 
 
+def _review_mode(input_env: Dict[str, Any]) -> Optional[str]:
+    constraints = (input_env or {}).get("constraints")
+    if not isinstance(constraints, dict):
+        return None
+
+    raw = constraints.get("review_mode")
+    if raw is None:
+        return None
+    if not isinstance(raw, str):
+        return None
+
+    mode = raw.strip().upper()
+    if mode in {"INTAKE_REVIEW", "INTAKE"}:
+        return "INTAKE_REVIEW"
+    if mode in {"STRATEGY_REVIEW", "STRATEGY"}:
+        return "STRATEGY_REVIEW"
+    return None
+
+
 def _stage(input_env: Dict[str, Any]) -> str:
     stage = (input_env or {}).get("stage") or "CLARIFY"
     if stage not in STAGES:
@@ -107,6 +126,130 @@ def _goal_from_domain(domain: str, stage: str) -> str:
         return "Protect your rights and avoid missing deadlines; verify before acting."
 
     return "Turn the situation into next steps and proof requirements."
+
+
+def _review_goal(mode: str) -> str:
+    if mode == "INTAKE_REVIEW":
+        return "Intake review: separate stated facts from unknowns and define required evidence."
+    # STRATEGY_REVIEW
+    return "Strategy review: verify alignment to intake; flag assumptions and eligibility claims for human review."
+
+
+def _review_situation(case: Dict[str, Any], artifacts: List[Dict[str, Any]]) -> str:
+    known = list(case.get("known_facts") or [])
+    unknown = list(case.get("unknowns") or [])
+
+    narrative = (case.get("narrative") or "").strip().replace("\n", " ")
+    if narrative:
+        narrative = narrative[:280] + ("…" if len(narrative) > 280 else "")
+    else:
+        narrative = "No narrative provided yet."
+
+    parts: List[str] = [narrative]
+
+    if known:
+        parts.append("Known facts (as stated): " + "; ".join([str(x) for x in known[:6]]) + ("…" if len(known) > 6 else ""))
+    else:
+        parts.append("Known facts: (none listed yet)")
+
+    if unknown:
+        parts.append("Unknowns / questions: " + "; ".join([str(x) for x in unknown[:6]]) + ("…" if len(unknown) > 6 else ""))
+    else:
+        parts.append("Unknowns / questions: (none listed yet)")
+
+    have_types = [str(a.get("type")) for a in artifacts if isinstance(a, dict) and a.get("type")]
+    if have_types:
+        parts.append("Artifacts present (types): " + ", ".join(have_types[:8]) + ("…" if len(have_types) > 8 else ""))
+    else:
+        parts.append("Artifacts present: (none attached yet)")
+
+    return "\n".join(parts[:4])
+
+
+def _review_actions(mode: str, case: Dict[str, Any], deadlines: List[Dict[str, Any]]) -> List[str]:
+    unknowns = list(case.get("unknowns") or [])
+
+    if mode == "INTAKE_REVIEW":
+        actions: List[str] = []
+        actions.append("Review the intake for completeness: verify each stated fact is supported by an artifact or clearly marked as unverified.")
+        if unknowns:
+            actions.append("Prioritize the top 3 unknowns and define exactly what evidence would answer each.")
+        else:
+            actions.append("Add at least 3 unknowns/questions that must be answered before any strategy decisions.")
+        if deadlines:
+            actions.append("Confirm deadline dates directly from the notice/artifact and record the exact wording.")
+        else:
+            actions.append("Check whether any written deadlines exist (notice/email/portal) and capture dates.")
+        return actions[:3]
+
+    # STRATEGY_REVIEW
+    actions2: List[str] = [
+        "Review proposed steps (if any) and label each as blocking vs non-blocking before acting.",
+        "Verify no strategy assumes eligibility, program availability, or guarantees; mark those as 'verify-required'.",
+        "Ensure the strategy is consistent with intake facts/unknowns and does not skip required evidence collection.",
+    ]
+    return actions2[:3]
+
+
+def _review_warnings(mode: str, input_env: Dict[str, Any]) -> List[Dict[str, Any]]:
+    warnings: List[Dict[str, Any]] = []
+
+    case = (input_env or {}).get("case") or {}
+    if not isinstance(case, dict):
+        case = {}
+
+    artifacts = (input_env or {}).get("artifacts") or []
+    if not isinstance(artifacts, list):
+        artifacts = []
+
+    known = [str(x) for x in (case.get("known_facts") or [])]
+    unknown = [str(x) for x in (case.get("unknowns") or [])]
+    overlap = sorted(set(known).intersection(set(unknown)))
+    if overlap:
+        warnings.append(
+            {
+                "warning_id": "BB4.CONTRADICTION.KNOWN_UNKNOWN_OVERLAP",
+                "label": "Some items appear in both known facts and unknowns.",
+                "details": "; ".join(overlap[:6]) + ("…" if len(overlap) > 6 else ""),
+                "severity": "MEDIUM",
+                "confidence": "VERIFY_REQUIRED",
+            }
+        )
+
+    program = case.get("program") or {}
+    if isinstance(program, dict) and (program.get("name") or "").strip():
+        pname = str(program.get("name") or "").strip()
+        have_types = [str(a.get("type") or "") for a in artifacts if isinstance(a, dict)]
+        has_program_proof = any(
+            t.upper().find("VOUCHER") >= 0 or t.upper().find("LETTER") >= 0 or t.upper().find("PROGRAM") >= 0
+            for t in have_types
+        )
+        if not has_program_proof:
+            warnings.append(
+                {
+                    "warning_id": "BB4.ASSUMPTION.PROGRAM_UNVERIFIED",
+                    "label": "Program name is present but not supported by an attached artifact.",
+                    "details": f"Program listed: {pname}. Attach a letter/portal screenshot if available.",
+                    "severity": "MEDIUM",
+                    "confidence": "VERIFY_REQUIRED",
+                }
+            )
+
+    module_results = (input_env or {}).get("module_results")
+    if isinstance(module_results, dict) and mode == "STRATEGY_REVIEW":
+        blob = json.dumps(module_results, ensure_ascii=False).lower()
+        if any(w in blob for w in ["eligible", "eligibility", "qualify", "qualified", "guarantee", "guaranteed"]):
+            warnings.append(
+                {
+                    "warning_id": "BB4.ELIGIBILITY.CLAIM_DETECTED",
+                    "label": "Eligibility/guarantee language detected in module results.",
+                    "details": "Treat eligibility as verify-required; do not assume program acceptance without written confirmation.",
+                    "severity": "HIGH",
+                    "confidence": "VERIFY_REQUIRED",
+                }
+            )
+
+    return warnings
 
 
 def _situation_lines(case: Dict[str, Any], flags: Dict[str, Any], deadlines: List[Dict[str, Any]]) -> str:
@@ -274,15 +417,70 @@ def build_battle_buddy_plan(input_env: Dict[str, Any]) -> Tuple[BattleBuddyDraft
     )
 
 
-def _build_output_envelope(stage: str, plan: BattleBuddyDraft, truth: TruthAssessment) -> Dict[str, Any]:
+def build_case_review_plan(input_env: Dict[str, Any], mode: str) -> Tuple[BattleBuddyDraft, TruthAssessment, List[Dict[str, Any]], List[str]]:
+    case = (input_env or {}).get("case") or {}
+    flags = (input_env or {}).get("flags") or {}
+    artifacts = (input_env or {}).get("artifacts") or []
+
+    if not isinstance(case, dict):
+        case = {}
+    if not isinstance(flags, dict):
+        flags = {}
+    if not isinstance(artifacts, list):
+        artifacts = []
+
+    deadlines = _extract_deadlines(case)
+    stage = _stage(input_env)
+    truth = assess_truth(input_env)
+
+    situation = _review_situation(case=case, artifacts=artifacts)
+    goal = _review_goal(mode=mode)
+    next_3_actions = _review_actions(mode=mode, case=case, deadlines=deadlines)
+    evidence_needed = _default_evidence(case=case, artifacts=artifacts)
+
+    risks_traps: List[str] = []
+    if mode == "STRATEGY_REVIEW":
+        risks_traps.append("Do not assume eligibility or program availability; require written confirmation.")
+    risks_traps.append("This output is review-oriented; a human must decide any next steps.")
+    risks_traps.extend(_fraud_warning_lines(flags))
+    risks_traps.extend(_privacy_warning_lines(flags))
+
+    if_blocked_do_this = _default_if_blocked(flags=flags, deadlines=deadlines)
+
+    warnings = _review_warnings(mode=mode, input_env=input_env)
+    mode_updates = [f"Case review mode: {mode} (truth review, not authorship)."]
+
+    return (
+        BattleBuddyDraft(
+            situation=situation,
+            goal=goal,
+            next_3_actions=next_3_actions,
+            evidence_needed=evidence_needed,
+            risks_traps=risks_traps,
+            if_blocked_do_this=if_blocked_do_this,
+        ),
+        truth,
+        warnings,
+        mode_updates,
+    )
+
+
+def _build_output_envelope(
+    stage: str,
+    plan: BattleBuddyDraft,
+    truth: TruthAssessment,
+    *,
+    warnings: Optional[List[Dict[str, Any]]] = None,
+    extra_updates: Optional[List[str]] = None,
+) -> Dict[str, Any]:
     return {
         "stage": stage,
         "confidence": truth.confidence,
-        "updates": truth.caveats,
+        "updates": list(extra_updates or []) + list(truth.caveats or []),
         "tasks": [],
         "evidence": [],
         "scripts": [],
-        "warnings": [],
+        "warnings": list(warnings or []),
         "handoffs": [],
         "battle_buddy_plan": {
             "situation": plan.situation,
@@ -306,14 +504,20 @@ def run(input_path: Path, output_path: Optional[Path] = None) -> Dict[str, Any]:
     input_env = payload.get("input") or {}
     stage = _stage(input_env)
 
-    plan, truth = build_battle_buddy_plan(input_env)
+    mode = _review_mode(input_env)
+    if mode:
+        plan, truth, warnings, mode_updates = build_case_review_plan(input_env=input_env, mode=mode)
+    else:
+        plan, truth = build_battle_buddy_plan(input_env)
+        warnings = []
+        mode_updates = []
 
     out = {
         "contract_id": "AUERNYX.BattleBuddy.Contract.v1",
         "schema_version": 1,
         "timestamp": _now_iso(),
         "input": input_env,
-        "output": _build_output_envelope(stage=stage, plan=plan, truth=truth),
+        "output": _build_output_envelope(stage=stage, plan=plan, truth=truth, warnings=warnings, extra_updates=mode_updates),
     }
 
     if output_path is not None:
