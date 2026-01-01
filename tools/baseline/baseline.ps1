@@ -26,12 +26,24 @@ if (-not (Test-Path -LiteralPath $External)) {
 }
 
 # Forward all supported args explicitly (keeps parameter binding predictable).
-& powershell -NoProfile -ExecutionPolicy Bypass -File $External `
+$baselineOutput = & powershell -NoProfile -ExecutionPolicy Bypass -File $External `
   $Mode `
   -Label $Label `
   $(if ($Commit) { "-Commit" } else { $null }) `
   $(if ($VerifyHashes) { "-VerifyHashes" } else { $null }) `
   -ProjectRoot $ProjectRoot `
-  -LedgerRoot $LedgerRoot
+  -LedgerRoot $LedgerRoot 2>&1
 
-exit $LASTEXITCODE
+$exitCode = $LASTEXITCODE
+
+foreach ($line in $baselineOutput) {
+  $text = [string]$line
+
+  # Suppress noisy/commonly-stale git remote status hints emitted by the external tool.
+  if ($text -match "^Your branch is behind 'origin/main' by\\s+\\d+\\s+commits" ) { continue }
+  if ($text -match '^\s*\(use "git pull" to update your local branch\)\s*$') { continue }
+
+  Write-Output $line
+}
+
+exit $exitCode
