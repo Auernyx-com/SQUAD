@@ -121,7 +121,7 @@ def _get_full_schema_validator(schema_path: Path):
     except Exception as e:
         raise RuntimeError(
             "Missing required dependency 'jsonschema' with Draft 2020-12 support. "
-            "Install it in the repo venv (e.g., pip install jsonschema)."
+            "Install it in the repo venv (e.g., pip install -r tools/qa/requirements.txt)."
         ) from e
 
     schema = _load_json(schema_path)
