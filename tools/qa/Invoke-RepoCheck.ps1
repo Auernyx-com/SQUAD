@@ -48,12 +48,14 @@ $pyCompile = Join-Path $root 'tools\qa\python_compile_sweep.py'
 $moduleRegistryCheck = Join-Path $root 'tools\qa\validate_module_registries.py'
 $repoIdentityCheck = Join-Path $root 'tools\qa\verify_squad_repo.py'
 $changeClassifier = Join-Path $root 'tools\qa\classify_changes.py'
+$battlebuddyContractCheck = Join-Path $root 'tools\qa\validate_battlebuddy_contracts.py'
 
 if (-not (Test-Path -LiteralPath $jsonSweep)) { throw "Missing: $jsonSweep" }
 if (-not (Test-Path -LiteralPath $pyCompile)) { throw "Missing: $pyCompile" }
 if (-not (Test-Path -LiteralPath $moduleRegistryCheck)) { throw "Missing: $moduleRegistryCheck" }
 if (-not (Test-Path -LiteralPath $repoIdentityCheck)) { throw "Missing: $repoIdentityCheck" }
 if (-not (Test-Path -LiteralPath $changeClassifier)) { throw "Missing: $changeClassifier" }
+if (-not (Test-Path -LiteralPath $battlebuddyContractCheck)) { throw "Missing: $battlebuddyContractCheck" }
 
 $skipOutputs = -not $IncludeOutputs
 
@@ -115,6 +117,23 @@ Run-Step 'JSON parse (.json)' {
   & $py @args
   if ($LASTEXITCODE -ne 0) {
     $failures.Add([pscustomobject]@{ Type = 'json-parse'; Path = $root; Detail = 'One or more JSON files failed to parse (see output above).' })
+  }
+}
+
+# 2.5) Phase 3: BattleBuddy contract v1 schema-aware validation
+Run-Step 'BattleBuddy contract validation (v1)' {
+  $args = @(
+    $battlebuddyContractCheck,
+    '--root', $root,
+    '--max-failures', [string]$MaxFailures
+  )
+  if ($IncludeOutputs) {
+    $args += '--include-outputs'
+  }
+
+  & $py @args
+  if ($LASTEXITCODE -ne 0) {
+    $failures.Add([pscustomobject]@{ Type = 'bb-contract-schema'; Path = $root; Detail = 'One or more BattleBuddy contract envelopes failed validation (see output above).' })
   }
 }
 

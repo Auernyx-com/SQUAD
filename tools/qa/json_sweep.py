@@ -53,6 +53,12 @@ def _load_json(path: Path) -> None:
         json.load(f)
 
 
+def _format_error(e: Exception) -> str:
+    if isinstance(e, json.JSONDecodeError):
+        return f"{e.msg} at line {e.lineno} column {e.colno} (pos {e.pos})"
+    return str(e)
+
+
 def main(argv: Sequence[str]) -> int:
     parser = argparse.ArgumentParser(description="Parse all .json files under a root folder.")
     parser.add_argument(
@@ -95,7 +101,7 @@ def main(argv: Sequence[str]) -> int:
         try:
             _load_json(path)
         except Exception as e:  # noqa: BLE001 - intended: capture any parse/IO error
-            failures.append(Failure(path=str(path), error=str(e)))
+            failures.append(Failure(path=str(path), error=_format_error(e)))
 
     print(f"json files scanned: {total}")
     print(f"json parse failures: {len(failures)}")
