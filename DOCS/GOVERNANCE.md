@@ -5,8 +5,8 @@
 - **Delegate shim rule:** `SYSTEM/CLERK/Invoke-SquadAdminClerk.ps1` must remain a pure delegation wrapper and must never contain divergent logic.
 - **Reason:** prevents shadow execution paths and keeps auditability + governance boundaries intact.
 
-## VS Code config (tracked, narrow)
-- `.vscode/settings.json` is tracked only for schema bindings and governance-related validation; editor preferences remain untracked.
+## Editor config policy (.vscode)
+Editor config policy (.vscode): .vscode/settings.json may be tracked only to enforce repository contracts (e.g., JSON schema bindings for governed artifacts). No other editor preferences (theme/UI, formatting opinions, keybindings, extensions, personal workflow settings) are permitted in tracked .vscode files. If a setting is not required to validate or enforce a governed contract, it must remain untracked.
 
 ## Repo boundary
 - **Rule:** SQUAD must never have a git remote pointing at the baseline repository (`baseline-algorithms-and-programs`).
