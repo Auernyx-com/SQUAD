@@ -4,6 +4,8 @@ import getpass
 import hashlib
 import json
 import os
+import sys
+import traceback
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -19,6 +21,24 @@ class ProvenanceStatus:
     code: Optional[ProvenanceFailureCode] = None
     reason: Optional[str] = None
     details: Optional[Dict[str, Any]] = None
+
+
+def _env_truthy(name: str) -> bool:
+    val = (os.environ.get(name) or "").strip().lower()
+    return val in {"1", "true", "yes", "on"}
+
+
+_PROVENANCE_DEBUG = _env_truthy("SQUAD_PROVENANCE_DEBUG")
+
+
+def _log_exception(context: str, exc: BaseException, *, include_traceback: bool = False) -> None:
+    try:
+        msg = f"[obsidian_judgment] WARN {context}: {type(exc).__name__}: {exc}"
+        print(msg, file=sys.stderr)
+        if include_traceback:
+            print(traceback.format_exc().rstrip(), file=sys.stderr)
+    except Exception:
+        return
 
 
 def _now_iso() -> str:
@@ -151,7 +171,8 @@ def read_genesis_record(repo_root: Path) -> Optional[Dict[str, Any]]:
         if not p.is_file():
             return None
         return json.loads(p.read_text(encoding="utf-8"))
-    except Exception:
+    except Exception as e:
+        _log_exception(f"read_genesis_record failed (path={p})", e, include_traceback=_PROVENANCE_DEBUG)
         return None
 
 
@@ -218,7 +239,9 @@ def append_audit(repo_root: Path, event: Dict[str, Any]) -> None:
         provenance_dir(repo_root).mkdir(parents=True, exist_ok=True)
         entry = {"ts": _now_iso(), **event}
         audit_path(repo_root).open("a", encoding="utf-8").write(json.dumps(entry, ensure_ascii=False) + "\n")
-    except Exception:
+    except Exception as e:
+        if _PROVENANCE_DEBUG:
+            _log_exception("append_audit failed", e, include_traceback=True)
         # audit is best-effort
         return
 
@@ -229,7 +252,8 @@ def read_judgment(repo_root: Path) -> Optional[Dict[str, Any]]:
         if not p.is_file():
             return None
         return json.loads(p.read_text(encoding="utf-8"))
-    except Exception:
+    except Exception as e:
+        _log_exception(f"read_judgment failed (path={p})", e, include_traceback=_PROVENANCE_DEBUG)
         return None
 
 
@@ -263,7 +287,9 @@ def clear_judgment(repo_root: Path) -> bool:
             p.unlink()
         append_audit(repo_root, {"kind": "judgment.cleared"})
         return True
-    except Exception:
+    except Exception as e:
+        if _PROVENANCE_DEBUG:
+            _log_exception("clear_judgment failed", e, include_traceback=True)
         return False
 
 

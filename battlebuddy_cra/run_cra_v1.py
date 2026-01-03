@@ -203,7 +203,7 @@ def _build_ok_report(input_payload: Dict[str, Any]) -> Dict[str, Any]:
             gaps,
             "current_diagnosis_docs_missing_or_unknown",
             p,
-            "Current medical documentation (presence only) is marked missing/unknown; CRA does not evaluate content, only presence.",
+            "Current medical documentation is marked missing/unknown; CRA does not evaluate content, only presence.",
         )
 
     p = _presence_from_yes_no_unknown(nexus)
