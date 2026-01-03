@@ -18,7 +18,7 @@ def _add_src_to_syspath() -> None:
 
 _add_src_to_syspath()
 
-from nonprofit_search import load_registry, search  # noqa: E402
+from nonprofit_search import load_registry, search  # noqa: E402  # pyright: ignore[reportMissingImports]
 
 
 def _parse_fields(fields: Optional[str]) -> Optional[List[str]]:

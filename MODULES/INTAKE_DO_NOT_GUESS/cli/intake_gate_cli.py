@@ -16,7 +16,7 @@ def _add_src_to_syspath() -> None:
 
 _add_src_to_syspath()
 
-from intake_gate import gate_intake  # noqa: E402
+from intake_gate import gate_intake  # noqa: E402  # pyright: ignore[reportMissingImports]
 
 
 def _load_payload(path: str | None) -> Dict[str, Any]:
