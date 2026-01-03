@@ -1,0 +1,9 @@
+{
+  "module_id": "CRISIS_REDIRECT",
+  "version": "1.0.0",
+  "purpose": "Minimal crisis-safe redirect: stop other processing and present human crisis resources.",
+  "entrypoints": {
+    "python_api": "src/crisis_redirect.py",
+    "cli": "cli/crisis_redirect_cli.py"
+  }
+}

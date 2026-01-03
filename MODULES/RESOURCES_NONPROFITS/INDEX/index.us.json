@@ -1,0 +1,13 @@
+{
+  "country": "US",
+  "states": {
+    "CO": {
+      "regions": [
+        "DATA/US/CO/western_slope.json",
+        "DATA/US/CO/denver_metro.json"
+      ]
+    },
+    "UT": { "regions": [] },
+    "WY": { "regions": [] }
+  }
+}

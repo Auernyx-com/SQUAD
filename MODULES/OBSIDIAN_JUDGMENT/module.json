@@ -1,0 +1,13 @@
+{
+  "module_id": "OBSIDIAN_JUDGMENT",
+  "version": "1.0.0",
+  "purpose": "Provenance + governance hash verification with an optional 'Judgment' refuse-state when provenance is invalid.",
+  "storage": {
+    "dir": "SYSTEM/META/PROVENANCE",
+    "files": ["genesis.v1.json", "judgment.v1.json", "audit.ndjson"]
+  },
+  "entrypoints": {
+    "python_api": "src/obsidian_judgment.py",
+    "cli": "cli/obsidian_judgment_cli.py"
+  }
+}

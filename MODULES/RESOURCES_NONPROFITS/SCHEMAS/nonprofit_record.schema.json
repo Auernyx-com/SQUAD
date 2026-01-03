@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "squad://modules/resources_nonprofits/schemas/nonprofit_record.schema.json",
+  "title": "Nonprofit Record (Provider)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["provider_id", "name", "services"],
+  "properties": {
+    "provider_id": { "type": "string", "minLength": 1 },
+    "name": { "type": "string", "minLength": 1 },
+
+    "org_type": { "type": "string" },
+
+    "coverage_counties": { "type": "array", "items": { "type": "string" }, "default": [] },
+    "cities": { "type": "array", "items": { "type": "string" }, "default": [] },
+
+    "services": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/ServiceTag" },
+      "minItems": 1
+    },
+
+    "va_visibility": { "type": "string" },
+    "notes": { "type": "string" },
+
+    "contact": {
+      "description": "Contact object is intentionally flexible; keep it factual.",
+      "type": ["object", "string"],
+      "additionalProperties": true
+    },
+
+    "urls": { "type": "array", "items": { "type": "string" }, "default": [] },
+    "phones": { "type": "array", "items": { "type": "string" }, "default": [] },
+    "emails": { "type": "array", "items": { "type": "string" }, "default": [] },
+
+    "address": {
+      "description": "Address object is intentionally flexible; keep it factual.",
+      "type": ["object", "string"],
+      "additionalProperties": true
+    },
+
+    "alternate_locations": { "type": "array", "items": { "type": "object" }, "default": [] },
+    "source_hints": { "type": ["array", "string" ] }
+  },
+  "$defs": {
+    "ServiceTag": {
+      "type": "string",
+      "enum": [
+        "claims_assistance",
+        "benefits_navigation",
+        "housing_support",
+        "homelessness_prevention",
+        "emergency_financial_aid",
+        "legal_referral",
+        "resource_referral",
+        "mental_health_peer_support",
+        "clinical_therapy_referral",
+        "equine_therapy",
+        "outdoor_recreation",
+        "adaptive_sports",
+        "art_therapy",
+        "education_support",
+        "employment_support",
+        "caregiver_support",
+        "family_support",
+        "social_connection",
+        "advocacy",
+        "memorial_civic"
+      ]
+    }
+  }
+}

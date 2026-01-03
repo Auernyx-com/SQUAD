@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "squad://modules/resources_nonprofits/schemas/nonprofit_registry.schema.json",
+  "title": "Nonprofit Registry Shard (v1)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["providers"],
+  "properties": {
+    "region_id": { "type": "string" },
+    "country": { "type": "string" },
+    "state": { "type": "string" },
+    "notes": { "type": "string" },
+    "providers": {
+      "type": "array",
+      "items": { "$ref": "nonprofit_record.schema.json" },
+      "default": []
+    }
+  }
+}
