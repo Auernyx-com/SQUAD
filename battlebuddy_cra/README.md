@@ -34,5 +34,25 @@ The CRA runner generates a schema-valid report from a CRA input payload.
 	- Then run: `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\.venv\Scripts\python.exe .\battlebuddy_cra\run_cra_v1.py --case-id <CASE_ID>"`
 	- Output writes to: `CASES/ACTIVE/<CASE_ID>/ARTIFACTS/CRA/cra.report.v1.json` (with collision suffixes if needed)
 
+## Handshake-only (input shaping)
+If you want questions-only intake shaping (no CRA report generation, no file writes), use handshake-only mode.
+
+This mode is designed to:
+- Ask for missing admin/process inputs
+- Avoid clinical interpretation and rating predictions
+- Stay questions-only (no recommendations)
+
+Examples (run from repo root):
+- General handshake questions:
+	- `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\.venv\Scripts\python.exe .\battlebuddy_cra\run_cra_v1.py --handshake-only --handshake-text 'Denied last year; missing decision letter; confused about HLR vs supplemental'"`
+
+- Questions-only output (no observations/flags):
+	- `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\.venv\Scripts\python.exe .\battlebuddy_cra\run_cra_v1.py --handshake-only --handshake-quiet --handshake-text 'Denied last year; missing decision letter; confused about HLR vs supplemental'"`
+
+- CRA schema-aligned questionnaire (fields map directly to `battlebuddy_cra/schema/cra.schema.json`):
+	- `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\.venv\Scripts\python.exe .\battlebuddy_cra\run_cra_v1.py --handshake-only --handshake-format cra --handshake-text 'Denied last year; missing decision letter; confused about HLR vs supplemental'"`
+
+Tip: prefer repo-root relative paths (as shown) to keep console output clean.
+
 ## Privacy rails
 Do not store PHI/PII in tracked text/code. Store VA/medical documents as case artifacts with redactions.
