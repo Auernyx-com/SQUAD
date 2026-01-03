@@ -13,7 +13,10 @@ CASES/ACTIVE/
 CASES/ARCHIVE/
 
 # Quarantine + meta folders are local evidence storage (append-only)
-SYSTEM/META/
+# Exception: provenance genesis is governed and must be tracked.
+SYSTEM/META/**
+!SYSTEM/META/PROVENANCE/
+!SYSTEM/META/PROVENANCE/genesis.v1.json
 
 # Clerk logs (runtime noise)
 SYSTEM/LOGS/CLERK/*.log
