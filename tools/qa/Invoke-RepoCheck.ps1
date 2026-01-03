@@ -104,8 +104,6 @@ if (-not (Test-Path -LiteralPath $battlebuddyContractCheck)) { throw "Missing: $
 if (-not (Test-Path -LiteralPath $nonprofitRegistryCheck)) { throw "Missing: $nonprofitRegistryCheck" }
 if (-not (Test-Path -LiteralPath $obsidianJudgmentCheck)) { throw "Missing: $obsidianJudgmentCheck" }
 
-$skipOutputs = -not $IncludeOutputs
-
 $failures = New-Object System.Collections.Generic.List[object]
 
 # 0) Repo identity / context check (Phase 1: Repo Awareness)
@@ -119,10 +117,10 @@ Invoke-Step 'Repo identity (SQUAD)' {
 # 0.5) Phase 2: Artifact classification + boundary crossing warnings
 Invoke-Step 'Artifact classification (working tree)' {
   if ($StrictGoverned) {
-    $classifierArgs = @('--plain', '--intent', '--require-governed-confirm')
-    if ($ConfirmGoverned) { $classifierArgs += '--confirm-governed' }
+    $classifierParams = @('--plain', '--intent', '--require-governed-confirm')
+    if ($ConfirmGoverned) { $classifierParams += '--confirm-governed' }
 
-    & $py $changeClassifier @classifierArgs
+    & $py $changeClassifier @classifierParams
     if ($LASTEXITCODE -ne 0) {
       $failures.Add([pscustomobject]@{ Type = 'artifact-classification'; Path = $root; Detail = 'Strict governed mode: governed changes require explicit confirmation (--confirm-governed). See output above.' })
     }
@@ -141,7 +139,7 @@ Invoke-Step 'PowerShell parse (.ps1)' {
       $_.FullName -notmatch '\\\.venv\\' -and
       $_.FullName -notmatch '\\\.git\\' -and
       $_.FullName -notmatch '\\node_modules\\' -and
-      (-not $skipOutputs -or $_.FullName -notmatch '\\OUTPUTS\\')
+      ($IncludeOutputs -or $_.FullName -notmatch '\\OUTPUTS\\')
     }
 
   foreach ($f in $ps1Files) {
@@ -162,16 +160,16 @@ Invoke-Step 'PowerShell parse (.ps1)' {
 
 # 2) JSON parse sweep (Python)
 Invoke-Step 'JSON parse (.json)' {
-  $jsonArgs = @(
+  $jsonParams = @(
     $jsonSweep,
     '--root', $root,
     '--max-failures', [string]$MaxFailures
   )
   if ($IncludeOutputs) {
-    $jsonArgs += '--include-outputs'
+    $jsonParams += '--include-outputs'
   }
 
-  & $py @jsonArgs
+  & $py @jsonParams
   if ($LASTEXITCODE -ne 0) {
     $failures.Add([pscustomobject]@{ Type = 'json-parse'; Path = $root; Detail = 'One or more JSON files failed to parse (see output above).' })
   }
@@ -179,16 +177,16 @@ Invoke-Step 'JSON parse (.json)' {
 
 # 2.5) Phase 3: BattleBuddy contract v1 schema-aware validation
 Invoke-Step 'BattleBuddy contract validation (v1)' {
-  $bbArgs = @(
+  $bbParams = @(
     $battlebuddyContractCheck,
     '--root', $root,
     '--max-failures', [string]$MaxFailures
   )
   if ($IncludeOutputs) {
-    $bbArgs += '--include-outputs'
+    $bbParams += '--include-outputs'
   }
 
-  & $py @bbArgs
+  & $py @bbParams
   if ($LASTEXITCODE -ne 0) {
     $failures.Add([pscustomobject]@{ Type = 'bb-contract-schema'; Path = $root; Detail = 'One or more BattleBuddy contract envelopes failed validation (see output above).' })
   }

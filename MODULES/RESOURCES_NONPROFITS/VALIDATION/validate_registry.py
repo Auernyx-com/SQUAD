@@ -34,7 +34,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return 0
 
     _add_src_to_syspath(module_root)
-    from nonprofit_search import load_registry  # noqa: E402
+    from nonprofit_search import load_registry  # noqa: E402  # pyright: ignore[reportMissingImports]
 
     # load_registry enforces:
     # - blocked fields (reject)
