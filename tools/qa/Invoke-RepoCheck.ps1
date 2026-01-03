@@ -62,16 +62,16 @@ function Invoke-CraFixtureValidation {
 
 function Invoke-Step([string]$Label, [scriptblock]$Action) {
   Write-Host ("[RUN] {0}" -f $Label)
-  $script:__invoke_step_failed = $false
+  $script:InvokeStepFailed = $false
   try {
     & $Action
   } catch {
-    $script:__invoke_step_failed = $true
+    $script:InvokeStepFailed = $true
     Write-Host ("[FAIL] {0}" -f $Label)
     throw
   }
 
-  if ($script:__invoke_step_failed) {
+  if ($script:InvokeStepFailed) {
     Write-Host ("[FAIL] {0}" -f $Label)
   } else {
     Write-Host ("[OK ] {0}" -f $Label)
@@ -210,7 +210,7 @@ Invoke-Step 'Obsidian Judgment (provenance required)' {
   & $py $obsidianJudgmentCheck --root $root --require-genesis
   if ($LASTEXITCODE -ne 0) {
     $failures.Add([pscustomobject]@{ Type = 'obsidian-judgment'; Path = $root; Detail = 'Judgment is active or provenance verification failed (see JSON output above).' })
-    $script:__invoke_step_failed = $true
+    $script:InvokeStepFailed = $true
   }
 }
 

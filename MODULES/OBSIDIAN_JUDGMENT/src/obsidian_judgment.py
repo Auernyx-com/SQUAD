@@ -165,6 +165,55 @@ def ensure_genesis_record(repo_root: Path, *, write_enabled: bool = False) -> Di
     return {"created": True, "path": str(p)}
 
 
+def rotate_genesis_record(repo_root: Path, *, confirm: bool = False) -> Dict[str, Any]:
+    """Explicitly rewrite the genesis record to match current governance inputs.
+
+    This is a deliberate, audited operation intended for intentional governance updates.
+    """
+
+    if not confirm:
+        raise ValueError("rotate_genesis_record requires confirm=True")
+
+    p = genesis_path(repo_root)
+    old = read_genesis_record(repo_root) or {}
+
+    provenance_dir(repo_root).mkdir(parents=True, exist_ok=True)
+
+    author = (
+        os.environ.get("SQUAD_AUTHOR_IDENTITY")
+        or os.environ.get("AUERNYX_AUTHOR_IDENTITY")
+        or getpass.getuser()
+        or "unknown"
+    ).strip() or "unknown"
+    project_id = "SQUAD"
+    created_at = _now_iso()
+    gov_hash = compute_governance_hash(repo_root)
+
+    record: Dict[str, Any] = {
+        "version": 1,
+        "author_identity": author,
+        "project_id": project_id,
+        "created_at": created_at,
+        "initial_governance_hash": gov_hash,
+    }
+    record["record_hash"] = _compute_genesis_record_hash(record)
+
+    p.write_text(json.dumps(record, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    append_audit(
+        repo_root,
+        {
+            "kind": "genesis.rotated",
+            "data": {
+                "old_governance_hash": old.get("initial_governance_hash"),
+                "new_governance_hash": gov_hash,
+            },
+        },
+    )
+
+    return {"rotated": True, "path": str(p), "governance_hash": gov_hash}
+
+
 def read_genesis_record(repo_root: Path) -> Optional[Dict[str, Any]]:
     p = genesis_path(repo_root)
     try:
@@ -238,7 +287,8 @@ def append_audit(repo_root: Path, event: Dict[str, Any]) -> None:
     try:
         provenance_dir(repo_root).mkdir(parents=True, exist_ok=True)
         entry = {"ts": _now_iso(), **event}
-        audit_path(repo_root).open("a", encoding="utf-8").write(json.dumps(entry, ensure_ascii=False) + "\n")
+        with audit_path(repo_root).open("a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
     except Exception as e:
         if _PROVENANCE_DEBUG:
             _log_exception("append_audit failed", e, include_traceback=True)

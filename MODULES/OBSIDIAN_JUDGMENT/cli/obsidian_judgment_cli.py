@@ -25,6 +25,9 @@ def main() -> int:
     g = sub.add_parser("genesis", help="Create genesis record (explicit)")
     g.add_argument("--write", action="store_true", help="Actually create genesis (required).")
 
+    r = sub.add_parser("rotate-genesis", help="Rewrite genesis record to current governance hash (explicit)")
+    r.add_argument("--confirm", choices=["YES"], required=True, help="Type YES to rotate genesis.")
+
     a = sub.add_parser("activate", help="Activate judgment based on current provenance failure.")
     a.add_argument("--confirm", choices=["YES"], required=True, help="Type YES to activate judgment.")
 
@@ -42,6 +45,7 @@ def main() -> int:
     repo_root_from_env_or_cwd = getattr(mod, "repo_root_from_env_or_cwd")
     status_report = getattr(mod, "status_report")
     verify_provenance = getattr(mod, "verify_provenance")
+    rotate_genesis_record = getattr(mod, "rotate_genesis_record")
 
     repo_root = repo_root_from_env_or_cwd()
 
@@ -62,6 +66,11 @@ def main() -> int:
 
     if args.cmd == "genesis":
         res = ensure_genesis_record(repo_root, write_enabled=bool(args.write))
+        sys.stdout.write(json.dumps(res, indent=2, ensure_ascii=False) + "\n")
+        return 0
+
+    if args.cmd == "rotate-genesis":
+        res = rotate_genesis_record(repo_root, confirm=True)
         sys.stdout.write(json.dumps(res, indent=2, ensure_ascii=False) + "\n")
         return 0
 

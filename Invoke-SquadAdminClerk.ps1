@@ -183,7 +183,7 @@ function Assert-ObsidianProvenanceOk {
   $code = $LASTEXITCODE
 
   if ($code -ne 0) {
-    Write-Host '=== OBISIDIAN JUDGMENT / PROVENANCE REFUSAL ==='
+    Write-Host '=== OBSIDIAN JUDGMENT / PROVENANCE REFUSAL ==='
     foreach ($line in $out) { Write-Host $line }
 
     # Attempt to print a single-line structured receipt for humans/automation.
