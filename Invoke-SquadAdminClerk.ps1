@@ -129,6 +129,7 @@ function Write-ClerkLog {
     [Parameter(Mandatory=$true)][string]$Message,
     [ValidateSet("INFO","WARN","ERROR")][string]$Level="INFO"
   )
+  if ($script:ClerkPlanReadOnly) { return }
   Ensure-Dir $LogDir
 
   $logFile = Join-Path $LogDir "clerk.log"
@@ -164,6 +165,54 @@ function Get-PythonExeForRuns {
   if ($pythonCmd) { return 'python' }
 
   throw 'Python not found. Create .venv or add python to PATH.'
+}
+
+function Assert-ObsidianProvenanceOk {
+  param(
+    [Parameter(Mandatory=$true)][string]$Root
+  )
+
+  $check = Join-Path $Root 'tools\qa\check_obsidian_judgment.py'
+  if (-not (Test-Path -LiteralPath $check)) {
+    throw ('Missing provenance checker: {0}' -f $check)
+  }
+
+  $pythonExe = Get-PythonExeForRuns -Root $Root
+
+  $out = & $pythonExe $check --root $Root --require-genesis 2>&1
+  $code = $LASTEXITCODE
+
+  if ($code -ne 0) {
+    Write-Host '=== OBSIDIAN JUDGMENT / PROVENANCE REFUSAL ==='
+    foreach ($line in $out) { Write-Host $line }
+
+    # Attempt to print a single-line structured receipt for humans/automation.
+    try {
+      $raw = ($out | ForEach-Object { [string]$_ }) -join "\n"
+      $parsed = $raw | ConvertFrom-Json
+
+      $refusalCode = [string]$parsed.code
+      if ($refusalCode -eq 'genesis_missing') { $refusalCode = 'MISSING_GENESIS' }
+      elseif ($refusalCode -eq 'judgment_active') { $refusalCode = 'JUDGMENT_ACTIVE' }
+      elseif ($refusalCode -eq 'governance_hash_mismatch') { $refusalCode = 'HASH_MISMATCH' }
+      elseif ($refusalCode -eq 'genesis_hash_mismatch') { $refusalCode = 'GENESIS_HASH_MISMATCH' }
+      elseif ($refusalCode -eq 'project_id_mismatch') { $refusalCode = 'PROJECT_ID_MISMATCH' }
+      elseif ($refusalCode -eq 'genesis_parse_error') { $refusalCode = 'GENESIS_PARSE_ERROR' }
+
+      $receipt = [pscustomobject]@{
+        refusal_code = $refusalCode
+        expected_baseline_hash = $parsed.expected_baseline_hash
+        detected_hash = $parsed.detected_hash
+        next_steps = $parsed.next_steps
+      }
+
+      Write-Host ('REFUSAL_RECEIPT: {0}' -f ($receipt | ConvertTo-Json -Compress))
+    } catch {
+      # best-effort only
+    }
+
+    throw 'Refused: provenance verification failed (or judgment active). If this is a first-time setup, run: python MODULES/OBSIDIAN_JUDGMENT/cli/obsidian_judgment_cli.py genesis --write'
+  }
 }
 
 function Ensure-File {
@@ -434,11 +483,31 @@ $dirs = @(
 )
 
 $logDir = Join-Path $SquadRoot "SYSTEM\LOGS\CLERK"
-Ensure-Dir $logDir
+
+# Plan mode must be provably read-only (no directory creation, no logs, no lock file).
+# Plan is allowed only for non-mutating previews (e.g., -InPath -Plan, -QuarantineLegacyOutputs -Plan).
+$script:ClerkPlanReadOnly = $false
+if ($Plan -and (-not $Init) -and (-not $ExportCase) -and (-not $BattleBuddyInput) -and (-not $CRARun) -and (-not $BreakLock)) {
+  $script:ClerkPlanReadOnly = $true
+}
+
+if (-not $script:ClerkPlanReadOnly) {
+  Ensure-Dir $logDir
+}
 
 # Normalize
 if ($CaseId) { $CaseId = $CaseId.Trim().ToUpperInvariant() }
 if ($ExportCase) { $ExportCase = $ExportCase.Trim().ToUpperInvariant() }
+
+# Security gate: any mutating action requires verified provenance.
+# This prevents silent drift in governance-critical files unless reverted to the last known-good hash.
+$mutatingRequested = $false
+if ($Init) { $mutatingRequested = $true }
+if ($InPath -and (-not $Plan)) { $mutatingRequested = $true }
+if ($ExportCase) { $mutatingRequested = $true }
+if ($BattleBuddyInput) { $mutatingRequested = $true }
+if ($CRARun) { $mutatingRequested = $true }
+if ($QuarantineLegacyOutputs -and (-not $Plan)) { $mutatingRequested = $true }
 
 # Load config (optional)
 $config = Load-Config -Root $SquadRoot
@@ -486,7 +555,9 @@ if ($BreakLock) {
 }
 
 try {
-  $lockHandle = Acquire-Lock -LockFile $lockFile
+  if (-not $script:ClerkPlanReadOnly) {
+    $lockHandle = Acquire-Lock -LockFile $lockFile
+  }
 } catch {
   Write-ClerkLog $logDir 'Lock acquisition failed - concurrent run detected.' 'ERROR'
   Write-Host 'Another Clerk instance is running (or a lock file exists).'
@@ -495,8 +566,15 @@ try {
   exit 2
 }
 
-# Ensure lock release on exit
-$null = Register-EngineEvent PowerShell.Exiting -Action { Release-Lock -Handle $lockHandle -LockFile $lockFile } | Out-Null
+# Enforce provenance only after we have a single-instance lock.
+if ($mutatingRequested -and (-not $script:ClerkPlanReadOnly)) {
+  Assert-ObsidianProvenanceOk -Root $SquadRoot
+}
+
+# Ensure lock release on exit (skip in read-only plan mode)
+if (-not $script:ClerkPlanReadOnly) {
+  $null = Register-EngineEvent PowerShell.Exiting -Action { Release-Lock -Handle $lockHandle -LockFile $lockFile } | Out-Null
+}
 
 # --------------------------
 # EXPORT MODE
@@ -529,9 +607,11 @@ if ($ExportCase) {
 # --------------------------
 
 if ($QuarantineLegacyOutputs) {
-  # Ensure structure exists
-  Ensure-Dir $SquadRoot
-  foreach ($d in $dirs) { Ensure-Dir (Join-Path $SquadRoot $d) }
+  # Ensure structure exists (skip in plan-only read-only mode)
+  if (-not $script:ClerkPlanReadOnly) {
+    Ensure-Dir $SquadRoot
+    foreach ($d in $dirs) { Ensure-Dir (Join-Path $SquadRoot $d) }
+  }
 
   $runsDir = Join-Path $SquadRoot 'OUTPUTS\RUNS'
   if (-not (Test-Path -LiteralPath $runsDir)) {
@@ -539,7 +619,9 @@ if ($QuarantineLegacyOutputs) {
   }
 
   $quarantineRoot = Join-Path $SquadRoot 'SYSTEM\META\QUARANTINE\legacy_outputs'
-  Ensure-Dir $quarantineRoot
+  if (-not $script:ClerkPlanReadOnly) {
+    Ensure-Dir $quarantineRoot
+  }
 
   # Only quarantine BattleBuddy runs for now, based on current schema expectations.
   $candidates = Get-ChildItem -LiteralPath $runsDir -Directory -Filter 'battlebuddy_run_*' -ErrorAction SilentlyContinue
@@ -806,9 +888,11 @@ if ($Init) {
 # --------------------------
 
 if ($InPath) {
-  # Ensure structure exists
-  Ensure-Dir $SquadRoot
-  foreach ($d in $dirs) { Ensure-Dir (Join-Path $SquadRoot $d) }
+  # Ensure structure exists (skip in plan-only read-only mode)
+  if (-not $script:ClerkPlanReadOnly) {
+    Ensure-Dir $SquadRoot
+    foreach ($d in $dirs) { Ensure-Dir (Join-Path $SquadRoot $d) }
+  }
 
   $resolvedInput = [System.IO.Path]::GetFullPath($InPath)
 

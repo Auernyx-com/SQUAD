@@ -54,7 +54,7 @@ param(
 
   # Export a scheduler-ready queue artifact on APPLY
   [Parameter(Mandatory=$false)]
-  [switch]$ExportQueue = $true,
+  [switch]$ExportQueue,
 
   # Queue month (YYYY-MM). Default: current month. Used for queue filename.
   [Parameter(Mandatory=$false)]
@@ -104,7 +104,7 @@ function Read-Json([string]$Path) {
   return ($raw | ConvertFrom-Json)
 }
 
-function Try-GetProp($obj, [string]$name, $default = $null) {
+function Get-PropValue($obj, [string]$name, $default = $null) {
   if ($null -eq $obj) { return $default }
   $p = $obj.PSObject.Properties[$name]
   if ($null -eq $p) { return $default }
@@ -119,7 +119,7 @@ function Get-PolicyPath([string]$Root, [string]$Account) {
   }
 }
 
-function Normalize-Whitespace([string]$s) {
+function ConvertTo-NormalizedWhitespace([string]$s) {
   if ($null -eq $s) { return '' }
   return ($s -replace "\s+", ' ').Trim()
 }
@@ -148,8 +148,8 @@ function Select-AnchorLines($sourceLines, [int]$maxItems) {
   return ,$picked
 }
 
-function Enforce-MaxLen([string]$text, [int]$max) {
-  $t = Normalize-Whitespace $text
+function ConvertTo-MaxLength([string]$text, [int]$max) {
+  $t = ConvertTo-NormalizedWhitespace $text
   if ($t.Length -le $max) { return $t }
   # Hard-trim (no ellipsis claims).
   return $t.Substring(0, $max).TrimEnd()
@@ -161,12 +161,12 @@ function Get-MaxCharsX($policy) {
 
 function Get-PlatformLimits($policy, [string]$platform) {
   $p = ([string]$platform).Trim().ToLowerInvariant()
-  $limits = Try-GetProp $policy 'limits' $null
+  $limits = Get-PropValue $policy 'limits' $null
   if ($null -eq $limits) { return $null }
 
-  $byPlatform = Try-GetProp $limits 'by_platform' $null
+  $byPlatform = Get-PropValue $limits 'by_platform' $null
   if ($null -ne $byPlatform) {
-    $pObj = Try-GetProp $byPlatform $p $null
+    $pObj = Get-PropValue $byPlatform $p $null
     if ($null -ne $pObj) { return $pObj }
   }
 
@@ -176,17 +176,17 @@ function Get-PlatformLimits($policy, [string]$platform) {
 function Get-MaxCharsForPlatform($policy, [string]$platform) {
   $p = ([string]$platform).Trim().ToLowerInvariant()
   $pLimits = Get-PlatformLimits -policy $policy -platform $p
-  $pMax = Try-GetProp $pLimits 'max_chars' $null
+  $pMax = Get-PropValue $pLimits 'max_chars' $null
   if ($null -ne $pMax) { return [int]$pMax }
 
-  $limits = Try-GetProp $policy 'limits' $null
+  $limits = Get-PropValue $policy 'limits' $null
   if ($p -eq 'x') {
-    $maxCharsX = Try-GetProp $limits 'max_chars_x' $null
+    $maxCharsX = Get-PropValue $limits 'max_chars_x' $null
     if ($null -ne $maxCharsX) { return [int]$maxCharsX }
   }
 
-  $format = Try-GetProp $policy 'format' $null
-  $legacy = Try-GetProp $format 'max_chars_per_post' $null
+  $format = Get-PropValue $policy 'format' $null
+  $legacy = Get-PropValue $format 'max_chars_per_post' $null
   if ($null -ne $legacy) { return [int]$legacy }
 
   # Conservative fallback
@@ -196,15 +196,15 @@ function Get-MaxCharsForPlatform($policy, [string]$platform) {
 function Get-MaxHashtagsForPlatform($policy, [string]$platform) {
   $p = ([string]$platform).Trim().ToLowerInvariant()
   $pLimits = Get-PlatformLimits -policy $policy -platform $p
-  $pMax = Try-GetProp $pLimits 'max_hashtags' $null
+  $pMax = Get-PropValue $pLimits 'max_hashtags' $null
   if ($null -ne $pMax) { return [int]$pMax }
 
-  $limits = Try-GetProp $policy 'limits' $null
-  $maxHash = Try-GetProp $limits 'max_hashtags' $null
+  $limits = Get-PropValue $policy 'limits' $null
+  $maxHash = Get-PropValue $limits 'max_hashtags' $null
   if ($null -ne $maxHash) { return [int]$maxHash }
 
-  $hashtagsObj = Try-GetProp $policy 'hashtags' $null
-  $legacyHash = Try-GetProp $hashtagsObj 'max' $null
+  $hashtagsObj = Get-PropValue $policy 'hashtags' $null
+  $legacyHash = Get-PropValue $hashtagsObj 'max' $null
   if ($null -ne $legacyHash) { return [int]$legacyHash }
 
   return 2
@@ -213,11 +213,11 @@ function Get-MaxHashtagsForPlatform($policy, [string]$platform) {
 function Get-MaxEmojisForPlatform($policy, [string]$platform) {
   $p = ([string]$platform).Trim().ToLowerInvariant()
   $pLimits = Get-PlatformLimits -policy $policy -platform $p
-  $pMax = Try-GetProp $pLimits 'max_emojis' $null
+  $pMax = Get-PropValue $pLimits 'max_emojis' $null
   if ($null -ne $pMax) { return [int]$pMax }
 
-  $limits = Try-GetProp $policy 'limits' $null
-  $maxE = Try-GetProp $limits 'max_emojis' $null
+  $limits = Get-PropValue $policy 'limits' $null
+  $maxE = Get-PropValue $limits 'max_emojis' $null
   if ($null -ne $maxE) { return [int]$maxE }
 
   return $null
@@ -226,26 +226,26 @@ function Get-MaxEmojisForPlatform($policy, [string]$platform) {
 function Get-ThreadConfig($policy) {
   # Prefer per-platform thread config if present (x is the common case)
   $xLimits = Get-PlatformLimits -policy $policy -platform 'x'
-  $t0 = Try-GetProp $xLimits 'thread' $null
+  $t0 = Get-PropValue $xLimits 'thread' $null
   if ($null -ne $t0) { return $t0 }
 
-  $limits = Try-GetProp $policy 'limits' $null
-  $t1 = Try-GetProp $limits 'thread' $null
+  $limits = Get-PropValue $policy 'limits' $null
+  $t1 = Get-PropValue $limits 'thread' $null
   if ($null -ne $t1) { return $t1 }
 
-  $format = Try-GetProp $policy 'format' $null
-  $t2 = Try-GetProp $format 'thread' $null
+  $format = Get-PropValue $policy 'format' $null
+  $t2 = Get-PropValue $format 'thread' $null
   if ($null -ne $t2) { return $t2 }
 
   return $null
 }
 
-function Count-Hashtags([string]$text) {
+function Measure-Hashtags([string]$text) {
   $m = [regex]::Matches($text, '(?<!\w)#\w+')
   return $m.Count
 }
 
-function Count-Emojis([string]$text) {
+function Measure-Emojis([string]$text) {
   if ([string]::IsNullOrWhiteSpace($text)) { return 0 }
   # Heuristic emoji detector (covers common emoji ranges) without regex \x{...}
   # because Windows PowerShell 5.1 runs on .NET Framework regex.
@@ -312,7 +312,7 @@ function Find-BannedMatchesWithEvidence($sources, [string[]]$banned) {
   }
 }
 
-function Build-Header(
+function New-DraftHeader(
   [string]$Account,
   [string]$Platform,
   [string[]]$SourceFiles,
@@ -384,7 +384,7 @@ function Build-Header(
   return ($hdr -join "`n")
 }
 
-function Build-XDrafts($policy, $anchorLines, [int]$count) {
+function New-XDrafts($policy, $anchorLines, [int]$count) {
   $max = Get-MaxCharsForPlatform -policy $policy -platform $Platform
   $drafts = New-Object System.Collections.Generic.List[object]
 
@@ -402,7 +402,7 @@ function Build-XDrafts($policy, $anchorLines, [int]$count) {
       $body = $body + " | " + $b.text
     }
 
-    $post = Enforce-MaxLen $body $max
+    $post = ConvertTo-MaxLength $body $max
 
     $drafts.Add([pscustomobject]@{
       kind = 'X'
@@ -414,16 +414,16 @@ function Build-XDrafts($policy, $anchorLines, [int]$count) {
   return ,$drafts
 }
 
-function Build-Thread($policy, $anchorLines) {
+function New-ThreadDraft($policy, $anchorLines) {
   $threadCfg = Get-ThreadConfig $policy
   if (-not $threadCfg) {
     throw 'Thread format is not configured in policy (expected policy.limits.thread.* or policy.format.thread.*).'
   }
 
   $max = 280
-  $tMaxLegacy = Try-GetProp $threadCfg 'max_chars_per_post' $null
-  $tMax = Try-GetProp $threadCfg 'max_chars' $null
-  $tMaxX = Try-GetProp $threadCfg 'max_chars_x' $null
+  $tMaxLegacy = Get-PropValue $threadCfg 'max_chars_per_post' $null
+  $tMax = Get-PropValue $threadCfg 'max_chars' $null
+  $tMaxX = Get-PropValue $threadCfg 'max_chars_x' $null
   if ($null -ne $tMaxLegacy) {
     $max = [int]$tMaxLegacy
   } elseif ($null -ne $tMax) {
@@ -433,7 +433,7 @@ function Build-Thread($policy, $anchorLines) {
   }
 
   $maxPosts = 8
-  $tPosts = Try-GetProp $threadCfg 'max_posts' $null
+  $tPosts = Get-PropValue $threadCfg 'max_posts' $null
   if ($null -ne $tPosts) { $maxPosts = [int]$tPosts }
 
   if ($anchorLines.Count -eq 0) {
@@ -443,13 +443,13 @@ function Build-Thread($policy, $anchorLines) {
   $posts = New-Object System.Collections.Generic.List[object]
 
   # Thread structure: intro + 1-6 factual bullets from source.
-  $intro = Enforce-MaxLen "Release note summary (technical): $($anchorLines[0].text)" $max
+  $intro = ConvertTo-MaxLength "Release note summary (technical): $($anchorLines[0].text)" $max
   $posts.Add([pscustomobject]@{ text = $intro; sources = @($anchorLines[0]) })
 
   $idx = 1
   while ($posts.Count -lt $maxPosts -and $idx -lt $anchorLines.Count) {
     $line = $anchorLines[$idx]
-    $t = Enforce-MaxLen ("- " + $line.text) $max
+    $t = ConvertTo-MaxLength ("- " + $line.text) $max
     $posts.Add([pscustomobject]@{ text = $t; sources = @($line) })
     $idx++
   }
@@ -457,20 +457,20 @@ function Build-Thread($policy, $anchorLines) {
   return ,$posts
 }
 
-function Rewrite-Neutral($policy, [string]$inputText) {
+function ConvertTo-NeutralDraft($policy, [string]$inputText) {
   if ([string]::IsNullOrWhiteSpace($inputText)) {
     throw 'REWRITE_NEUTRAL requires -InputPost.'
   }
 
   $max = Get-MaxCharsForPlatform -policy $policy -platform $Platform
-  $t = Normalize-Whitespace $inputText
+  $t = ConvertTo-NormalizedWhitespace $inputText
 
   # Minimal neutralizer: remove obvious hype words and exclamation density.
   $t = $t -replace '(!){2,}', '!'
   $t = $t -replace '(?i)\b(amazing|incredible|life\-changing|revolutionary|game\-changing|unbelievable)\b', 'notable'
   $t = $t -replace '(?i)\b(definitely|guaranteed|always)\b', 'often'
 
-  $t = Enforce-MaxLen $t $max
+  $t = ConvertTo-MaxLength $t $max
 
   return [pscustomobject]@{
     kind = 'X'
@@ -479,18 +479,18 @@ function Rewrite-Neutral($policy, [string]$inputText) {
   }
 }
 
-function Bullets-To-Post($policy, $anchorLines) {
+function ConvertTo-PostFromBullets($policy, $anchorLines) {
   $max = Get-MaxCharsForPlatform -policy $policy -platform $Platform
   if ($anchorLines.Count -eq 0) { throw 'Source has no usable lines.' }
 
   $bullets = $anchorLines | Select-Object -First 3
   $body = "Facts: " + (($bullets | ForEach-Object { $_.text }) -join ' | ')
-  $post = Enforce-MaxLen $body $max
+  $post = ConvertTo-MaxLength $body $max
 
   return [pscustomobject]@{ kind = 'X'; text = $post; sources = $bullets }
 }
 
-function Ensure-Dir([string]$Path) {
+function New-DirIfMissing([string]$Path) {
   if (-not (Test-Path -LiteralPath $Path)) {
     New-Item -ItemType Directory -Path $Path -Force | Out-Null
   }
@@ -504,7 +504,7 @@ function Sha256([string]$Path) {
   return (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant()
 }
 
-function Try-FileSha256([string]$Path) {
+function Get-FileSha256OrNull([string]$Path) {
   # Best-effort hashing: do not fail generation if hashing is unavailable.
   try {
     if (-not (Test-Path -LiteralPath $Path)) { return $null }
@@ -537,6 +537,13 @@ if (-not (Test-Path -LiteralPath $policyPath)) {
 
 $policy = Read-Json $policyPath
 
+# Switch parameter discipline:
+# ExportQueue is a switch but defaults to enabled unless explicitly provided false.
+$exportQueueEnabled = $true
+if ($PSBoundParameters.ContainsKey('ExportQueue')) {
+  $exportQueueEnabled = [bool]$ExportQueue
+}
+
 # Basic refusal triggers (explicit, deterministic)
 # NOTE: This is governance/QA only. It cannot detect all unsafe requests.
 $refusalTerms = @(
@@ -558,32 +565,26 @@ $sourceLines = Get-SourceLines $resolvedSource
 $anchor = Select-AnchorLines -sourceLines $sourceLines -maxItems 12
 
 $today = Get-Date -Format 'yyyy-MM-dd'
-$stamp = Get-Date -Format 'yyyyMMdd_HHmmss'
 
 # Generate drafts/posts
 $bundle = @()
-$bundleKind = ''
 
 switch ($Mode) {
   'X_DRAFTS' {
     if ($Account -ne 'SQUAD' -and $Account -ne 'AUERNYX') { throw 'Invalid account.' }
-    $bundle = Build-XDrafts -policy $policy -anchorLines $anchor -count $Count
-    $bundleKind = 'x'
+    $bundle = New-XDrafts -policy $policy -anchorLines $anchor -count $Count
   }
   'THREAD' {
     if ($Account -ne 'AUERNYX') {
       throw 'THREAD mode is AUERNYX-only (technical thread policy).'
     }
-    $bundle = Build-Thread -policy $policy -anchorLines $anchor
-    $bundleKind = 'thread'
+    $bundle = New-ThreadDraft -policy $policy -anchorLines $anchor
   }
   'REWRITE_NEUTRAL' {
-    $bundle = @(Rewrite-Neutral -policy $policy -inputText $InputPost)
-    $bundleKind = 'x'
+    $bundle = @(ConvertTo-NeutralDraft -policy $policy -inputText $InputPost)
   }
   'BULLETS_TO_POST' {
-    $bundle = @(Bullets-To-Post -policy $policy -anchorLines $anchor)
-    $bundleKind = 'x'
+    $bundle = @(ConvertTo-PostFromBullets -policy $policy -anchorLines $anchor)
   }
   default {
     throw "Unsupported mode: $Mode"
@@ -595,11 +596,11 @@ $maxHashtags = Get-MaxHashtagsForPlatform -policy $policy -platform $Platform
 $maxEmojis = Get-MaxEmojisForPlatform -policy $policy -platform $Platform
 
 $banned = @()
-$toneObj = Try-GetProp $policy 'tone' $null
-$toneBanned = Try-GetProp $toneObj 'banned_phrases' $null
+$toneObj = Get-PropValue $policy 'tone' $null
+$toneBanned = Get-PropValue $toneObj 'banned_phrases' $null
 if ($toneBanned) { $banned += @($toneBanned) }
 
-$topBanned = Try-GetProp $policy 'banned_phrases' $null
+$topBanned = Get-PropValue $policy 'banned_phrases' $null
 if ($topBanned) { $banned += @($topBanned) }
 $banned = @($banned | Where-Object { $_ -and $_.Trim() } | Select-Object -Unique)
 
@@ -618,9 +619,9 @@ for ($i = 0; $i -lt $bundle.Count; $i++) {
 
   $srcEvidence = Find-BannedMatchesWithEvidence -sources $item.sources -banned $banned
   $hits = @($srcEvidence.hits)
-  $hashtagCount = Count-Hashtags -text $text
+  $hashtagCount = Measure-Hashtags -text $text
 
-  $emojiCount = Count-Emojis -text $text
+  $emojiCount = Measure-Emojis -text $text
 
   $hashtagOk = ($hashtagCount -le $maxHashtags)
   $emojiOk = $(if ($null -eq $maxEmojis) { $true } else { $emojiCount -le $maxEmojis })
@@ -646,12 +647,12 @@ $socialRoot = Join-Path $repoRoot 'SOCIAL'
 $draftsDir = Join-Path $socialRoot 'DRAFTS'
 $queueDir = Join-Path $socialRoot 'QUEUE'
 $receiptsDir = Join-Path $socialRoot 'RECEIPTS'
-Ensure-Dir $draftsDir
-Ensure-Dir $queueDir
-Ensure-Dir $receiptsDir
+New-DirIfMissing $draftsDir
+New-DirIfMissing $queueDir
+New-DirIfMissing $receiptsDir
 
-$sourceHash = Try-FileSha256 -Path $resolvedSource
-$policyHash = Try-FileSha256 -Path $policyPath
+$sourceHash = Get-FileSha256OrNull -Path $resolvedSource
+$policyHash = Get-FileSha256OrNull -Path $policyPath
 
 $writtenDrafts = New-Object System.Collections.Generic.List[object]
 
@@ -675,7 +676,7 @@ for ($i = 0; $i -lt $previewItems.Count; $i++) {
     $policyRel = $policyRel.Substring($repoRoot.Length).TrimStart('\\') -replace '\\','/'
   }
 
-  $header = Build-Header -Account $Account -Platform $Platform -SourceFiles @($relSource) -SourceSha256 $sourceHash -ClaimsUsed $claimsUsed -BannedCheck $bannedCheck -PolicyPath $policyRel -PolicySha256 $policyHash -BannedEvidence $p.banned_evidence
+  $header = New-DraftHeader -Account $Account -Platform $Platform -SourceFiles @($relSource) -SourceSha256 $sourceHash -ClaimsUsed $claimsUsed -BannedCheck $bannedCheck -PolicyPath $policyRel -PolicySha256 $policyHash -BannedEvidence $p.banned_evidence
   $content = $header + $p.text + "`n"
   Write-Utf8 -Path $draftPath -Text $content
 
@@ -758,7 +759,7 @@ if ($confirmNorm -ne 'APPLY') {
   exit 0
 }
 
-if (-not $ExportQueue) {
+if (-not $exportQueueEnabled) {
   Write-Host 'APPLY requested but -ExportQueue is disabled; no queue written.'
   exit 0
 }

@@ -1,0 +1,9 @@
+{
+  "module_id": "INTAKE_DO_NOT_GUESS",
+  "version": "1.0.0",
+  "purpose": "Minimal intake gate: force missing basics (no guessing, no rambling).",
+  "entrypoints": {
+    "python_api": "src/intake_gate.py",
+    "cli": "cli/intake_gate_cli.py"
+  }
+}

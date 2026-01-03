@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
+import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -42,6 +44,89 @@ def _paths() -> CraPaths:
         schema_in=root / "battlebuddy_cra" / "schema" / "cra.schema.json",
         schema_out=root / "battlebuddy_cra" / "schema" / "cra_output.schema.json",
     )
+
+
+def _read_text_file(path: Path) -> str:
+    return path.read_text(encoding="utf-8", errors="replace")
+
+
+def _load_handshake_module(repo_root: Path):
+    """Load BattleBuddyHandshake without requiring package installs.
+
+    This is intentionally a dynamic import to keep the repo drop-in: callers
+    can run CRA without having to install/packaging-wire the agents folder.
+    """
+
+    hs_path = repo_root / "AGENTS" / "CORE" / "BATTLEBUDDY" / "bb_handshake_v1.py"
+    if not hs_path.exists():
+        raise FileNotFoundError(f"Handshake module not found at: {hs_path}")
+
+    spec = importlib.util.spec_from_file_location("bb_handshake_v1", str(hs_path))
+    if spec is None or spec.loader is None:
+        raise ImportError("Failed to create import spec for handshake module")
+
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules["bb_handshake_v1"] = mod
+    spec.loader.exec_module(mod)
+
+    if not hasattr(mod, "BattleBuddyHandshake") or not hasattr(mod, "BBOutput"):
+        raise ImportError("Handshake module missing expected exports: BattleBuddyHandshake / BBOutput")
+
+    return mod
+
+
+def _cra_handshake_questions() -> list[str]:
+    # Schema-aligned questionnaire for battlebuddy_cra/schema/cra.schema.json.
+    # Questions only: no recommendations, no predictions, no medical interpretation.
+    return [
+        "CRA input: what is your current claim status (not_filed, filed_pending, denied, appeal_pending, unknown)?",
+        "Evidence presence (tri-state yes/no/unknown): do you have service records available?",
+        "Evidence presence (tri-state yes/no/unknown): do you have current medical documentation you already possess (presence only; no condition names/details)?",
+        "Evidence presence (tri-state yes/no/unknown): do you have a nexus opinion letter/opinion (presence only)?",
+        "Evidence presence (tri-state yes/no/unknown): do you have any buddy/lay statements (presence only)?",
+        "Evidence presence (tri-state yes/no/unknown): do you have continuity evidence (presence only; e.g., records showing ongoing issue over time, without quoting medical details)?",
+        "Administrative context: what is your representation status (none, vso, attorney, unknown)?",
+        "Administrative context (tri-state yes/no/unknown): have you received prior VA decision letters?",
+        "Administrative context: what appeal lane is used (none, hlr, supplemental, board, unknown)?",
+        "Barriers: which apply (difficulty_obtaining_records, confusion_about_process, missed_deadlines, lack_of_representation, conflicting_information_received)?",
+        "Safety check: does the text include medical/clinical details or record interpretation requests that would require CRA refusal (yes/no)?",
+    ]
+
+
+def _print_handshake(text: str, *, repo_root: Path, output_format: str, quiet: bool) -> None:
+    hs = _load_handshake_module(repo_root)
+    bb = hs.BattleBuddyHandshake()
+    out = bb.generate(text)
+
+    # Start output on a fresh line to avoid long command-line wrap artifacts
+    # bleeding into the first printed line in some terminals/capture UIs.
+    print("")
+
+    if not quiet:
+        print(out.observations)
+
+        if out.refused:
+            if out.refusal_reason:
+                print(f"RefusalReason: {out.refusal_reason}")
+            if out.flags:
+                print(f"Flags: {', '.join([str(x) for x in out.flags])}")
+            print("")
+
+    if output_format == "cra":
+        print("Questions (CRA schema-aligned):" if not quiet else "Questions:")
+        for q in _cra_handshake_questions():
+            print(f"- {q}")
+        return
+
+    if out.questions:
+        print("Questions:")
+        for q in out.questions:
+            print(f"- {q}")
+
+    if out.reflective_enabled and out.reflective_questions:
+        print("\nReflective questions (optional):")
+        for q in out.reflective_questions:
+            print(f"- {q}")
 
 
 def _case_dir_from_case_id(repo_root: Path, case_id: str) -> Path:
@@ -118,7 +203,7 @@ def _build_ok_report(input_payload: Dict[str, Any]) -> Dict[str, Any]:
             gaps,
             "current_diagnosis_docs_missing_or_unknown",
             p,
-            "Current diagnosis documentation is marked missing/unknown; CRA does not evaluate content, only presence.",
+            "Current medical documentation is marked missing/unknown; CRA does not evaluate content, only presence.",
         )
 
     p = _presence_from_yes_no_unknown(nexus)
@@ -282,9 +367,51 @@ def main() -> int:
     parser.add_argument("--case-dir", help="Explicit case directory path (writes to ARTIFACTS/CRA)")
     parser.add_argument("--out", help="Explicit output path (writes report JSON)")
 
+    parser.add_argument(
+        "--handshake-only",
+        action="store_true",
+        help="Print handshake observations/questions from free text and exit (does not run CRA).",
+    )
+    parser.add_argument(
+        "--handshake-text",
+        help="Free text for handshake mode (not stored; printed as questions only).",
+    )
+    parser.add_argument(
+        "--handshake-file",
+        help="Path to a text/markdown file used for handshake mode (not stored; printed as questions only).",
+    )
+    parser.add_argument(
+        "--handshake-format",
+        choices=["general", "cra"],
+        default="general",
+        help="Handshake output format: general questions, or CRA schema-aligned questionnaire.",
+    )
+    parser.add_argument(
+        "--handshake-quiet",
+        action="store_true",
+        help="Handshake-only mode: suppress observations/flags and print questions only.",
+    )
+
     args = parser.parse_args()
 
     paths = _paths()
+
+    if args.handshake_only:
+        if bool(args.handshake_text) == bool(args.handshake_file):
+            raise SystemExit("--handshake-only requires exactly one of --handshake-text or --handshake-file")
+
+        if args.handshake_file:
+            text = _read_text_file(Path(args.handshake_file).expanduser().resolve())
+        else:
+            text = str(args.handshake_text or "")
+
+        _print_handshake(
+            text,
+            repo_root=paths.repo_root,
+            output_format=str(args.handshake_format),
+            quiet=bool(args.handshake_quiet),
+        )
+        return 0
 
     case_dir: Optional[Path] = None
     if args.case_dir:

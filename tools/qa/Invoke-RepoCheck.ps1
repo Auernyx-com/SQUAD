@@ -62,8 +62,20 @@ function Invoke-CraFixtureValidation {
 
 function Invoke-Step([string]$Label, [scriptblock]$Action) {
   Write-Host ("[RUN] {0}" -f $Label)
-  & $Action
-  Write-Host ("[OK ] {0}" -f $Label)
+  $script:InvokeStepFailed = $false
+  try {
+    & $Action
+  } catch {
+    $script:InvokeStepFailed = $true
+    Write-Host ("[FAIL] {0}" -f $Label)
+    throw
+  }
+
+  if ($script:InvokeStepFailed) {
+    Write-Host ("[FAIL] {0}" -f $Label)
+  } else {
+    Write-Host ("[OK ] {0}" -f $Label)
+  }
 }
 
 $root = Get-RepoRoot
@@ -80,6 +92,8 @@ $moduleRegistryCheck = Join-Path $root 'tools\qa\validate_module_registries.py'
 $repoIdentityCheck = Join-Path $root 'tools\qa\verify_squad_repo.py'
 $changeClassifier = Join-Path $root 'tools\qa\classify_changes.py'
 $battlebuddyContractCheck = Join-Path $root 'tools\qa\validate_battlebuddy_contracts.py'
+$nonprofitRegistryCheck = Join-Path $root 'tools\qa\validate_nonprofit_registry.py'
+$obsidianJudgmentCheck = Join-Path $root 'tools\qa\check_obsidian_judgment.py'
 
 if (-not (Test-Path -LiteralPath $jsonSweep)) { throw "Missing: $jsonSweep" }
 if (-not (Test-Path -LiteralPath $pyCompile)) { throw "Missing: $pyCompile" }
@@ -87,8 +101,8 @@ if (-not (Test-Path -LiteralPath $moduleRegistryCheck)) { throw "Missing: $modul
 if (-not (Test-Path -LiteralPath $repoIdentityCheck)) { throw "Missing: $repoIdentityCheck" }
 if (-not (Test-Path -LiteralPath $changeClassifier)) { throw "Missing: $changeClassifier" }
 if (-not (Test-Path -LiteralPath $battlebuddyContractCheck)) { throw "Missing: $battlebuddyContractCheck" }
-
-$skipOutputs = -not $IncludeOutputs
+if (-not (Test-Path -LiteralPath $nonprofitRegistryCheck)) { throw "Missing: $nonprofitRegistryCheck" }
+if (-not (Test-Path -LiteralPath $obsidianJudgmentCheck)) { throw "Missing: $obsidianJudgmentCheck" }
 
 $failures = New-Object System.Collections.Generic.List[object]
 
@@ -103,10 +117,10 @@ Invoke-Step 'Repo identity (SQUAD)' {
 # 0.5) Phase 2: Artifact classification + boundary crossing warnings
 Invoke-Step 'Artifact classification (working tree)' {
   if ($StrictGoverned) {
-    $args = @('--plain', '--intent', '--require-governed-confirm')
-    if ($ConfirmGoverned) { $args += '--confirm-governed' }
+    $classifierParams = @('--plain', '--intent', '--require-governed-confirm')
+    if ($ConfirmGoverned) { $classifierParams += '--confirm-governed' }
 
-    & $py $changeClassifier @args
+    & $py $changeClassifier @classifierParams
     if ($LASTEXITCODE -ne 0) {
       $failures.Add([pscustomobject]@{ Type = 'artifact-classification'; Path = $root; Detail = 'Strict governed mode: governed changes require explicit confirmation (--confirm-governed). See output above.' })
     }
@@ -125,7 +139,7 @@ Invoke-Step 'PowerShell parse (.ps1)' {
       $_.FullName -notmatch '\\\.venv\\' -and
       $_.FullName -notmatch '\\\.git\\' -and
       $_.FullName -notmatch '\\node_modules\\' -and
-      (-not $skipOutputs -or $_.FullName -notmatch '\\OUTPUTS\\')
+      ($IncludeOutputs -or $_.FullName -notmatch '\\OUTPUTS\\')
     }
 
   foreach ($f in $ps1Files) {
@@ -146,16 +160,16 @@ Invoke-Step 'PowerShell parse (.ps1)' {
 
 # 2) JSON parse sweep (Python)
 Invoke-Step 'JSON parse (.json)' {
-  $jsonArgs = @(
+  $jsonParams = @(
     $jsonSweep,
     '--root', $root,
     '--max-failures', [string]$MaxFailures
   )
   if ($IncludeOutputs) {
-    $jsonArgs += '--include-outputs'
+    $jsonParams += '--include-outputs'
   }
 
-  & $py @jsonArgs
+  & $py @jsonParams
   if ($LASTEXITCODE -ne 0) {
     $failures.Add([pscustomobject]@{ Type = 'json-parse'; Path = $root; Detail = 'One or more JSON files failed to parse (see output above).' })
   }
@@ -163,18 +177,38 @@ Invoke-Step 'JSON parse (.json)' {
 
 # 2.5) Phase 3: BattleBuddy contract v1 schema-aware validation
 Invoke-Step 'BattleBuddy contract validation (v1)' {
-  $bbArgs = @(
+  $bbParams = @(
     $battlebuddyContractCheck,
     '--root', $root,
     '--max-failures', [string]$MaxFailures
   )
   if ($IncludeOutputs) {
-    $bbArgs += '--include-outputs'
+    $bbParams += '--include-outputs'
   }
 
-  & $py @bbArgs
+  & $py @bbParams
   if ($LASTEXITCODE -ne 0) {
     $failures.Add([pscustomobject]@{ Type = 'bb-contract-schema'; Path = $root; Detail = 'One or more BattleBuddy contract envelopes failed validation (see output above).' })
+  }
+}
+
+# 2.6) Phase 3b: Nonprofit registry scope enforcement (if scope JSON exists)
+Invoke-Step 'Nonprofit registry validation (scope)' {
+  & $py $nonprofitRegistryCheck --root $root --max-failures $MaxFailures
+  if ($LASTEXITCODE -ne 0) {
+    $failures.Add([pscustomobject]@{ Type = 'nonprofit-registry'; Path = $root; Detail = 'Nonprofit registry validation failed (see output above).' })
+  }
+}
+
+# 2.7) Phase 4: Obsidian Judgment / provenance check (mandatory)
+# - Fails if genesis is missing.
+# - Fails if judgment is active.
+# - Fails if genesis exists but provenance fails.
+Invoke-Step 'Obsidian Judgment (provenance required)' {
+  & $py $obsidianJudgmentCheck --root $root --require-genesis
+  if ($LASTEXITCODE -ne 0) {
+    $failures.Add([pscustomobject]@{ Type = 'obsidian-judgment'; Path = $root; Detail = 'Judgment is active or provenance verification failed (see JSON output above).' })
+    $script:InvokeStepFailed = $true
   }
 }
 

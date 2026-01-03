@@ -1,0 +1,20 @@
+{
+  "module_id": "RESOURCES_NONPROFITS",
+  "version": "1.0.0",
+  "purpose": "Store, validate, search, and return nonprofit resource records (no ranking, no eligibility/outcome claims).",
+  "scope": {
+    "id": "AUERNYX.NONPROFIT.REGISTRY.SCOPE.V1",
+    "governance_file": "GOVERNANCE/auernyx.nonprofit.scope.json"
+  },
+  "data": {
+    "shards_root": "DATA",
+    "index_file_optional": "INDEX/index.us.json"
+  },
+  "schemas": {
+    "record": "SCHEMAS/nonprofit_record.schema.json",
+    "registry": "SCHEMAS/nonprofit_registry.schema.json"
+  },
+  "validation": {
+    "script": "VALIDATION/validate_registry.py"
+  }
+}

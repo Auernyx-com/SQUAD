@@ -1,0 +1,117 @@
+{
+  "scope": "nonprofit_registry",
+  "agent": "AUERNYX",
+  "context": "SQUAD",
+  "version": "1.0.0",
+  "purpose": "Allow listing/filtering of nonprofit veteran support resources while preventing ranking, recommendations, eligibility decisions, or outcome promises.",
+  "registry_rules": {
+    "registry_read_only": true,
+    "allowed_output_fields": [
+      "provider_id",
+      "name",
+      "org_type",
+      "coverage_counties",
+      "cities",
+      "services",
+      "va_visibility",
+      "notes",
+      "contact",
+      "urls",
+      "phones",
+      "emails",
+      "address",
+      "alternate_locations",
+      "source_hints"
+    ],
+    "allowed_filters": [
+      "county",
+      "city",
+      "service_tag",
+      "org_type",
+      "va_visibility"
+    ]
+  },
+  "service_taxonomy": {
+    "mode": "controlled_vocab",
+    "allowed_service_tags": [
+      "claims_assistance",
+      "benefits_navigation",
+      "housing_support",
+      "homelessness_prevention",
+      "emergency_financial_aid",
+      "legal_referral",
+      "resource_referral",
+      "mental_health_peer_support",
+      "clinical_therapy_referral",
+      "equine_therapy",
+      "outdoor_recreation",
+      "adaptive_sports",
+      "art_therapy",
+      "education_support",
+      "employment_support",
+      "caregiver_support",
+      "family_support",
+      "social_connection",
+      "advocacy",
+      "memorial_civic"
+    ]
+  },
+  "prohibited": {
+    "ranking_or_recommendation": {
+      "blocked_fields": [
+        "rank",
+        "score",
+        "rating",
+        "stars",
+        "recommended",
+        "best",
+        "top_pick",
+        "priority",
+        "preferred",
+        "confidence"
+      ],
+      "blocked_phrases": [
+        "best",
+        "top",
+        "recommended",
+        "go with",
+        "you should choose",
+        "start with this one",
+        "this is better than",
+        "most effective",
+        "fastest",
+        "guaranteed"
+      ]
+    },
+    "eligibility_or_outcome": {
+      "blocked_phrases": [
+        "you qualify",
+        "eligible",
+        "will be approved",
+        "will get you",
+        "increase your chances",
+        "guarantee",
+        "likely outcome",
+        "you will receive"
+      ]
+    }
+  },
+  "required_behavior": {
+    "no_preference": true,
+    "no_outcome_promises": true,
+    "no_eligibility_assessment": true,
+    "default_disclaimer": "Availability and eligibility are determined by the organization directly. Contact them to confirm current services and intake."
+  },
+  "failure_mode": {
+    "on_prohibited_request": [
+      "refuse_comparison_or_prediction",
+      "restate_scope",
+      "offer_multiple_options_filtered_by_user_criteria"
+    ]
+  },
+  "governance": {
+    "mutable": false,
+    "requires_clerk_override": true,
+    "log_scope_violations": true
+  }
+}
