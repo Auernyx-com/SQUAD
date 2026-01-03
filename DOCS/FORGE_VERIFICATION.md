@@ -58,6 +58,14 @@ Optional CRA fixtures gate (schema-only; OFF by default):
 Phase 5 governed-change discipline (opt-in):
 - `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\qa\Invoke-RepoCheck.ps1 -StrictGoverned -ConfirmGoverned`
 
+## Known Tooling Quirks
+- VS Code “Problems” may report “Variable ‘args’ is an automatic variable…” in `tools/qa/Invoke-RepoCheck.ps1` even when there is no `$args` assignment.
+  - Treat as an IDE/analyzer false-positive unless it affects runtime behavior.
+  - PowerShell parse checks + governed QA are the authoritative gate.
+- VS Code “Problems” may flag “unapproved verb” warnings for internal helper functions in PowerShell scripts (e.g., Clerk helpers).
+  - This is a style warning, not a correctness failure.
+  - Do not rename governance entrypoints just to satisfy the analyzer; treat as noise unless you are explicitly refactoring public APIs.
+
 ## Notes (fill in per module)
 - Module:
 - Version:
