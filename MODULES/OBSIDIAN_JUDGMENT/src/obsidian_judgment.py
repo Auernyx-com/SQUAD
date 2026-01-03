@@ -97,7 +97,8 @@ def _read_text_if_exists(path: Path) -> str:
         if not path.is_file():
             return ""
         return path.read_text(encoding="utf-8")
-    except Exception:
+    except Exception as e:
+        _log_exception(f"_read_text_if_exists failed (path={path})", e, include_traceback=_PROVENANCE_DEBUG)
         return ""
 
 
