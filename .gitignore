@@ -26,3 +26,7 @@ SOCIAL/DRAFTS/
 SOCIAL/RECEIPTS/
 SOCIAL/QUEUE/
 SOCIAL/SOURCES/
+
+# Yggdrasil Canon (operational ledger + receipts)
+canon/
+canon/**
