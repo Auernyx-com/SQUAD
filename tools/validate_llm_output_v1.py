@@ -35,14 +35,15 @@ class GuardrailValidator:
         except json.JSONDecodeError as e:
             raise ValueError(f"Invalid guardrails configuration file: {guardrails_path}\nError: {e}") from e
         self.results: List[ValidationResult] = []
-        self._output_str_cache: Optional[str] = None
+        # Cache for lowercase JSON string to avoid redundant serialization during pattern matching
+        self._cached_output_str: Optional[str] = None
     
     def validate_output(self, output: Dict[str, Any]) -> List[ValidationResult]:
         """Run all validation checks on output."""
         self.results = []
         
-        # Cache output string for reuse across checks
-        self._output_str_cache = json.dumps(output, ensure_ascii=False).lower()
+        # Cache lowercase output string for reuse across checks (pattern matching performance)
+        self._cached_output_str = json.dumps(output, ensure_ascii=False).lower()
         
         # Run validation checks
         self._check_required_structure(output)
@@ -104,8 +105,8 @@ class GuardrailValidator:
     
     def _check_prohibited_language(self, output: Dict[str, Any]):
         """Check for prohibited guarantee/eligibility language."""
-        # Use cached string
-        output_str = self._output_str_cache or json.dumps(output, ensure_ascii=False).lower()
+        # Use cached lowercase string for case-insensitive pattern matching
+        output_str = self._cached_output_str or json.dumps(output, ensure_ascii=False).lower()
         
         prohibited = self.guardrails.get("truth_discipline", {}).get("prohibited_phrases", {})
         
@@ -269,15 +270,11 @@ class GuardrailValidator:
         else:
             self._add_result("VAL-009", True, "info", "Caveats present when needed")
         
-        # Check for SSN patterns (###-##-####) - more specific check
-        # SSN must have exactly 3-2-4 digits, not other formats like phone numbers
-        # Note: We don't use the lowercase cached string here since case doesn't matter for numbers
-        # and we want to see the original formatting in any error message
-        output_str = json.dumps(output, ensure_ascii=False)
+        # Check for SSN patterns (###-##-####) - SSN format is 3-2-4, not 3-3-4 like phone numbers
+        # Use cached lowercase string since numbers are not case-sensitive
+        output_str = self._cached_output_str or json.dumps(output, ensure_ascii=False).lower()
         ssn_pattern = re.compile(r'\b\d{3}-\d{2}-\d{4}\b')
         
-        # Additional check: SSN context (not a phone or date)
-        # Phone numbers are typically ###-###-#### (3-3-4), not 3-2-4
         if ssn_pattern.search(output_str):
             self._add_result(
                 "VAL-010",
