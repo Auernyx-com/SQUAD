@@ -334,14 +334,91 @@ def activate_judgment(repo_root: Path, failure: ProvenanceStatus) -> Dict[str, A
 def clear_judgment(repo_root: Path) -> bool:
     try:
         p = judgment_path(repo_root)
-        if p.is_file():
-            p.unlink()
+        if not p.is_file():
+            return True
+
+        judgment = read_judgment(repo_root) or {}
+
+        if _restoration_required(judgment):
+            proof = _restoration_proof(judgment)
+            if not proof:
+                append_audit(repo_root, {"kind": "judgment.clear_refused", "data": {"reason": "restoration_proof_missing"}})
+                raise RuntimeError("restoration_proof_missing")
+
+            ref = str(proof.get("ref") or "").strip()
+            sha = str(proof.get("sha256") or "").strip()
+            if not ref or not sha:
+                append_audit(repo_root, {"kind": "judgment.clear_refused", "data": {"reason": "restoration_proof_missing"}})
+                raise RuntimeError("restoration_proof_missing")
+
+            # Best-effort verification: if ref points to a local file, ensure it exists and matches sha256.
+            ref_candidate = Path(ref)
+            ref_path = (ref_candidate if ref_candidate.is_absolute() else (repo_root / ref_candidate)).resolve()
+            if not ref_path.is_file():
+                append_audit(
+                    repo_root,
+                    {
+                        "kind": "judgment.clear_refused",
+                        "data": {"reason": "restoration_proof_ref_missing", "ref": ref},
+                    },
+                )
+                raise RuntimeError("restoration_proof_ref_missing")
+
+            data = ref_path.read_bytes()
+            computed = hashlib.sha256(data).hexdigest()
+            if computed.lower() != sha.lower():
+                append_audit(
+                    repo_root,
+                    {
+                        "kind": "judgment.clear_refused",
+                        "data": {"reason": "restoration_proof_hash_mismatch", "ref": ref},
+                    },
+                )
+                raise RuntimeError("restoration_proof_hash_mismatch")
+
+        p.unlink()
         append_audit(repo_root, {"kind": "judgment.cleared"})
         return True
     except Exception as e:
         if _PROVENANCE_DEBUG:
             _log_exception("clear_judgment failed", e, include_traceback=True)
         return False
+
+
+def _restoration_required(judgment: Dict[str, Any]) -> bool:
+    """Return True when judgment represents author/core governance tamper.
+
+    Supports current v1 record shape (failure.code) and future v1 schema shape (decision.restoration_required).
+    """
+
+    try:
+        failure = judgment.get("failure") or {}
+        code = str(failure.get("code") or "")
+        if code == "governance_hash_mismatch":
+            return True
+
+        decision = judgment.get("decision") or {}
+        if isinstance(decision, dict) and decision.get("restoration_required") is True:
+            return True
+
+        return False
+    except Exception:
+        return False
+
+
+def _restoration_proof(judgment: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    try:
+        decision = judgment.get("decision") or {}
+        if isinstance(decision, dict):
+            proof = decision.get("restoration_proof")
+            if isinstance(proof, dict):
+                return proof
+        proof2 = judgment.get("restoration_proof")
+        if isinstance(proof2, dict):
+            return proof2
+        return None
+    except Exception:
+        return None
 
 
 def status_report(repo_root: Path) -> Dict[str, Any]:
