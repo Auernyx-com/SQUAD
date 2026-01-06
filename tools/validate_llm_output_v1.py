@@ -271,6 +271,8 @@ class GuardrailValidator:
         
         # Check for SSN patterns (###-##-####) - more specific check
         # SSN must have exactly 3-2-4 digits, not other formats like phone numbers
+        # Note: We don't use the lowercase cached string here since case doesn't matter for numbers
+        # and we want to see the original formatting in any error message
         output_str = json.dumps(output, ensure_ascii=False)
         ssn_pattern = re.compile(r'\b\d{3}-\d{2}-\d{4}\b')
         

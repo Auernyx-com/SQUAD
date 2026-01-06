@@ -57,7 +57,7 @@ Python script that validates BattleBuddy outputs against guardrails.
 # Basic validation
 python tools/validate_llm_output_v1.py path/to/output.json
 
-# Strict mode (treat warnings as errors)
+# Strict mode (treat warnings as errors for CI/CD)
 python tools/validate_llm_output_v1.py path/to/output.json --strict
 
 # Custom guardrails config
