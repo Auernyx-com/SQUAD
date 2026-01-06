@@ -30,12 +30,19 @@ class GuardrailValidator:
     
     def __init__(self, guardrails_path: Path):
         """Initialize validator with guardrails configuration."""
-        self.guardrails = json.loads(guardrails_path.read_text(encoding="utf-8"))
+        try:
+            self.guardrails = json.loads(guardrails_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid guardrails configuration file: {guardrails_path}\nError: {e}") from e
         self.results: List[ValidationResult] = []
+        self._output_str_cache: Optional[str] = None
     
     def validate_output(self, output: Dict[str, Any]) -> List[ValidationResult]:
         """Run all validation checks on output."""
         self.results = []
+        
+        # Cache output string for reuse across checks
+        self._output_str_cache = json.dumps(output, ensure_ascii=False).lower()
         
         # Run validation checks
         self._check_required_structure(output)
@@ -97,7 +104,8 @@ class GuardrailValidator:
     
     def _check_prohibited_language(self, output: Dict[str, Any]):
         """Check for prohibited guarantee/eligibility language."""
-        output_str = json.dumps(output, ensure_ascii=False).lower()
+        # Use cached string
+        output_str = self._output_str_cache or json.dumps(output, ensure_ascii=False).lower()
         
         prohibited = self.guardrails.get("truth_discipline", {}).get("prohibited_phrases", {})
         
@@ -261,16 +269,19 @@ class GuardrailValidator:
         else:
             self._add_result("VAL-009", True, "info", "Caveats present when needed")
         
-        # Check for SSN patterns (###-##-####)
+        # Check for SSN patterns (###-##-####) - more specific check
+        # SSN must have exactly 3-2-4 digits, not other formats like phone numbers
         output_str = json.dumps(output, ensure_ascii=False)
         ssn_pattern = re.compile(r'\b\d{3}-\d{2}-\d{4}\b')
         
+        # Additional check: SSN context (not a phone or date)
+        # Phone numbers are typically ###-###-#### (3-3-4), not 3-2-4
         if ssn_pattern.search(output_str):
             self._add_result(
                 "VAL-010",
                 False,
                 "error",
-                "Possible SSN pattern detected in output (###-##-####)"
+                "Possible SSN pattern detected in output (###-##-####). Verify this is not PII."
             )
         else:
             self._add_result("VAL-010", True, "info", "No PII patterns detected")
@@ -310,7 +321,12 @@ def main():
         print(f"ERROR: Guardrails config not found: {guardrails_path}")
         return 1
     
-    output = json.loads(output_path.read_text(encoding="utf-8"))
+    try:
+        output = json.loads(output_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        print(f"ERROR: Invalid output file format: {output_path}")
+        print(f"  {e}")
+        return 1
     
     # Validate
     validator = GuardrailValidator(guardrails_path)

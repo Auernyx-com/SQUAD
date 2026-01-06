@@ -1,7 +1,6 @@
 {
   "id": "AUERNYX.LLM.Guardrails.v1",
   "version": 1,
-  "schema_version": "2026-01-06",
   "description": "LLM guardrails configuration for all BattleBuddy operations. Defines hard stops, refusal patterns, and validation rules.",
   "system_prompt_reference": "AGENTS/PROMPTS/battlebuddy_system_prompt_v1.md",
   "policy_references": [
