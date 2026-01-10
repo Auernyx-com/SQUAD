@@ -1,0 +1,31 @@
+{
+  "intentId": "1768027957743-d115d276",
+  "title": "Adopt Mk2 Alteration Program into SQUAD",
+  "system": "SQUAD",
+  "changeClass": "trunk",
+  "scope": {
+    "in": [
+      "CI gate + schema + PR template"
+    ],
+    "out": [
+      "runtime behavior"
+    ]
+  },
+  "riskClass": "low",
+  "governanceImpact": false,
+  "actorId": "jhugh",
+  "createdAt": "2026-01-10T06:52:37.743875Z",
+  "status": "draft",
+  "verification": {
+    "plan": "Run project verify battery; attach receipts if required.",
+    "requiredChecks": [
+      "mk2-alteration-gate"
+    ]
+  },
+  "evidence": {
+    "required": false,
+    "receiptRefs": [],
+    "notes": ""
+  },
+  "amendments": []
+}
