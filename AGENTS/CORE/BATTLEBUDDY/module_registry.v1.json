@@ -21,6 +21,17 @@
       "description": "Cite-or-caveat discipline and confidence gating",
       "entrypoint": "AGENTS/CORE/BATTLEBUDDY/bb_truth_v1.py",
       "can_disable": true
+    },
+    {
+      "module_id": "BB-LLM-Guidance",
+      "version": 1,
+      "description": "Comprehensive LLM system prompt and guardrails for all BattleBuddy operations",
+      "entrypoint": "AGENTS/PROMPTS/battlebuddy_system_prompt_v1.md",
+      "config": "SYSTEM/CONFIG/llm_guardrails_v1.json",
+      "validator": "tools/validate_llm_output_v1.py",
+      "documentation": "DOCS/LLM_GUIDANCE_SYSTEM.md",
+      "can_disable": false,
+      "notes": "Consolidates all policy, safety, and operational rules for LLM interactions"
     }
   ]
 }
