@@ -353,7 +353,7 @@ def build_landlord_outreach_packet(payload: Mapping[str, Any]) -> OutreachPacket
 
 
 def _demo() -> None:
-    with open("example_input.json", "r", encoding="utf-8") as f:
+    with open("example_input.json", "r", encoding="utf-8-sig") as f:
         payload = json.load(f)
 
     packet = build_landlord_outreach_packet(payload)
