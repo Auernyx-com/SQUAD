@@ -113,9 +113,9 @@ For SQUAD's use case (veteran case management, sensitive documentation, push ale
 ## Recommended Path Forward
 
 ```
-Phase 1 (Now): Firebase project setup + backend wiring
+Phase 1 (Now): Firebase project setup + backend wiring  ← CURRENT STATE
   ├── Create Firebase project in Firebase Console
-  ├── Add firebase.json and .firebaserc to this repo (done by this PR)
+  ├── firebase.json, .firebaserc, firestore.rules, storage.rules — DONE ✅
   ├── Install Firebase Admin SDK for Python
   └── Wire OUTPUTS/RUNS writes to Firestore (case records)
 
@@ -123,17 +123,40 @@ Phase 2: Mobile app scaffold
   ├── Scaffold React Native app in mobile/ directory
   ├── Connect @react-native-firebase/app + auth + firestore
   ├── Implement intake form (maps to BattleBuddy contract schema)
-  └── Implement case dashboard (reads from Firestore)
+  ├── Implement case dashboard (reads from Firestore)
+  └── Add hosting section back to firebase.json pointing at mobile/web-build
 
 Phase 3: Pipeline as Cloud Functions
   ├── Deploy Python pipeline modules as Firebase Cloud Functions (Python runtime)
   ├── Mobile app triggers functions instead of running CLI
-  └── Outputs written back to Firestore, push notification sent via FCM
+  ├── Outputs written back to Firestore, push notification sent via FCM
+  └── Add functions section back to firebase.json
 
 Phase 4: Production hardening
-  ├── Firebase Security Rules (lock down case data per user)
+  ├── Refine Firebase Security Rules as needed
   ├── Offline support (Firestore offline persistence)
   └── App Store / Google Play submission via EAS Build
+```
+
+---
+
+## Current Deployment State
+
+**What `firebase deploy` will deploy right now:**
+
+| Service | Status | Notes |
+|---|---|---|
+| Firestore rules | ✅ Ready | Per-user case isolation; backend-only writes for run artifacts |
+| Firestore indexes | ✅ Ready | No custom indexes required yet |
+| Storage rules | ✅ Ready | Per-user file isolation under `cases/{uid}/` |
+| Cloud Functions | ⏳ Phase 3 | `functions/` not scaffolded yet |
+| Hosting | ⏳ Phase 2 | `mobile/web-build` not built yet |
+
+**To deploy Phase 1 now:**
+```bash
+npm install -g firebase-tools
+firebase login
+firebase deploy --only firestore,storage
 ```
 
 ---
@@ -151,12 +174,15 @@ The main work is building the mobile UI layer and deploying the Python pipeline 
 
 ---
 
-## Files Added by This PR
+## Files Added by This Integration
 
 | File | Purpose |
 |---|---|
-| `firebase.json` | Firebase project configuration (Firestore, Functions, Storage, Hosting) |
+| `firebase.json` | Firebase project configuration (Firestore + Storage; Functions/Hosting added in later phases) |
 | `.firebaserc` | Firebase project alias — update `squad-app` to your actual Firebase project ID |
+| `firestore.rules` | Firestore security rules (per-user case isolation) |
+| `firestore.indexes.json` | Firestore index configuration |
+| `storage.rules` | Storage security rules (per-user file isolation) |
 | `DOCS/FIREBASE_INTEGRATION.md` | This document |
 
 ---
@@ -166,5 +192,5 @@ The main work is building the mobile UI layer and deploying the Python pipeline 
 1. **Create a Firebase project** at [console.firebase.google.com](https://console.firebase.google.com) (project name: `squad-app` or similar)
 2. **Update `.firebaserc`** — replace `squad-app` with your actual Firebase project ID
 3. **Install Firebase CLI**: `npm install -g firebase-tools` then `firebase login`
-4. **Run `firebase init`** in the repo root to complete local setup (select Firestore, Functions, Storage)
-5. **Scaffold the mobile app** in `mobile/` using React Native + `@react-native-firebase`
+4. **Deploy Phase 1**: `firebase deploy --only firestore,storage`
+5. **Scaffold the mobile app** in `mobile/` using React Native + `@react-native-firebase` (Phase 2)
