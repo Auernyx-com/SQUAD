@@ -369,6 +369,24 @@ def _build_refusal_report() -> Dict[str, Any]:
     }
 
 
+def _build_schema_refusal_report(details: str) -> Dict[str, Any]:
+    """Return a structured refusal report when input fails schema authorization."""
+    return {
+        "module": "battlebuddy.cra",
+        "version": "1.0.0",
+        "created_at": _now_iso(),
+        "status": "refused",
+        "refusal": {
+            "reason_codes": ["input_not_authorized"],
+            "message": (
+                "Input did not pass schema authorization and cannot be processed. "
+                "Correct the input structure and resubmit."
+            ),
+            "details": details,
+        },
+    }
+
+
 def run(*, input_path: Path) -> Dict[str, Any]:
     paths = _paths()
 
@@ -376,7 +394,12 @@ def run(*, input_path: Path) -> Dict[str, Any]:
     if not isinstance(payload_obj, dict):
         raise ValueError("CRA input must be a JSON object")
 
-    _validate(paths.schema_in, payload_obj)
+    # Authorized JSON: validate input against the contract schema before processing.
+    # Fail closed: if validation fails, return a structured refusal instead of raising.
+    try:
+        _validate(paths.schema_in, payload_obj)
+    except (ValueError, jsonschema.ValidationError, jsonschema.SchemaError) as exc:
+        return _build_schema_refusal_report(str(exc))
 
     unsafe = payload_obj.get("unsafe_content_detected")
     refused = bool(isinstance(unsafe, dict) and unsafe.get("present") is True)
