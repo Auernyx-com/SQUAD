@@ -50,6 +50,36 @@ def _read_text_file(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="replace")
 
 
+# ---------------------------------------------------------------------------
+# Path sanitizers — break the argparse-argument → file-operation data flow
+# so that user-supplied paths are validated before any I/O occurs.
+# ---------------------------------------------------------------------------
+
+_ALLOWED_JSON_SUFFIX = ".json"
+_ALLOWED_TEXT_SUFFIXES = {".txt", ".md", ".json"}
+
+
+def _require_json_path(raw: str) -> Path:
+    """Validate a user-supplied path intended for a JSON file.
+
+    Resolves the path and checks the extension.  Raises SystemExit for
+    any value that would not be a .json file, preventing user-controlled
+    strings from flowing into file operations without a validation gate.
+    """
+    resolved = Path(raw).expanduser().resolve()
+    if resolved.suffix.lower() != _ALLOWED_JSON_SUFFIX:
+        raise SystemExit(f"Expected a .json file path, got: {raw!r}")
+    return resolved
+
+
+def _require_text_path(raw: str) -> Path:
+    """Validate a user-supplied path intended for a plain-text or markdown file."""
+    resolved = Path(raw).expanduser().resolve()
+    if resolved.suffix.lower() not in _ALLOWED_TEXT_SUFFIXES:
+        raise SystemExit(f"Expected a text/markdown/json file path (.txt, .md, .json), got: {raw!r}")
+    return resolved
+
+
 def _load_handshake_module(repo_root: Path):
     """Load BattleBuddyHandshake without requiring package installs.
 
@@ -401,7 +431,7 @@ def main() -> int:
             raise SystemExit("--handshake-only requires exactly one of --handshake-text or --handshake-file")
 
         if args.handshake_file:
-            text = _read_text_file(Path(args.handshake_file).expanduser().resolve())
+            text = _read_text_file(_require_text_path(args.handshake_file))
         else:
             text = str(args.handshake_text or "")
 
@@ -420,7 +450,7 @@ def main() -> int:
         case_dir = _case_dir_from_case_id(paths.repo_root, str(args.case_id).strip().upper()).resolve()
 
     if args.input:
-        input_path = Path(args.input).expanduser().resolve()
+        input_path = _require_json_path(args.input)
     elif case_dir is not None:
         input_path = _default_input_path(case_dir)
     else:
@@ -435,7 +465,7 @@ def main() -> int:
     report = run(input_path=input_path)
 
     if args.out:
-        out_path = Path(args.out).expanduser().resolve()
+        out_path = _require_json_path(args.out)
     elif case_dir is not None:
         out_path = _default_output_path(case_dir)
     else:
