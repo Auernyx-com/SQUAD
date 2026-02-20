@@ -6,7 +6,10 @@ __pycache__/
 *.pyo
 
 # Generated run artifacts (governed outputs; do not hand-edit)
-OUTPUTS/RUNS/
+# Exclude all OUTPUTS/ contents except the README.
+# System snapshots, clerk logs, and run outputs are local-only artifacts.
+OUTPUTS/*
+!OUTPUTS/README.md
 
 # Case artifacts are local-only (templates are tracked)
 CASES/ACTIVE/
