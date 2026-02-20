@@ -493,6 +493,22 @@ def _build_output_envelope(
     }
 
 
+# ---------------------------------------------------------------------------
+# Path sanitizer — breaks the argparse-argument → file-operation data flow.
+# ---------------------------------------------------------------------------
+
+def _require_json_path(raw: str) -> Path:
+    """Validate a user-supplied path intended for a JSON file.
+
+    Resolves the path and checks the extension to prevent user-controlled
+    strings from flowing into file operations without a validation gate.
+    """
+    resolved = Path(raw).expanduser().resolve()
+    if resolved.suffix.lower() != ".json":
+        raise SystemExit(f"Expected a .json file path, got: {raw!r}")
+    return resolved
+
+
 def run(input_path: Path, output_path: Optional[Path] = None) -> Dict[str, Any]:
     payload = json.loads(input_path.read_text(encoding="utf-8"))
 
@@ -533,8 +549,9 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    input_path = Path(args.input).expanduser().resolve()
-    output_path = Path(args.out).expanduser().resolve() if args.out else None
+    # Validate user-supplied paths before any I/O (prevents path-injection).
+    input_path = _require_json_path(args.input)
+    output_path = _require_json_path(args.out) if args.out else None
 
     run(input_path=input_path, output_path=output_path)
 

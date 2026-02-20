@@ -22,6 +22,8 @@ from intake_gate import gate_intake  # noqa: E402  # pyright: ignore[reportMissi
 def _load_payload(path: str | None) -> Dict[str, Any]:
     if path:
         p = Path(path).expanduser().resolve()
+        if p.suffix.lower() != ".json":
+            raise SystemExit(f"Expected a .json input file, got: {path!r}")
         return json.loads(p.read_text(encoding="utf-8-sig"))
 
     # stdin

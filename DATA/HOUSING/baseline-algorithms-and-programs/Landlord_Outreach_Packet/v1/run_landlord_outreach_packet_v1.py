@@ -28,14 +28,20 @@ def _parse_args() -> argparse.Namespace:
 def main() -> int:
     args = _parse_args()
 
-    payload: Dict[str, Any] = json.loads(Path(args.input).read_text(encoding="utf-8"))
+    input_path = Path(args.input).expanduser().resolve()
+    if input_path.suffix.lower() != ".json":
+        raise SystemExit(f"Expected a .json input file, got: {args.input!r}")
+    payload: Dict[str, Any] = json.loads(input_path.read_text(encoding="utf-8"))
     packet = build_landlord_outreach_packet(payload)
     out_obj = packet.__dict__
 
     out_text = json.dumps(out_obj, indent=2) if args.pretty else json.dumps(out_obj)
 
     if args.output:
-        Path(args.output).write_text(out_text + "\n", encoding="utf-8")
+        out_path = Path(args.output).expanduser().resolve()
+        if out_path.suffix.lower() != ".json":
+            raise SystemExit(f"Expected a .json output file, got: {args.output!r}")
+        out_path.write_text(out_text + "\n", encoding="utf-8")
     else:
         print(out_text)
 

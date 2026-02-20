@@ -308,9 +308,15 @@ def main():
     
     args = parser.parse_args()
     
-    # Load files
+    # Validate user-supplied paths before any I/O (prevents path-injection).
     output_path = Path(args.output_file).resolve()
+    if output_path.suffix.lower() != ".json":
+        print(f"ERROR: Expected a .json output file, got: {args.output_file!r}")
+        return 1
     guardrails_path = Path(args.guardrails).resolve()
+    if guardrails_path.suffix.lower() != ".json":
+        print(f"ERROR: Expected a .json guardrails file, got: {args.guardrails!r}")
+        return 1
     
     if not output_path.exists():
         print(f"ERROR: Output file not found: {output_path}")

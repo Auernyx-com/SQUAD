@@ -6,7 +6,15 @@ __pycache__/
 *.pyo
 
 # Generated run artifacts (governed outputs; do not hand-edit)
-OUTPUTS/RUNS/
+# Exclude all OUTPUTS/ contents except the README.
+# System snapshots, clerk logs, and run outputs are local-only artifacts.
+OUTPUTS/*
+!OUTPUTS/README.md
+
+# Extra safety net: catch any baseline-generated snapshot or log files
+# that might land outside OUTPUTS/ due to tool misconfiguration.
+**/system_snapshot_*/
+**/*_snapshot_*/
 
 # Case artifacts are local-only (templates are tracked)
 CASES/ACTIVE/
@@ -30,3 +38,17 @@ SOCIAL/SOURCES/
 # Yggdrasil Canon (operational ledger + receipts)
 canon/
 canon/**
+
+# Firebase runtime / generated files
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+firestore-debug.log
+ui-debug.log
+functions/node_modules/
+mobile/node_modules/
+mobile/.expo/
+mobile/web-build/
+*.local
+google-services.json
+GoogleService-Info.plist

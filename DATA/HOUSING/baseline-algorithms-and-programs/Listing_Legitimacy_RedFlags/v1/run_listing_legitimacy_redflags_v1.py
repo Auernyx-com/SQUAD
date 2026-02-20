@@ -40,7 +40,9 @@ def _parse_args() -> argparse.Namespace:
 def main() -> int:
     args = _parse_args()
 
-    input_path = Path(args.input)
+    input_path = Path(args.input).expanduser().resolve()
+    if input_path.suffix.lower() != ".json":
+        raise SystemExit(f"Expected a .json input file, got: {args.input!r}")
     payload: Dict[str, Any] = json.loads(input_path.read_text(encoding="utf-8"))
 
     result = evaluate_listing_legitimacy(payload)
@@ -52,7 +54,10 @@ def main() -> int:
         out_text = json.dumps(out_obj)
 
     if args.output:
-        Path(args.output).write_text(out_text + "\n", encoding="utf-8")
+        out_path = Path(args.output).expanduser().resolve()
+        if out_path.suffix.lower() != ".json":
+            raise SystemExit(f"Expected a .json output file, got: {args.output!r}")
+        out_path.write_text(out_text + "\n", encoding="utf-8")
     else:
         print(out_text)
 

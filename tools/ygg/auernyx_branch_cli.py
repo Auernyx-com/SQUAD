@@ -38,7 +38,10 @@ def _read_envelope_from_stdin() -> Dict[str, Any]:
 
 def _read_envelope_from_file(path: str) -> Dict[str, Any]:
     # Accept UTF-8 with or without BOM.
-    with open(path, "r", encoding="utf-8-sig") as f:
+    resolved = Path(path).expanduser().resolve()
+    if resolved.suffix.lower() != ".json":
+        raise SystemExit(f"Expected a .json envelope file, got: {path!r}")
+    with resolved.open("r", encoding="utf-8-sig") as f:
         return json.load(f)
 
 

@@ -15,6 +15,8 @@ def _load_json_from_stdin() -> Dict[str, Any]:
 
 
 def _load_json_from_file(path: Path) -> Dict[str, Any]:
+    if path.suffix.lower() != ".json":
+        raise SystemExit(f"Expected a .json input file, got: {path}")
     return json.loads(path.read_text(encoding="utf-8"))
 
 
