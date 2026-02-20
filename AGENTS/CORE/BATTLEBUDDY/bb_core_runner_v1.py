@@ -7,6 +7,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+# ---------------------------------------------------------------------------
+# Authorized-JSON / fail-closed constants
+# ---------------------------------------------------------------------------
+
+_CONTRACT_ID = "AUERNYX.BattleBuddy.Contract.v1"
+_SCHEMA_RELATIVE = ("SCHEMAS", "BattleBuddy_Contract_v1.schema.json")
+
 from bb_truth_v1 import TruthAssessment, assess_truth
 
 
@@ -494,6 +501,90 @@ def _build_output_envelope(
 
 
 # ---------------------------------------------------------------------------
+# Authorized-JSON gate helpers
+# ---------------------------------------------------------------------------
+
+def _schema_path() -> Path:
+    """Locate the BattleBuddy Contract v1 schema relative to this module.
+
+    bb_core_runner_v1.py lives at AGENTS/CORE/BATTLEBUDDY/;
+    the schema is at AGENTS/SCHEMAS/BattleBuddy_Contract_v1.schema.json,
+    so two levels up (to AGENTS/) then into SCHEMAS/.
+    """
+    return Path(__file__).resolve().parents[2].joinpath(*_SCHEMA_RELATIVE)
+
+
+def _validate_contract_schema(payload: Dict[str, Any]) -> None:
+    """Validate *payload* against the BattleBuddy Contract v1 JSON schema.
+
+    This is the authorized-JSON gate: only schema-valid contracts may be
+    processed.  Raises ValueError with human-readable details on failure.
+    """
+    sp = _schema_path()
+    if not sp.exists():
+        raise ValueError(f"Contract schema not found at {sp}; cannot authorize input.")
+
+    try:
+        from jsonschema.validators import Draft202012Validator  # type: ignore[import]
+    except ImportError as exc:
+        raise RuntimeError(
+            "jsonschema is required for contract authorization. "
+            "Install it: pip install jsonschema"
+        ) from exc
+
+    schema = json.loads(sp.read_text(encoding="utf-8-sig"))
+    errors = sorted(
+        Draft202012Validator(schema).iter_errors(payload),
+        key=lambda e: list(e.absolute_path),
+    )
+    if errors:
+        detail = "; ".join(
+            f"{'.'.join(str(p) for p in e.absolute_path) or '<root>'}: {e.message}"
+            for e in errors[:5]
+        )
+        raise ValueError(f"Input contract failed schema authorization: {detail}")
+
+
+def _closed_output(stage: str, reason: str) -> Dict[str, Any]:
+    """Return a safe fail-closed output envelope.
+
+    Used when an unexpected processing error prevents normal output generation.
+    The output is deliberately minimal and marked VERIFY_REQUIRED so no
+    automated downstream action is taken without human review.
+    """
+    return {
+        "stage": stage,
+        "confidence": "VERIFY_REQUIRED",
+        "updates": [reason, "Automated output closed; human review required before any action."],
+        "tasks": [],
+        "evidence": [],
+        "scripts": [],
+        "warnings": [
+            {
+                "warning_id": "BB4.SYSTEM.FAIL_CLOSED",
+                "label": "System closed: processing error prevented normal output.",
+                "details": reason,
+                "severity": "CRITICAL",
+                "confidence": "VERIFY_REQUIRED",
+            }
+        ],
+        "handoffs": [],
+        "battle_buddy_plan": {
+            "situation": "Processing error; automated output is closed.",
+            "goal": "Ensure a human reviews this case before any action is taken.",
+            "next_3_actions": [
+                "Do not act on this automated output.",
+                "Contact a human advocate or representative.",
+                "Wait for a valid system output before proceeding.",
+            ],
+            "evidence_needed": [],
+            "risks_traps": ["Automated processing failed; output is closed pending human review."],
+            "if_blocked_do_this": ["Contact a human advocate or representative immediately."],
+        },
+    }
+
+
+# ---------------------------------------------------------------------------
 # Path sanitizer — breaks the argparse-argument → file-operation data flow.
 # ---------------------------------------------------------------------------
 
@@ -512,28 +603,36 @@ def _require_json_path(raw: str) -> Path:
 def run(input_path: Path, output_path: Optional[Path] = None) -> Dict[str, Any]:
     payload = json.loads(input_path.read_text(encoding="utf-8-sig"))
 
+    # Authorized JSON: validate the full contract schema before any processing.
+    _validate_contract_schema(payload)
+
     contract_id = payload.get("contract_id")
     schema_version = payload.get("schema_version")
-    if contract_id != "AUERNYX.BattleBuddy.Contract.v1" or schema_version != 1:
-        raise ValueError("Input is not AUERNYX.BattleBuddy.Contract.v1")
+    if contract_id != _CONTRACT_ID or schema_version != 1:
+        raise ValueError(f"Input is not {_CONTRACT_ID}")
 
     input_env = payload.get("input") or {}
     stage = _stage(input_env)
 
-    mode = _review_mode(input_env)
-    if mode:
-        plan, truth, warnings, mode_updates = build_case_review_plan(input_env=input_env, mode=mode)
-    else:
-        plan, truth = build_battle_buddy_plan(input_env)
-        warnings = []
-        mode_updates = []
+    # Fail closed: any unexpected processing error emits a safe VERIFY_REQUIRED output.
+    try:
+        mode = _review_mode(input_env)
+        if mode:
+            plan, truth, warnings, mode_updates = build_case_review_plan(input_env=input_env, mode=mode)
+        else:
+            plan, truth = build_battle_buddy_plan(input_env)
+            warnings = []
+            mode_updates = []
+        envelope = _build_output_envelope(stage=stage, plan=plan, truth=truth, warnings=warnings, extra_updates=mode_updates)
+    except Exception as exc:  # noqa: BLE001
+        envelope = _closed_output(stage, f"Processing error: {type(exc).__name__}: {exc}")
 
     out = {
-        "contract_id": "AUERNYX.BattleBuddy.Contract.v1",
+        "contract_id": _CONTRACT_ID,
         "schema_version": 1,
         "timestamp": _now_iso(),
         "input": input_env,
-        "output": _build_output_envelope(stage=stage, plan=plan, truth=truth, warnings=warnings, extra_updates=mode_updates),
+        "output": envelope,
     }
 
     if output_path is not None:
