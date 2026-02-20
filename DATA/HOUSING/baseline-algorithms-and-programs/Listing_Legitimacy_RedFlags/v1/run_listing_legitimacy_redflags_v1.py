@@ -43,7 +43,7 @@ def main() -> int:
     input_path = Path(args.input).expanduser().resolve()
     if input_path.suffix.lower() != ".json":
         raise SystemExit(f"Expected a .json input file, got: {args.input!r}")
-    payload: Dict[str, Any] = json.loads(input_path.read_text(encoding="utf-8"))
+    payload: Dict[str, Any] = json.loads(input_path.read_text(encoding="utf-8-sig"))
 
     result = evaluate_listing_legitimacy(payload)
     out_obj = result.__dict__

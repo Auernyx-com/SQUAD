@@ -428,7 +428,7 @@ def evaluate_listing_legitimacy(data: Mapping[str, Any]) -> ListingLegitimacyOut
 
 
 def _demo() -> None:
-    with open("example_input.json", "r", encoding="utf-8") as f:
+    with open("example_input.json", "r", encoding="utf-8-sig") as f:
         payload = json.load(f)
 
     result = evaluate_listing_legitimacy(payload)
