@@ -220,7 +220,7 @@ def read_genesis_record(repo_root: Path) -> Optional[Dict[str, Any]]:
     try:
         if not p.is_file():
             return None
-        return json.loads(p.read_text(encoding="utf-8"))
+        return json.loads(p.read_text(encoding="utf-8-sig"))
     except Exception as e:
         _log_exception(f"read_genesis_record failed (path={p})", e, include_traceback=_PROVENANCE_DEBUG)
         return None
@@ -302,7 +302,7 @@ def read_judgment(repo_root: Path) -> Optional[Dict[str, Any]]:
     try:
         if not p.is_file():
             return None
-        return json.loads(p.read_text(encoding="utf-8"))
+        return json.loads(p.read_text(encoding="utf-8-sig"))
     except Exception as e:
         _log_exception(f"read_judgment failed (path={p})", e, include_traceback=_PROVENANCE_DEBUG)
         return None

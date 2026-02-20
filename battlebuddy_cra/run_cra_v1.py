@@ -24,7 +24,7 @@ def _now_iso() -> str:
 
 
 def _load_json(path: Path) -> object:
-    return json.loads(path.read_text(encoding="utf-8"))
+    return json.loads(path.read_text(encoding="utf-8-sig"))
 
 
 def _validate(schema_path: Path, instance: object) -> None:

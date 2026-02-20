@@ -510,7 +510,7 @@ def _require_json_path(raw: str) -> Path:
 
 
 def run(input_path: Path, output_path: Optional[Path] = None) -> Dict[str, Any]:
-    payload = json.loads(input_path.read_text(encoding="utf-8"))
+    payload = json.loads(input_path.read_text(encoding="utf-8-sig"))
 
     contract_id = payload.get("contract_id")
     schema_version = payload.get("schema_version")
