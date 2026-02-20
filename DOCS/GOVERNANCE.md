@@ -1,5 +1,10 @@
 # SQUAD Governance
 
+## Repository visibility and access
+- **Visibility:** Private. This repository and all repos under the Auernyx-com GitHub organization are private.
+- **Access model:** Single owner/operator. No external collaborators unless explicitly granted.
+- **Implication for audit trail:** All committed history is accessible only to the organization owner. Sensitive operational outputs (baseline snapshots, clerk logs) must still be excluded from git via `.gitignore` as a defense-in-depth measure.
+
 ## Clerk authority invariant
 - **Authoritative entrypoint:** `Invoke-SquadAdminClerk.ps1` at repo root is the only source of truth.
 - **Delegate shim rule:** `SYSTEM/CLERK/Invoke-SquadAdminClerk.ps1` must remain a pure delegation wrapper and must never contain divergent logic.
