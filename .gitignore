@@ -30,3 +30,17 @@ SOCIAL/SOURCES/
 # Yggdrasil Canon (operational ledger + receipts)
 canon/
 canon/**
+
+# Firebase runtime / generated files
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+firestore-debug.log
+ui-debug.log
+functions/node_modules/
+mobile/node_modules/
+mobile/.expo/
+mobile/web-build/
+*.local
+google-services.json
+GoogleService-Info.plist
