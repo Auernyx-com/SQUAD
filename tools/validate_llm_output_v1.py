@@ -31,7 +31,7 @@ class GuardrailValidator:
     def __init__(self, guardrails_path: Path):
         """Initialize validator with guardrails configuration."""
         try:
-            self.guardrails = json.loads(guardrails_path.read_text(encoding="utf-8"))
+            self.guardrails = json.loads(guardrails_path.read_text(encoding="utf-8-sig"))
         except json.JSONDecodeError as e:
             raise ValueError(f"Invalid guardrails configuration file: {guardrails_path}\nError: {e}") from e
         self.results: List[ValidationResult] = []
@@ -327,7 +327,7 @@ def main():
         return 1
     
     try:
-        output = json.loads(output_path.read_text(encoding="utf-8"))
+        output = json.loads(output_path.read_text(encoding="utf-8-sig"))
     except json.JSONDecodeError as e:
         print(f"ERROR: Invalid output file format: {output_path}")
         print(f"  {e}")
