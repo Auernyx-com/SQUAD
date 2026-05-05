@@ -1,8 +1,0 @@
-﻿Copyright (c) 2025 Aurenyx LLC Justin Hughes
-
-ALL RIGHTS RESERVED.
-
-This repository and its contents are proprietary and confidential.
-No part of this codebase may be copied, modified, published, redistributed,
-or used to create derivative works without explicit written permission
-from the copyright holder.
