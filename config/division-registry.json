@@ -1,0 +1,27 @@
+{
+  "schema": "squad-bat.division-registry.v1",
+  "founding_law": "GOVERNANCE/LAWS/veteran_data_sovereignty.v1.md",
+  "founding_law_sha256": "dc0fcb428e24948c5471798bf3c0b77cafade1c68e1aecb39aa13eef264f2f87",
+  "divisions": [
+    {
+      "id": "housing-division",
+      "name": "Housing Division",
+      "identifier": "squad-bat.division.housing.v1",
+      "version": "1.0.0",
+      "attached_at": "2026-05-05T00:00:00.000Z",
+      "repo": "https://github.com/Auernyx-com/housing-division",
+      "capabilities": [
+        "listingLegitimacyCheck",
+        "programGateHUDVASH",
+        "hqsPreInspectionScreen",
+        "landlordOutreachPacket"
+      ],
+      "indicator_capability": "listingLegitimacyCheck",
+      "onboarding": {
+        "question_id": "enable_housing_division",
+        "type": "boolean",
+        "question": "Is Housing Division active for this deployment?\n   Only enable if housing-division repo is configured with valid PHA overrides for this location."
+      }
+    }
+  ]
+}

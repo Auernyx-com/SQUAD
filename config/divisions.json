@@ -1,0 +1,9 @@
+{
+  "divisions": {
+    "housing-division": {
+      "entry": "",
+      "type": "python",
+      "notes": "Housing Division entry path. Set to local clone of housing-division repo entry point, or set SQUAD_BAT_DIVISION_ENTRY_HOUSING_DIVISION env var."
+    }
+  }
+}
