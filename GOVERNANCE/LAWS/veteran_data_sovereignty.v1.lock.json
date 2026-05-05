@@ -1,0 +1,10 @@
+{
+  "document": "GOVERNANCE/LAWS/veteran_data_sovereignty.v1.md",
+  "version": "v1",
+  "sha256": "dc0fcb428e24948c5471798bf3c0b77cafade1c68e1aecb39aa13eef264f2f87",
+  "locked_at": "2026-05-05",
+  "authority": "Justin Hughes — Founder, Auernyx / SQUAD Battalion",
+  "status": "LOCKED",
+  "instruction": "Every Division genesis record must reference this sha256. A mismatch means the founding law has changed and the genesis record is invalid. This file is append-only — a new version requires a new lock file, not an edit to this one.",
+  "referenced_by": []
+}
