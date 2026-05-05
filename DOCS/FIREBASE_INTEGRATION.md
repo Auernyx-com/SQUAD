@@ -10,7 +10,7 @@ This document analyzes the options for connecting SQUAD to Firebase so the proje
 
 SQUAD is currently a **Python-driven, artifact-first backend system** for veteran case navigation. Key characteristics:
 
-- Logic lives in Python modules (`AGENTS/`, `battlebuddy_cra/`, `MODULES/`)
+- Logic lives in Python modules (`AGENTS/`, `pathfinder_cra/`, `MODULES/`)
 - Data is JSON-schema-validated (case files, contracts, pipeline outputs)
 - Governance and auditability are built into the design (Clerk, provenance, artifact routing)
 - No mobile UI, no database server, no authentication layer
@@ -46,7 +46,7 @@ For SQUAD's use case (veteran case management, sensitive documentation, push ale
 - React Native has strong Firebase support via `@react-native-firebase` (the most widely used integration library)
 - Firestore's real-time sync maps naturally to case state that multiple users (veteran + advocate) may need to see simultaneously
 - Firebase Auth handles the hard parts of secure login with very little code
-- Existing JSON schemas (case files, BattleBuddy contracts) can migrate to Firestore documents with minimal re-work
+- Existing JSON schemas (case files, Pathfinder contracts) can migrate to Firestore documents with minimal re-work
 - Cloud Functions let you deploy the existing Python pipeline modules as serverless endpoints — no rewrite required immediately
 - Firebase's free tier (Spark) is generous for a low-volume nonprofit use case
 
@@ -122,7 +122,7 @@ Phase 1 (Now): Firebase project setup + backend wiring  ← CURRENT STATE
 Phase 2: Mobile app scaffold
   ├── Scaffold React Native app in mobile/ directory
   ├── Connect @react-native-firebase/app + auth + firestore
-  ├── Implement intake form (maps to BattleBuddy contract schema)
+  ├── Implement intake form (maps to Pathfinder contract schema)
   ├── Implement case dashboard (reads from Firestore)
   └── Add hosting section back to firebase.json pointing at mobile/web-build
 

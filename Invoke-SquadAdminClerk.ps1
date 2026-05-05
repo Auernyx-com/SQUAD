@@ -46,8 +46,8 @@ param(
   # Export a case to ZIP for handoff
   [string]$ExportCase,
 
-  # Run Auernyx BattleBuddy (BB-Core) on a Contract v1 input envelope
-  [string]$BattleBuddyInput,
+  # Run Auernyx Pathfinder (PF-Core) on a Contract v1 input envelope
+  [string]$PathfinderInput,
 
   # Run CRA (Claim Readiness Analysis) for a case (schema-only, no-fetch)
   [switch]$CRARun,
@@ -487,7 +487,7 @@ $logDir = Join-Path $SquadRoot "SYSTEM\LOGS\CLERK"
 # Plan mode must be provably read-only (no directory creation, no logs, no lock file).
 # Plan is allowed only for non-mutating previews (e.g., -InPath -Plan, -QuarantineLegacyOutputs -Plan).
 $script:ClerkPlanReadOnly = $false
-if ($Plan -and (-not $Init) -and (-not $ExportCase) -and (-not $BattleBuddyInput) -and (-not $CRARun) -and (-not $BreakLock)) {
+if ($Plan -and (-not $Init) -and (-not $ExportCase) -and (-not $PathfinderInput) -and (-not $CRARun) -and (-not $BreakLock)) {
   $script:ClerkPlanReadOnly = $true
 }
 
@@ -505,7 +505,7 @@ $mutatingRequested = $false
 if ($Init) { $mutatingRequested = $true }
 if ($InPath -and (-not $Plan)) { $mutatingRequested = $true }
 if ($ExportCase) { $mutatingRequested = $true }
-if ($BattleBuddyInput) { $mutatingRequested = $true }
+if ($PathfinderInput) { $mutatingRequested = $true }
 if ($CRARun) { $mutatingRequested = $true }
 if ($QuarantineLegacyOutputs -and (-not $Plan)) { $mutatingRequested = $true }
 
@@ -623,12 +623,12 @@ if ($QuarantineLegacyOutputs) {
     Ensure-Dir $quarantineRoot
   }
 
-  # Only quarantine BattleBuddy runs for now, based on current schema expectations.
-  $candidates = Get-ChildItem -LiteralPath $runsDir -Directory -Filter 'battlebuddy_run_*' -ErrorAction SilentlyContinue
+  # Only quarantine Pathfinder runs for now, based on current schema expectations.
+  $candidates = Get-ChildItem -LiteralPath $runsDir -Directory -Filter 'pathfinder_run_*' -ErrorAction SilentlyContinue
   $qPlan = New-Object System.Collections.Generic.List[object]
 
   foreach ($dirItem in $candidates) {
-    $inPath = Join-Path $dirItem.FullName 'battlebuddy_input.contract.v1.json'
+    $inPath = Join-Path $dirItem.FullName 'pathfinder_input.contract.v1.json'
     if (-not (Test-Path -LiteralPath $inPath)) { continue }
 
     try {
@@ -698,42 +698,42 @@ if ($QuarantineLegacyOutputs) {
 }
 
 # --------------------------
-# BATTLEBUDDY RUN MODE
+# PATHFINDER RUN MODE
 # --------------------------
 
-if ($BattleBuddyInput) {
+if ($PathfinderInput) {
   if ($CRARun) {
-    throw 'Use either -BattleBuddyInput or -CRARun (not both in the same run).'
+    throw 'Use either -PathfinderInput or -CRARun (not both in the same run).'
   }
 
   # Ensure structure exists
   Ensure-Dir $SquadRoot
   foreach ($d in $dirs) { Ensure-Dir (Join-Path $SquadRoot $d) }
 
-  $resolvedInput = [System.IO.Path]::GetFullPath($BattleBuddyInput)
+  $resolvedInput = [System.IO.Path]::GetFullPath($PathfinderInput)
   if (-not (Test-Path -LiteralPath $resolvedInput)) {
-    Write-ClerkLog $logDir ('BattleBuddy input not found: {0}' -f $resolvedInput) 'ERROR'
-    throw ('BattleBuddy input not found: {0}' -f $resolvedInput)
+    Write-ClerkLog $logDir ('Pathfinder input not found: {0}' -f $resolvedInput) 'ERROR'
+    throw ('Pathfinder input not found: {0}' -f $resolvedInput)
   }
 
   $pythonCmd = (Get-Command python -ErrorAction SilentlyContinue)
   if (-not $pythonCmd) {
-    Write-ClerkLog $logDir 'BattleBuddy run failed: python not found on PATH' 'ERROR'
-    throw 'BattleBuddy run failed: python not found on PATH. Install Python or add it to PATH.'
+    Write-ClerkLog $logDir 'Pathfinder run failed: python not found on PATH' 'ERROR'
+    throw 'Pathfinder run failed: python not found on PATH. Install Python or add it to PATH.'
   }
 
-  $runner = Join-Path $SquadRoot 'AGENTS\CORE\BATTLEBUDDY\bb_core_runner_v1.py'
+  $runner = Join-Path $SquadRoot 'AGENTS\CORE\PATHFINDER\pf_core_runner_v1.py'
   if (-not (Test-Path -LiteralPath $runner)) {
-    Write-ClerkLog $logDir ('BattleBuddy runner missing: {0}' -f $runner) 'ERROR'
-    throw ('BattleBuddy runner missing: {0}' -f $runner)
+    Write-ClerkLog $logDir ('Pathfinder runner missing: {0}' -f $runner) 'ERROR'
+    throw ('Pathfinder runner missing: {0}' -f $runner)
   }
 
   $ts = Get-Date -Format yyyyMMdd_HHmmss
-  $runDir = Join-Path $SquadRoot ('OUTPUTS\RUNS\battlebuddy_run_' + $ts)
+  $runDir = Join-Path $SquadRoot ('OUTPUTS\RUNS\pathfinder_run_' + $ts)
   Ensure-Dir $runDir
 
-  $outPath = Join-Path $runDir 'battlebuddy_output.contract.v1.json'
-  $inCopyPath = Join-Path $runDir 'battlebuddy_input.contract.v1.json'
+  $outPath = Join-Path $runDir 'pathfinder_output.contract.v1.json'
+  $inCopyPath = Join-Path $runDir 'pathfinder_input.contract.v1.json'
   Copy-Item -LiteralPath $resolvedInput -Destination $inCopyPath -Force
 
   $cmd = @(
@@ -744,27 +744,27 @@ if ($BattleBuddyInput) {
     $outPath
   )
 
-  if ($PSCmdlet.ShouldProcess($outPath, 'Run BattleBuddy BB-Core')) {
-    Write-ClerkLog $logDir ('BattleBuddy run start | Input={0} | RunDir={1}' -f $resolvedInput, $runDir) 'INFO'
+  if ($PSCmdlet.ShouldProcess($outPath, 'Run Pathfinder PF-Core')) {
+    Write-ClerkLog $logDir ('Pathfinder run start | Input={0} | RunDir={1}' -f $resolvedInput, $runDir) 'INFO'
 
     & $cmd[0] $cmd[1] $cmd[2] $cmd[3] $cmd[4] | Out-Null
 
     if (-not (Test-Path -LiteralPath $outPath)) {
-      Write-ClerkLog $logDir ('BattleBuddy run failed: output not created | Expected={0}' -f $outPath) 'ERROR'
-      throw ('BattleBuddy run failed: output not created. Expected: {0}' -f $outPath)
+      Write-ClerkLog $logDir ('Pathfinder run failed: output not created | Expected={0}' -f $outPath) 'ERROR'
+      throw ('Pathfinder run failed: output not created. Expected: {0}' -f $outPath)
     }
 
     $outHash = Get-FileSha256 $outPath
-    Write-ClerkLog $logDir ('BattleBuddy run complete | Output={0} | SHA256={1}' -f $outPath, $outHash) 'INFO'
-    Write-Host ('BattleBuddy output: {0}' -f $outPath)
+    Write-ClerkLog $logDir ('Pathfinder run complete | Output={0} | SHA256={1}' -f $outPath, $outHash) 'INFO'
+    Write-Host ('Pathfinder output: {0}' -f $outPath)
     Write-Host ('SHA256:           {0}' -f $outHash)
 
     if ($CaseId -and $CaseId.Trim().Length -gt 0) {
-      $caseArtifacts = Join-Path $SquadRoot ('CASES\ACTIVE\' + $CaseId + '\ARTIFACTS\BATTLEBUDDY')
+      $caseArtifacts = Join-Path $SquadRoot ('CASES\ACTIVE\' + $CaseId + '\ARTIFACTS\PATHFINDER')
       Ensure-Dir $caseArtifacts
-      $caseOut = Join-Path $caseArtifacts ('battlebuddy_output_' + $ts + '.contract.v1.json')
+      $caseOut = Join-Path $caseArtifacts ('pathfinder_output_' + $ts + '.contract.v1.json')
       Copy-Item -LiteralPath $outPath -Destination $caseOut -Force
-      Write-ClerkLog $logDir ('BattleBuddy output copied to case artifacts | CaseId={0} | Path={1}' -f $CaseId, $caseOut) 'INFO'
+      Write-ClerkLog $logDir ('Pathfinder output copied to case artifacts | CaseId={0} | Path={1}' -f $CaseId, $caseOut) 'INFO'
       Write-Host ('Case artifact:    {0}' -f $caseOut)
     }
   }
@@ -791,7 +791,7 @@ if ($CRARun) {
     throw ('Case {0} not found in CASES\ACTIVE.' -f $CaseId)
   }
 
-  $runner = Join-Path $SquadRoot 'battlebuddy_cra\run_cra_v1.py'
+  $runner = Join-Path $SquadRoot 'pathfinder_cra\run_cra_v1.py'
   if (-not (Test-Path -LiteralPath $runner)) {
     throw ('CRA runner missing: {0}' -f $runner)
   }
@@ -999,7 +999,7 @@ if (-not $Init -and -not $InPath -and -not $ExportCase -and -not $BreakLock) {
   Write-Host '  .\Invoke-SquadAdminClerk.ps1 -Init -Scaffold -InitGit'
   Write-Host '  .\Invoke-SquadAdminClerk.ps1 -InPath C:\Temp\CaseStuff -CaseId VET_0001 -Plan'
   Write-Host '  .\Invoke-SquadAdminClerk.ps1 -ExportCase VET_0001'
-  Write-Host '  .\Invoke-SquadAdminClerk.ps1 -BattleBuddyInput .\AGENTS\CORE\BATTLEBUDDY\example_input.contract.v1.json'
+  Write-Host '  .\Invoke-SquadAdminClerk.ps1 -PathfinderInput .\AGENTS\CORE\PATHFINDER\example_input.contract.v1.json'
   Write-Host '  .\Invoke-SquadAdminClerk.ps1 -CRARun -CaseId VET_0001'
   Write-Host '  .\Invoke-SquadAdminClerk.ps1 -QuarantineLegacyOutputs -Plan'
   Write-Host '  .\Invoke-SquadAdminClerk.ps1 -BreakLock -BreakLockReason Verified_stale_lock_authorized_by_operator'

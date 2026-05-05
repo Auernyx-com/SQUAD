@@ -110,7 +110,7 @@ def _governance_inputs(repo_root: Path) -> Dict[str, str]:
         ".github/copilot-instructions.md",
         "DOCS/GOVERNANCE.md",
         "PIPELINE_README.md",
-        "AGENTS/SCHEMAS/BattleBuddy_Contract_v1.schema.json",
+        "AGENTS/SCHEMAS/Pathfinder_Contract_v1.schema.json",
     ]
 
     out: Dict[str, str] = {}

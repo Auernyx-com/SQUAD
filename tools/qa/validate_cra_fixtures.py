@@ -27,52 +27,52 @@ def _validate(schema_path: Path, instance_path: Path) -> None:
 def main() -> int:
     repo_root = Path(__file__).resolve().parents[2]
 
-    cra_in_schema = repo_root / "battlebuddy_cra" / "schema" / "cra.schema.json"
-    cra_out_schema = repo_root / "battlebuddy_cra" / "schema" / "cra_output.schema.json"
+    cra_in_schema = repo_root / "pathfinder_cra" / "schema" / "cra.schema.json"
+    cra_out_schema = repo_root / "pathfinder_cra" / "schema" / "cra_output.schema.json"
 
     tests = [
         Expected(
-            path=repo_root / "battlebuddy_cra" / "examples" / "example_input.cra.v1.json",
+            path=repo_root / "pathfinder_cra" / "examples" / "example_input.cra.v1.json",
             should_validate=True,
             schema=cra_in_schema,
         ),
         Expected(
-            path=repo_root / "battlebuddy_cra" / "examples" / "test_input.refusal_unsafe_content.cra.v1.json",
+            path=repo_root / "pathfinder_cra" / "examples" / "test_input.refusal_unsafe_content.cra.v1.json",
             should_validate=True,
             schema=cra_in_schema,
         ),
         Expected(
-            path=repo_root / "battlebuddy_cra" / "examples" / "test_input.free_text_field_should_fail.cra.v1.json",
+            path=repo_root / "pathfinder_cra" / "examples" / "test_input.free_text_field_should_fail.cra.v1.json",
             should_validate=False,
             schema=cra_in_schema,
         ),
         Expected(
-            path=repo_root / "battlebuddy_cra" / "examples" / "test_input.bad_enum_should_fail.cra.v1.json",
+            path=repo_root / "pathfinder_cra" / "examples" / "test_input.bad_enum_should_fail.cra.v1.json",
             should_validate=False,
             schema=cra_in_schema,
         ),
         Expected(
-            path=repo_root / "battlebuddy_cra" / "examples" / "test_input.unsafe_reason_code_should_fail.cra.v1.json",
+            path=repo_root / "pathfinder_cra" / "examples" / "test_input.unsafe_reason_code_should_fail.cra.v1.json",
             should_validate=False,
             schema=cra_in_schema,
         ),
         Expected(
-            path=repo_root / "battlebuddy_cra" / "examples" / "test_input.stealth_field_should_fail.cra.v1.json",
+            path=repo_root / "pathfinder_cra" / "examples" / "test_input.stealth_field_should_fail.cra.v1.json",
             should_validate=False,
             schema=cra_in_schema,
         ),
         Expected(
-            path=repo_root / "battlebuddy_cra" / "examples" / "test_input.missing_required_field.cra.v1.json",
+            path=repo_root / "pathfinder_cra" / "examples" / "test_input.missing_required_field.cra.v1.json",
             should_validate=False,
             schema=cra_in_schema,
         ),
         Expected(
-            path=repo_root / "battlebuddy_cra" / "examples" / "test_output.refusal_unsafe_content.cra.report.v1.json",
+            path=repo_root / "pathfinder_cra" / "examples" / "test_output.refusal_unsafe_content.cra.report.v1.json",
             should_validate=True,
             schema=cra_out_schema,
         ),
         Expected(
-            path=repo_root / "battlebuddy_cra" / "examples" / "test_output.ok_minimal.cra.report.v1.json",
+            path=repo_root / "pathfinder_cra" / "examples" / "test_output.ok_minimal.cra.report.v1.json",
             should_validate=True,
             schema=cra_out_schema,
         ),

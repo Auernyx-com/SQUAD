@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aurenyx.com/squad/schemas/pathfinder/cra.schema.json",
+  "title": "Pathfinder — Claim Readiness Analysis (CRA) Input Schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "module",
+    "version",
+    "claim_status",
+    "evidence_presence",
+    "administrative_context",
+    "veteran_reported_barriers"
+  ],
+  "properties": {
+    "module": {
+      "type": "string",
+      "const": "pathfinder.cra"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Semantic version of the CRA schema payload format."
+    },
+    "claim_status": {
+      "type": "string",
+      "enum": ["not_filed", "filed_pending", "denied", "appeal_pending", "unknown"]
+    },
+    "evidence_presence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service_records_available",
+        "current_diagnosis_documentation_exists",
+        "nexus_opinion_exists",
+        "lay_statements_present",
+        "continuity_evidence_present"
+      ],
+      "properties": {
+        "service_records_available": {
+          "type": "string",
+          "enum": ["yes", "no", "unknown"]
+        },
+        "current_diagnosis_documentation_exists": {
+          "type": "string",
+          "enum": ["yes", "no", "unknown"],
+          "description": "Boolean/tri-state presence only. No condition names, no details."
+        },
+        "nexus_opinion_exists": {
+          "type": "string",
+          "enum": ["yes", "no", "unknown"]
+        },
+        "lay_statements_present": {
+          "type": "string",
+          "enum": ["yes", "no", "unknown"]
+        },
+        "continuity_evidence_present": {
+          "type": "string",
+          "enum": ["yes", "no", "unknown"]
+        }
+      }
+    },
+    "administrative_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["representation_status", "prior_va_decisions_received", "appeal_lane_used"],
+      "properties": {
+        "representation_status": {
+          "type": "string",
+          "enum": ["none", "vso", "attorney", "unknown"]
+        },
+        "prior_va_decisions_received": {
+          "type": "string",
+          "enum": ["yes", "no", "unknown"]
+        },
+        "appeal_lane_used": {
+          "type": "string",
+          "enum": ["none", "hlr", "supplemental", "board", "unknown"],
+          "description": "Only the lane type, not details. 'none' allowed when not in appeal."
+        }
+      }
+    },
+    "veteran_reported_barriers": {
+      "type": "array",
+      "uniqueItems": true,
+      "minItems": 0,
+      "items": {
+        "type": "string",
+        "enum": [
+          "difficulty_obtaining_records",
+          "confusion_about_process",
+          "missed_deadlines",
+          "lack_of_representation",
+          "conflicting_information_received"
+        ]
+      }
+    },
+    "unsafe_content_detected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["present", "reason_codes"],
+      "properties": {
+        "present": {
+          "type": "boolean",
+          "description": "If true, CRA must refuse. This is set by upstream ingestion/validation."
+        },
+        "reason_codes": {
+          "type": "array",
+          "minItems": 0,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "diagnosis_or_condition_named",
+              "symptoms_or_treatment_details",
+              "medical_notes_or_provider_opinion",
+              "lab_results_or_imaging",
+              "disability_rating_by_condition",
+              "attachment_or_document_parsing_attempt",
+              "free_text_medical_field_detected"
+            ]
+          }
+        }
+      }
+    },
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["created_at", "source"],
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "source": {
+          "type": "string",
+          "enum": ["intake", "manual", "imported", "unknown"]
+        }
+      }
+    }
+  }
+}

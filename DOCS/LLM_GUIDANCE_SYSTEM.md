@@ -6,7 +6,7 @@
 
 ## Overview
 
-This document describes the LLM guidance and guardrails system for SQUAD/Auernyx BattleBuddy. The system consolidates all policy, safety, and operational rules into a comprehensive framework for LLM-based decision support.
+This document describes the LLM guidance and guardrails system for SQUAD/Auernyx Pathfinder. The system consolidates all policy, safety, and operational rules into a comprehensive framework for LLM-based decision support.
 
 ## Purpose
 
@@ -20,7 +20,7 @@ The LLM guidance system exists to:
 ## System Components
 
 ### 1. System Prompt
-**Location:** `AGENTS/PROMPTS/battlebuddy_system_prompt_v1.md`
+**Location:** `AGENTS/PROMPTS/pathfinder_system_prompt_v1.md`
 
 Comprehensive LLM instructions covering:
 - Identity and mission
@@ -32,7 +32,7 @@ Comprehensive LLM instructions covering:
 - Output format requirements
 - Refusal templates
 
-**Usage:** This file should be provided as the system prompt for all BattleBuddy LLM interactions.
+**Usage:** This file should be provided as the system prompt for all Pathfinder LLM interactions.
 
 ### 2. Guardrails Configuration
 **Location:** `SYSTEM/CONFIG/llm_guardrails_v1.json`
@@ -50,7 +50,7 @@ Machine-readable configuration defining:
 ### 3. Output Validator
 **Location:** `tools/validate_llm_output_v1.py`
 
-Python script that validates BattleBuddy outputs against guardrails.
+Python script that validates Pathfinder outputs against guardrails.
 
 **Usage:**
 ```bash
@@ -106,7 +106,7 @@ python tools/validate_llm_output_v1.py path/to/output.json --guardrails path/to/
 ┌─────────────────────────────────────────────────────────┐
 │              LLM Generation                              │
 │  • Stage-based workflow                                  │
-│  • Truth gating (bb_truth_v1.py)                        │
+│  • Truth gating (pf_truth_v1.py)                        │
 │  • Standard format enforcement                           │
 └─────────────────────────────────────────────────────────┘
                            │
@@ -130,18 +130,18 @@ python tools/validate_llm_output_v1.py path/to/output.json --guardrails path/to/
 
 The LLM guidance system consolidates rules from:
 
-1. **BattleBuddy Policy** (`DOCS/AUERNYX_BattleBuddy_Policy_v1.md`)
+1. **Pathfinder Policy** (`DOCS/AUERNYX_Pathfinder_Policy_v1.md`)
    - Mission and boundaries
    - Allowed/disallowed behaviors
    - Escalation triggers
    - Standard output format
 
-2. **Truth Module** (`AGENTS/CORE/BATTLEBUDDY/bb_truth_v1.py`)
+2. **Truth Module** (`AGENTS/CORE/PATHFINDER/pf_truth_v1.py`)
    - Cite-or-caveat discipline
    - Confidence gating logic
    - Unknown handling
 
-3. **CRA Module Spec** (`DOCS/spec/BattleBuddy_CRA_ModuleSpec_v1.md`)
+3. **CRA Module Spec** (`DOCS/spec/Pathfinder_CRA_ModuleSpec_v1.md`)
    - Medical/clinical refusal rules
    - Process-only analysis boundaries
    - HIPAA compliance posture
@@ -293,7 +293,7 @@ All claims must be supported by:
 - Override program gate UNKNOWN/FAIL
 
 ### VA Claims (CRA)
-**Module:** BattleBuddy CRA
+**Module:** Pathfinder CRA
 
 **Allowed:**
 - Identify evidence gaps (nexus, continuity)
@@ -350,14 +350,14 @@ When `input.constraints.review_mode` is set, stricter rules apply:
 
 ### Manual Testing
 Test with example inputs from:
-- `AGENTS/CORE/BATTLEBUDDY/example_input.contract.v1.json`
-- `AGENTS/CORE/BATTLEBUDDY/example_input.intake_review.contract.v1.json`
-- `AGENTS/CORE/BATTLEBUDDY/example_input.strategy_review.contract.v1.json`
+- `AGENTS/CORE/PATHFINDER/example_input.contract.v1.json`
+- `AGENTS/CORE/PATHFINDER/example_input.intake_review.contract.v1.json`
+- `AGENTS/CORE/PATHFINDER/example_input.strategy_review.contract.v1.json`
 
 ### Automated Validation
 Run validator on outputs:
 ```bash
-python tools/validate_llm_output_v1.py AGENTS/CORE/BATTLEBUDDY/example_output.contract.v1.json
+python tools/validate_llm_output_v1.py AGENTS/CORE/PATHFINDER/example_output.contract.v1.json
 ```
 
 ### Red Team Testing
@@ -392,20 +392,20 @@ Test refusal behaviors with:
 
 ## Integration with Existing Systems
 
-### BattleBuddy Core Runner
-`AGENTS/CORE/BATTLEBUDDY/bb_core_runner_v1.py` already implements:
+### Pathfinder Core Runner
+`AGENTS/CORE/PATHFINDER/pf_core_runner_v1.py` already implements:
 - Stage-based workflow
 - Standard output format
-- Truth gating (via `bb_truth_v1.py`)
+- Truth gating (via `pf_truth_v1.py`)
 - Review modes
 
 The system prompt reinforces these implementations with comprehensive LLM-level guidance.
 
 ### Module Registry
-`AGENTS/CORE/BATTLEBUDDY/module_registry.v1.json` tracks enabled modules:
-- BB-Core (stage tracking + plan formatting)
-- BB-Governance (allowed/disallowed behaviors)
-- BB-Truth (cite-or-caveat discipline)
+`AGENTS/CORE/PATHFINDER/module_registry.v1.json` tracks enabled modules:
+- PF-Core (stage tracking + plan formatting)
+- PF-Governance (allowed/disallowed behaviors)
+- PF-Truth (cite-or-caveat discipline)
 
 ### Clerk Integration
 The Admin Clerk (`Invoke-SquadAdminClerk.ps1`) handles artifact routing. LLM outputs should be routed through the Clerk to maintain audit trails.
@@ -434,8 +434,8 @@ The Admin Clerk (`Invoke-SquadAdminClerk.ps1`) handles artifact routing. LLM out
 ## Support and Questions
 
 For questions about:
-- **Policy interpretation:** See `DOCS/AUERNYX_BattleBuddy_Policy_v1.md`
-- **Technical implementation:** See `AGENTS/CORE/BATTLEBUDDY/bb_core_runner_v1.py`
+- **Policy interpretation:** See `DOCS/AUERNYX_Pathfinder_Policy_v1.md`
+- **Technical implementation:** See `AGENTS/CORE/PATHFINDER/pf_core_runner_v1.py`
 - **Validation failures:** Run validator with `--strict` flag for details
 - **Governance:** See `DOCS/GOVERNANCE.md`
 

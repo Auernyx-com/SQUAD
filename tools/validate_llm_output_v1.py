@@ -2,7 +2,7 @@
 """
 LLM Output Validator v1
 
-Validates BattleBuddy outputs against guardrails defined in llm_guardrails_v1.json.
+Validates Pathfinder outputs against guardrails defined in llm_guardrails_v1.json.
 This is a simple rule-based validator for safety checks.
 """
 
@@ -81,8 +81,8 @@ class GuardrailValidator:
         else:
             self._add_result("VAL-001", True, "info", "Valid stage present")
         
-        # Check battle_buddy_plan structure
-        plan = output_envelope.get("battle_buddy_plan", {})
+        # Check pathfinder_plan structure
+        plan = output_envelope.get("pathfinder_plan", {})
         required_fields = ["situation", "goal", "next_3_actions", "evidence_needed", "risks_traps", "if_blocked_do_this"]
         
         for field in required_fields:
@@ -91,7 +91,7 @@ class GuardrailValidator:
                     "VAL-002",
                     False,
                     "error",
-                    f"Missing required field in battle_buddy_plan: {field}"
+                    f"Missing required field in pathfinder_plan: {field}"
                 )
         
         # Check next_3_actions array size
@@ -179,7 +179,7 @@ class GuardrailValidator:
         
         # Check if privacy warnings present
         output_envelope = output.get("output", {})
-        plan = output_envelope.get("battle_buddy_plan", {})
+        plan = output_envelope.get("pathfinder_plan", {})
         risks = plan.get("risks_traps", [])
         
         risks_str = " ".join(str(r) for r in risks).lower()
@@ -212,7 +212,7 @@ class GuardrailValidator:
             return
         
         output_envelope = output.get("output", {})
-        plan = output_envelope.get("battle_buddy_plan", {})
+        plan = output_envelope.get("pathfinder_plan", {})
         
         # Check if_blocked_do_this and risks_traps for escalation language
         blocked = plan.get("if_blocked_do_this", [])
@@ -289,11 +289,11 @@ class GuardrailValidator:
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
-        description="Validate BattleBuddy LLM outputs against guardrails"
+        description="Validate Pathfinder LLM outputs against guardrails"
     )
     parser.add_argument(
         "output_file",
-        help="Path to BattleBuddy Contract v1 output JSON"
+        help="Path to Pathfinder Contract v1 output JSON"
     )
     parser.add_argument(
         "--guardrails",

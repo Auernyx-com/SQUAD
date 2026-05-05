@@ -36,7 +36,7 @@ def main() -> int:
         Sentinel("Invoke-SquadAdminClerk.ps1", "file"),
         Sentinel("SYSTEM/CLERK/Invoke-SquadAdminClerk.ps1", "file"),
         Sentinel("PIPELINE_README.md", "file"),
-        Sentinel("AGENTS/SCHEMAS/BattleBuddy_Contract_v1.schema.json", "file"),
+        Sentinel("AGENTS/SCHEMAS/Pathfinder_Contract_v1.schema.json", "file"),
         Sentinel("tools/qa/Invoke-RepoCheck.ps1", "file"),
         Sentinel("SYSTEM/CONFIG/squad.config.json", "file"),
         Sentinel("CASES/ACTIVE", "dir"),

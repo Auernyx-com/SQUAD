@@ -25,7 +25,7 @@ def is_relative_repo_path(text: str) -> bool:
 def main() -> int:
     repo_root = Path(__file__).resolve().parents[2]
     registries = [
-        repo_root / "AGENTS" / "CORE" / "BATTLEBUDDY" / "module_registry.v1.json",
+        repo_root / "AGENTS" / "CORE" / "PATHFINDER" / "module_registry.v1.json",
     ]
 
     failures: list[str] = []

@@ -19,13 +19,13 @@ VS Code/Copilot supports repository instructions via `.github/copilot-instructio
 - End-of-session: run [launchers/SQUAD_BASELINE_POST.cmd](../launchers/SQUAD_BASELINE_POST.cmd).
 - Repo-local shim delegates to external baseline tool at `C:\baseline-algorithms-and-programs\baseline.ps1`: [tools/baseline/baseline.ps1](../tools/baseline/baseline.ps1).
 
-## BattleBuddy (contract-driven)
-- BattleBuddy consumes a **Contract v1 JSON envelope** and returns an output envelope.
-  - Schema: [AGENTS/SCHEMAS/BattleBuddy_Contract_v1.schema.json](../AGENTS/SCHEMAS/BattleBuddy_Contract_v1.schema.json)
-  - Runner: [AGENTS/CORE/BATTLEBUDDY/bb_core_runner_v1.py](../AGENTS/CORE/BATTLEBUDDY/bb_core_runner_v1.py)
-  - “Cite or caveat” truth gating: [AGENTS/CORE/BATTLEBUDDY/bb_truth_v1.py](../AGENTS/CORE/BATTLEBUDDY/bb_truth_v1.py)
-  - Enabled modules/config: [SYSTEM/CONFIG/auernyx.battlebuddy.config.v1.json](../SYSTEM/CONFIG/auernyx.battlebuddy.config.v1.json) and [AGENTS/CORE/BATTLEBUDDY/module_registry.v1.json](../AGENTS/CORE/BATTLEBUDDY/module_registry.v1.json)
-- When extending BattleBuddy:
+## Pathfinder (contract-driven)
+- Pathfinder consumes a **Contract v1 JSON envelope** and returns an output envelope.
+  - Schema: [AGENTS/SCHEMAS/Pathfinder_Contract_v1.schema.json](../AGENTS/SCHEMAS/Pathfinder_Contract_v1.schema.json)
+  - Runner: [AGENTS/CORE/PATHFINDER/pf_core_runner_v1.py](../AGENTS/CORE/PATHFINDER/pf_core_runner_v1.py)
+  - “Cite or caveat” truth gating: [AGENTS/CORE/PATHFINDER/pf_truth_v1.py](../AGENTS/CORE/PATHFINDER/pf_truth_v1.py)
+  - Enabled modules/config: [SYSTEM/CONFIG/auernyx.pathfinder.config.v1.json](../SYSTEM/CONFIG/auernyx.pathfinder.config.v1.json) and [AGENTS/CORE/PATHFINDER/module_registry.v1.json](../AGENTS/CORE/PATHFINDER/module_registry.v1.json)
+- When extending Pathfinder:
   - Keep logic **envelope-only** (no external fetches inside truth/plan logic).
   - Use the existing stage model (`STABILIZE` → `TRACK_FOLLOW_UP`) and avoid introducing new stages unless schema + governance docs are updated.
 
@@ -36,7 +36,7 @@ VS Code/Copilot supports repository instructions via `.github/copilot-instructio
 - The Clerk routes files by extension (e.g., `.json` → `DATA/INTAKE`, `.pdf`/`.docx` → `DOCS/FORMS`, `.py` → `AGENTS/CORE`). See routing logic in [SYSTEM/CLERK/Invoke-SquadAdminClerk.ps1](../SYSTEM/CLERK/Invoke-SquadAdminClerk.ps1).
 
 ## Guardrails (strict)
-- Treat `OUTPUTS/` as write-protected: do not create or edit files under `OUTPUTS/` by hand. Only generate outputs via governed runs (e.g., Clerk/BattleBuddy) so outputs always have traceable inputs.
+- Treat `OUTPUTS/` as write-protected: do not create or edit files under `OUTPUTS/` by hand. Only generate outputs via governed runs (e.g., Clerk/Pathfinder) so outputs always have traceable inputs.
 - For any routing/move operation with `-InPath`, require a dry-run first: run the Clerk with `-Plan` before the real move. No silent moves.
 
 Example (required pattern):
@@ -62,5 +62,5 @@ Example (required pattern):
 - Prefer minimal, targeted edits; avoid reformatting unrelated files.
 - When adding new modules/contracts, update:
   - schema in [AGENTS/SCHEMAS](../AGENTS/SCHEMAS)
-  - module registry in [AGENTS/CORE/BATTLEBUDDY/module_registry.v1.json](../AGENTS/CORE/BATTLEBUDDY/module_registry.v1.json)
+  - module registry in [AGENTS/CORE/PATHFINDER/module_registry.v1.json](../AGENTS/CORE/PATHFINDER/module_registry.v1.json)
   - relevant docs in [DOCS](../DOCS) / [PIPELINE_README.md](../PIPELINE_README.md)

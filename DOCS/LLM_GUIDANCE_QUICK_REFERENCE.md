@@ -1,7 +1,7 @@
 # LLM Guidance Quick Reference
 
 **Version:** 1  
-**For:** BattleBuddy operators, developers, and reviewers
+**For:** Pathfinder operators, developers, and reviewers
 
 This is a quick-reference guide for common LLM guidance scenarios. For comprehensive documentation, see `DOCS/LLM_GUIDANCE_SYSTEM.md`.
 
@@ -451,7 +451,7 @@ Before finalizing output, verify:
 ## Additional Resources
 
 - **Full guidance:** `DOCS/LLM_GUIDANCE_SYSTEM.md`
-- **System prompt:** `AGENTS/PROMPTS/battlebuddy_system_prompt_v1.md`
+- **System prompt:** `AGENTS/PROMPTS/pathfinder_system_prompt_v1.md`
 - **Guardrails config:** `SYSTEM/CONFIG/llm_guardrails_v1.json`
-- **Policy document:** `DOCS/AUERNYX_BattleBuddy_Policy_v1.md`
+- **Policy document:** `DOCS/AUERNYX_Pathfinder_Policy_v1.md`
 - **Validator:** `tools/validate_llm_output_v1.py`

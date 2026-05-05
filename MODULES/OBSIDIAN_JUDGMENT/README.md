@@ -26,7 +26,7 @@ The governance hash is computed from the literal contents of a small allowlist o
 - `.github/copilot-instructions.md`
 - `DOCS/GOVERNANCE.md`
 - `PIPELINE_README.md`
-- `AGENTS/SCHEMAS/BattleBuddy_Contract_v1.schema.json`
+- `AGENTS/SCHEMAS/Pathfinder_Contract_v1.schema.json`
 
 ## CLI
 - Status (JSON): `python MODULES/OBSIDIAN_JUDGMENT/cli/obsidian_judgment_cli.py status`

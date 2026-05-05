@@ -79,10 +79,10 @@
 **Goal:** Truth review, not authorship.
 
 Reference examples (inputs + generated outputs):
-- `AGENTS/CORE/BATTLEBUDDY/example_input.intake_review.contract.v1.json`
-- `AGENTS/CORE/BATTLEBUDDY/example_output.intake_review.contract.v1.json`
-- `AGENTS/CORE/BATTLEBUDDY/example_input.strategy_review.contract.v1.json`
-- `AGENTS/CORE/BATTLEBUDDY/example_output.strategy_review.contract.v1.json`
+- `AGENTS/CORE/PATHFINDER/example_input.intake_review.contract.v1.json`
+- `AGENTS/CORE/PATHFINDER/example_output.intake_review.contract.v1.json`
+- `AGENTS/CORE/PATHFINDER/example_input.strategy_review.contract.v1.json`
+- `AGENTS/CORE/PATHFINDER/example_output.strategy_review.contract.v1.json`
 
 ### Intake Review Mode
 

@@ -1,19 +1,19 @@
 {
     "json.schemas": [
         {
-            "fileMatch": ["AGENTS/CORE/BATTLEBUDDY/**/*.contract.v1.json"],
-            "url": "./AGENTS/SCHEMAS/BattleBuddy_Contract_v1.schema.json"
+            "fileMatch": ["AGENTS/CORE/PATHFINDER/**/*.contract.v1.json"],
+            "url": "./AGENTS/SCHEMAS/Pathfinder_Contract_v1.schema.json"
         },
         {
             "fileMatch": [
-                "battlebuddy_cra/examples/**/*.cra.v1.json",
-                "AGENTS/CORE/BATTLEBUDDY/**/*.cra.v1.json"
+                "pathfinder_cra/examples/**/*.cra.v1.json",
+                "AGENTS/CORE/PATHFINDER/**/*.cra.v1.json"
             ],
-            "url": "./battlebuddy_cra/schema/cra.schema.json"
+            "url": "./pathfinder_cra/schema/cra.schema.json"
         },
         {
-            "fileMatch": ["battlebuddy_cra/examples/**/*.cra.report.v1.json"],
-            "url": "./battlebuddy_cra/schema/cra_output.schema.json"
+            "fileMatch": ["pathfinder_cra/examples/**/*.cra.report.v1.json"],
+            "url": "./pathfinder_cra/schema/cra_output.schema.json"
         }
     ]
 }

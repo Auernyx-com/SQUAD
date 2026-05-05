@@ -91,7 +91,7 @@ $pyCompile = Join-Path $root 'tools\qa\python_compile_sweep.py'
 $moduleRegistryCheck = Join-Path $root 'tools\qa\validate_module_registries.py'
 $repoIdentityCheck = Join-Path $root 'tools\qa\verify_squad_repo.py'
 $changeClassifier = Join-Path $root 'tools\qa\classify_changes.py'
-$battlebuddyContractCheck = Join-Path $root 'tools\qa\validate_battlebuddy_contracts.py'
+$pathfinderContractCheck = Join-Path $root 'tools\qa\validate_pathfinder_contracts.py'
 $nonprofitRegistryCheck = Join-Path $root 'tools\qa\validate_nonprofit_registry.py'
 $obsidianJudgmentCheck = Join-Path $root 'tools\qa\check_obsidian_judgment.py'
 
@@ -100,7 +100,7 @@ if (-not (Test-Path -LiteralPath $pyCompile)) { throw "Missing: $pyCompile" }
 if (-not (Test-Path -LiteralPath $moduleRegistryCheck)) { throw "Missing: $moduleRegistryCheck" }
 if (-not (Test-Path -LiteralPath $repoIdentityCheck)) { throw "Missing: $repoIdentityCheck" }
 if (-not (Test-Path -LiteralPath $changeClassifier)) { throw "Missing: $changeClassifier" }
-if (-not (Test-Path -LiteralPath $battlebuddyContractCheck)) { throw "Missing: $battlebuddyContractCheck" }
+if (-not (Test-Path -LiteralPath $pathfinderContractCheck)) { throw "Missing: $pathfinderContractCheck" }
 if (-not (Test-Path -LiteralPath $nonprofitRegistryCheck)) { throw "Missing: $nonprofitRegistryCheck" }
 if (-not (Test-Path -LiteralPath $obsidianJudgmentCheck)) { throw "Missing: $obsidianJudgmentCheck" }
 
@@ -175,10 +175,10 @@ Invoke-Step 'JSON parse (.json)' {
   }
 }
 
-# 2.5) Phase 3: BattleBuddy contract v1 schema-aware validation
-Invoke-Step 'BattleBuddy contract validation (v1)' {
+# 2.5) Phase 3: Pathfinder contract v1 schema-aware validation
+Invoke-Step 'Pathfinder contract validation (v1)' {
   $bbParams = @(
-    $battlebuddyContractCheck,
+    $pathfinderContractCheck,
     '--root', $root,
     '--max-failures', [string]$MaxFailures
   )
@@ -188,7 +188,7 @@ Invoke-Step 'BattleBuddy contract validation (v1)' {
 
   & $py @bbParams
   if ($LASTEXITCODE -ne 0) {
-    $failures.Add([pscustomobject]@{ Type = 'bb-contract-schema'; Path = $root; Detail = 'One or more BattleBuddy contract envelopes failed validation (see output above).' })
+    $failures.Add([pscustomobject]@{ Type = 'bb-contract-schema'; Path = $root; Detail = 'One or more Pathfinder contract envelopes failed validation (see output above).' })
   }
 }
 

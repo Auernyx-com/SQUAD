@@ -1,11 +1,11 @@
 {
   "id": "AUERNYX.LLM.Guardrails.v1",
   "version": 1,
-  "description": "LLM guardrails configuration for all BattleBuddy operations. Defines hard stops, refusal patterns, and validation rules.",
-  "system_prompt_reference": "AGENTS/PROMPTS/battlebuddy_system_prompt_v1.md",
+  "description": "LLM guardrails configuration for all Pathfinder operations. Defines hard stops, refusal patterns, and validation rules.",
+  "system_prompt_reference": "AGENTS/PROMPTS/pathfinder_system_prompt_v1.md",
   "policy_references": [
-    "DOCS/AUERNYX_BattleBuddy_Policy_v1.md",
-    "DOCS/spec/BattleBuddy_CRA_ModuleSpec_v1.md",
+    "DOCS/AUERNYX_Pathfinder_Policy_v1.md",
+    "DOCS/spec/Pathfinder_CRA_ModuleSpec_v1.md",
     "PIPELINE_README.md",
     "DOCS/GOVERNANCE.md"
   ],
@@ -285,7 +285,7 @@
       "immediate_safety_risk": "crisis redirect from escalation_triggers"
     },
     "schema_enforcement": {
-      "input_schema": "AGENTS/SCHEMAS/BattleBuddy_Contract_v1.schema.json",
+      "input_schema": "AGENTS/SCHEMAS/Pathfinder_Contract_v1.schema.json",
       "reject_if": [
         "free-text medical fields present (CRA mode)",
         "prohibited field types detected",
@@ -322,7 +322,7 @@
       ]
     },
     "va_claims_cra": {
-      "module": "BattleBuddy_CRA",
+      "module": "Pathfinder_CRA",
       "allowed_actions": [
         "identify evidence gaps (nexus, continuity)",
         "explain VA claims process structure",
