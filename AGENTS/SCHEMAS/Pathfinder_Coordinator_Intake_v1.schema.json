@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "squad://schemas/Pathfinder_Coordinator_Intake_v1.schema.json",
+  "title": "Pathfinder Coordinator Intake v1",
+  "description": "Input envelope for the Pathfinder coordinator. Defines a veteran case routed to the Division swarm. No PII at this layer — case context is anonymized situation description only.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "case_id",
+    "timestamp",
+    "founding_law_sha256",
+    "stage",
+    "crisis",
+    "domains",
+    "case_summary"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "squad-bat.coordinator-intake.v1"
+    },
+    "case_id": {
+      "type": "string",
+      "description": "Unique case identifier. Never contains PII — opaque reference only.",
+      "pattern": "^CASE_[A-Za-z0-9_-]+$"
+    },
+    "session_ref": {
+      "type": "string",
+      "description": "Optional session reference linking this intake to the originating Pathfinder session."
+    },
+    "timestamp": {
+      "type": "string",
+      "description": "ISO-8601 UTC timestamp of intake creation.",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$"
+    },
+    "founding_law_sha256": {
+      "type": "string",
+      "description": "Must match the locked SHA-256 of veteran_data_sovereignty.v1.md. Coordinator fails closed on mismatch.",
+      "const": "dc0fcb428e24948c5471798bf3c0b77cafade1c68e1aecb39aa13eef264f2f87"
+    },
+    "stage": {
+      "$ref": "#/$defs/Stage"
+    },
+    "crisis": {
+      "$ref": "#/$defs/CrisisGate"
+    },
+    "domains": {
+      "type": "array",
+      "description": "Domains identified as relevant to this case. Coordinator maps each to an active Division.",
+      "items": { "$ref": "#/$defs/Domain" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "case_summary": {
+      "type": "string",
+      "description": "Anonymized situation description. No names, SSNs, addresses, or other PII. Used by coordinator to provide context to each Division.",
+      "minLength": 10,
+      "maxLength": 2000
+    },
+    "constraints": {
+      "$ref": "#/$defs/CaseConstraints"
+    }
+  },
+  "$defs": {
+    "Stage": {
+      "type": "string",
+      "enum": [
+        "STABILIZE",
+        "CLARIFY",
+        "LOCK_FACTS",
+        "PICK_LANE",
+        "PREP_OUTREACH",
+        "TRACK_FOLLOW_UP"
+      ]
+    },
+    "Domain": {
+      "type": "string",
+      "description": "Program domain. Each maps to a Division in the registry.",
+      "enum": [
+        "HOUSING",
+        "BENEFITS",
+        "LEGAL",
+        "INCOME",
+        "MENTAL_HEALTH",
+        "CRISIS",
+        "INTAKE",
+        "MISC",
+        "UNKNOWN"
+      ]
+    },
+    "CrisisGate": {
+      "type": "object",
+      "description": "Foundational (immutable) routing gate. A crisis flag blocks all other Division invocations until the crisis Division completes. This rule cannot be overridden by any caller.",
+      "additionalProperties": false,
+      "required": ["flagged"],
+      "properties": {
+        "flagged": {
+          "type": "boolean",
+          "description": "true = crisis routing enforced. Crisis Division invoked first. All other Divisions blocked until crisis result is received."
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "IMMEDIATE_SAFETY",
+            "MENTAL_HEALTH_CRISIS",
+            "HOUSING_EMERGENCY",
+            "NONE"
+          ],
+          "default": "NONE"
+        },
+        "note": {
+          "type": "string",
+          "description": "Optional anonymized note about the nature of the crisis. No PII."
+        }
+      }
+    },
+    "CaseConstraints": {
+      "type": "object",
+      "description": "Mutable (reforge-eligible) routing constraints. Location, urgency, and pilot scope.",
+      "additionalProperties": false,
+      "properties": {
+        "location": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "state": { "type": "string", "pattern": "^[A-Z]{2}$" },
+            "county": { "type": "string" },
+            "va_facility_id": { "type": "string" }
+          }
+        },
+        "urgency": {
+          "type": "string",
+          "enum": ["IMMEDIATE", "HIGH", "STANDARD"],
+          "default": "STANDARD"
+        },
+        "pilot_scope": {
+          "type": "string",
+          "description": "Active pilot region. Divisions may use this to filter program availability.",
+          "default": "western-slope-co"
+        },
+        "enabled_divisions": {
+          "type": "array",
+          "description": "Optional explicit Division list. If omitted, coordinator resolves from domain-to-division registry mapping.",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  }
+}

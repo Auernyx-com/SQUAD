@@ -1,0 +1,156 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "squad://schemas/Pathfinder_Coordinator_Result_v1.schema.json",
+  "title": "Pathfinder Coordinator Result v1",
+  "description": "Output envelope produced by the Pathfinder coordinator after all Division invocations complete. Contains per-Division results, synthesis, and audit receipt reference. No PII.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "case_id",
+    "timestamp",
+    "founding_law_sha256",
+    "crisis_gate_result",
+    "division_results",
+    "synthesis",
+    "coordinator_status",
+    "receipt_ref"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "squad-bat.coordinator-result.v1"
+    },
+    "case_id": {
+      "type": "string",
+      "pattern": "^CASE_[A-Za-z0-9_-]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$"
+    },
+    "founding_law_sha256": {
+      "type": "string",
+      "const": "dc0fcb428e24948c5471798bf3c0b77cafade1c68e1aecb39aa13eef264f2f87"
+    },
+    "coordinator_status": {
+      "type": "string",
+      "description": "WITHIN_TOLERANCE = all Divisions responded. CONTROLLED = some Divisions skipped or degraded. FAILED_CLOSED = founding law mismatch or crisis gate unresolved.",
+      "enum": ["WITHIN_TOLERANCE", "CONTROLLED", "FAILED_CLOSED"]
+    },
+    "crisis_gate_result": {
+      "$ref": "#/$defs/CrisisGateResult"
+    },
+    "division_results": {
+      "type": "array",
+      "description": "One entry per Division invoked. Ordered: crisis Division first if flagged, then remaining Divisions.",
+      "items": { "$ref": "#/$defs/DivisionResult" }
+    },
+    "synthesis": {
+      "$ref": "#/$defs/Synthesis"
+    },
+    "gaps": {
+      "type": "array",
+      "description": "Domains requested but no active Division found in registry. Surfaces missing coverage rather than silently ignoring it.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["domain", "reason"],
+        "properties": {
+          "domain": { "type": "string" },
+          "reason": { "type": "string" }
+        }
+      },
+      "default": []
+    },
+    "receipt_ref": {
+      "type": "string",
+      "description": "Path to the coordinator audit receipt. Contains full Division sub-receipts. Written before result is returned."
+    }
+  },
+  "$defs": {
+    "CrisisGateResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["flagged", "resolved"],
+      "properties": {
+        "flagged": { "type": "boolean" },
+        "resolved": {
+          "type": "boolean",
+          "description": "false = crisis Division did not return a resolved status. coordinator_status will be FAILED_CLOSED."
+        },
+        "division_invoked": { "type": "string" },
+        "outcome_note": { "type": "string" }
+      }
+    },
+    "DivisionResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["division_id", "domain", "status"],
+      "properties": {
+        "division_id": { "type": "string" },
+        "domain": { "type": "string" },
+        "status": {
+          "type": "string",
+          "description": "COMPLETED = result received. SKIPPED = Division not applicable to this case. DEGRADED = Division ran but returned low-confidence output. FAILED = Division did not complete.",
+          "enum": ["COMPLETED", "SKIPPED", "DEGRADED", "FAILED"]
+        },
+        "confidence": {
+          "type": "string",
+          "enum": ["HIGH", "MEDIUM", "LOW", "VERIFY_REQUIRED"]
+        },
+        "result_summary": {
+          "type": "string",
+          "description": "Anonymized plain-language summary of what this Division found or recommended."
+        },
+        "next_actions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": []
+        },
+        "receipt_ref": {
+          "type": "string",
+          "description": "Path to this Division's individual DivisionInvoke receipt."
+        },
+        "duration_ms": { "type": "integer" }
+      }
+    },
+    "Synthesis": {
+      "type": "object",
+      "description": "Flame's Witness layer — neutral synthesis of all Division results. Does not favor any single Division.",
+      "additionalProperties": false,
+      "required": ["primary_path", "confidence", "next_actions"],
+      "properties": {
+        "primary_path": {
+          "type": "string",
+          "description": "The single most important next step for this veteran based on all Division results."
+        },
+        "confidence": {
+          "type": "string",
+          "enum": ["HIGH", "MEDIUM", "LOW", "VERIFY_REQUIRED"]
+        },
+        "next_actions": {
+          "type": "array",
+          "description": "Ordered list of actions across all Divisions. Crisis actions appear first.",
+          "items": { "type": "string" },
+          "maxItems": 5
+        },
+        "domain_summaries": {
+          "type": "object",
+          "description": "Per-domain plain-language summary for the veteran. Keys are domain names.",
+          "additionalProperties": { "type": "string" }
+        },
+        "if_blocked": {
+          "type": "array",
+          "description": "What to do if primary_path is not available or fails.",
+          "items": { "type": "string" },
+          "default": []
+        },
+        "quorum_met": {
+          "type": "boolean",
+          "description": "true = at least one Division returned COMPLETED status. Synthesis is actionable. false = all Divisions failed or were skipped — synthesis is advisory only."
+        }
+      }
+    }
+  }
+}

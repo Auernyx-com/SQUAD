@@ -1,0 +1,22 @@
+{
+  "schema": "squad-bat.coordinator-intake.v1",
+  "case_id": "CASE_2026-001-DEMO",
+  "session_ref": "SESSION_demo_001",
+  "timestamp": "2026-05-06T00:00:00Z",
+  "founding_law_sha256": "dc0fcb428e24948c5471798bf3c0b77cafade1c68e1aecb39aa13eef264f2f87",
+  "stage": "STABILIZE",
+  "crisis": {
+    "flagged": false,
+    "type": "NONE"
+  },
+  "domains": ["HOUSING", "BENEFITS"],
+  "case_summary": "Veteran recently separated, income from disability rating pending approval. Currently staying with family. HCV voucher eligibility unknown. Needs to understand housing options while benefits adjudication is in progress.",
+  "constraints": {
+    "location": {
+      "state": "CO",
+      "county": "Mesa"
+    },
+    "urgency": "HIGH",
+    "pilot_scope": "western-slope-co"
+  }
+}
