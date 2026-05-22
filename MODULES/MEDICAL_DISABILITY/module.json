@@ -1,0 +1,42 @@
+{
+  "module_id": "MEDICAL_DISABILITY",
+  "version": "0.1.0",
+  "status": "framework",
+  "purpose": "Route veterans to the correct medical and disability benefit track based on discharge status, VA enrollment, rating, and specific need. Covers: healthcare enrollment, initial claims, appeals, TDIU, SMC, Aid and Attendance, mental health, and caregiver programs.",
+  "tracks": [
+    "healthcare_enrollment",
+    "initial_disability_claim",
+    "rating_increase",
+    "appeals",
+    "tdiu",
+    "smc",
+    "aid_and_attendance",
+    "caregiver_pcafc",
+    "mental_health",
+    "discharge_upgrade"
+  ],
+  "entrypoints": {
+    "python_api": "src/med_disability_router.py",
+    "cli": "cli/med_disability_cli.py",
+    "logic": "../../AGENTS/LOGIC/MedDisability_v0.1.py"
+  },
+  "governing_law": "GOVERNANCE/LAWS/veteran_data_sovereignty.v1.md",
+  "intake_fields_required": [
+    "va_status",
+    "discharge"
+  ],
+  "intake_fields_optional": [
+    "disability_rating",
+    "need_branches",
+    "recent_denial",
+    "has_new_evidence",
+    "unemployable",
+    "caregiver_need",
+    "ptsd",
+    "tbi",
+    "mst",
+    "location",
+    "permanent_total",
+    "has_dependents"
+  ]
+}

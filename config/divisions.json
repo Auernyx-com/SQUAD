@@ -1,5 +1,10 @@
 {
   "divisions": {
+    "medical-disability-division": {
+      "entry": "",
+      "type": "python",
+      "notes": "Medical & Disability Division entry path. Set to local clone of medical-disability-division repo entry point, or set SQUAD_BAT_DIVISION_ENTRY_MEDICAL_DISABILITY_DIVISION env var."
+    },
     "housing-division": {
       "entry": "",
       "type": "python",

@@ -4,6 +4,34 @@
   "founding_law_sha256": "dc0fcb428e24948c5471798bf3c0b77cafade1c68e1aecb39aa13eef264f2f87",
   "divisions": [
     {
+      "id": "medical-disability-division",
+      "name": "Medical & Disability Division",
+      "identifier": "squad-bat.division.medical-disability.v1",
+      "version": "0.1.0",
+      "status": "framework",
+      "attached_at": "2026-05-22T00:00:00.000Z",
+      "repo": "https://github.com/Auernyx-com/medical-disability-division",
+      "capabilities": [
+        "dischargeQualificationGate",
+        "healthcareEnrollmentRoute",
+        "initialDisabilityClaimRoute",
+        "ratingIncreaseRoute",
+        "appealsRoute",
+        "tdiuCheck",
+        "smcCheck",
+        "aidAndAttendanceCheck",
+        "caregiverPcafcRoute",
+        "mentalHealthRoute",
+        "dischargeUpgradeRoute"
+      ],
+      "indicator_capability": "dischargeQualificationGate",
+      "onboarding": {
+        "question_id": "enable_medical_disability_division",
+        "type": "boolean",
+        "question": "Is Medical & Disability Division active for this deployment?\n   Requires valid location data for VAMC and Vet Center routing."
+      }
+    },
+    {
       "id": "housing-division",
       "name": "Housing Division",
       "identifier": "squad-bat.division.housing.v1",
