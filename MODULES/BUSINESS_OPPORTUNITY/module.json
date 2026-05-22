@@ -1,0 +1,26 @@
+{
+  "module_id": "BUSINESS_OPPORTUNITY",
+  "version": "0.1.0",
+  "status": "framework",
+  "purpose": "Route veterans to business development programs, federal contracting set-asides, GSA surplus auctions, SBA programs, and state-level veteran business certifications. The federal government is legally required to award a percentage of contracts to SDVOSB and VOSB businesses. Most veterans who qualify have no idea this exists. This module cuts through the red tape.",
+  "tracks": [
+    "sdvosb_vosb_certification",
+    "federal_contracting",
+    "sba_programs",
+    "gsa_surplus_auctions",
+    "startup_resources",
+    "colorado_state_programs"
+  ],
+  "entrypoints": {
+    "python_api": "src/business_opportunity_router.py",
+    "cli": "cli/business_opportunity_cli.py",
+    "logic": "../../AGENTS/LOGIC/BusinessOpportunity_v0_1.py"
+  },
+  "governing_law": "GOVERNANCE/LAWS/veteran_data_sovereignty.v1.md",
+  "intake_fields_required": ["discharge"],
+  "intake_fields_optional": [
+    "service_connected_disability", "disability_rating", "business_stage",
+    "need_branches", "entity_type", "owns_51_percent", "controls_operations",
+    "state", "county", "annual_revenue", "employee_count"
+  ]
+}

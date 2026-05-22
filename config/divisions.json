@@ -1,5 +1,15 @@
 {
   "divisions": {
+    "va-benefits-division": {
+      "entry": "",
+      "type": "python",
+      "notes": "VA Benefits Division — education, employment, home loans, pension, survivor benefits, burial. Set entry path or SQUAD_BAT_DIVISION_ENTRY_VA_BENEFITS_DIVISION env var."
+    },
+    "business-opportunity-division": {
+      "entry": "",
+      "type": "python",
+      "notes": "Business & Opportunity Division — SDVOSB/VOSB certification, federal contracting, SBA programs, GSA surplus auctions, startup resources. Set entry path or SQUAD_BAT_DIVISION_ENTRY_BUSINESS_OPPORTUNITY_DIVISION env var."
+    },
     "medical-disability-division": {
       "entry": "",
       "type": "python",

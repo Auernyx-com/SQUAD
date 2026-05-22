@@ -4,6 +4,57 @@
   "founding_law_sha256": "dc0fcb428e24948c5471798bf3c0b77cafade1c68e1aecb39aa13eef264f2f87",
   "divisions": [
     {
+      "id": "va-benefits-division",
+      "name": "VA Benefits Division",
+      "identifier": "squad-bat.division.va-benefits.v1",
+      "version": "0.1.0",
+      "status": "framework",
+      "attached_at": "2026-05-22T00:00:00.000Z",
+      "repo": "https://github.com/Auernyx-com/va-benefits-division",
+      "capabilities": [
+        "dischargeQualificationGate",
+        "educationGiBillRoute",
+        "vocRehabCh31Route",
+        "employmentTransitionRoute",
+        "homeLoanRoute",
+        "adaptiveHousingGrantRoute",
+        "vaPensionCheck",
+        "lifeInsuranceVgliRoute",
+        "survivorDependentBenefitsRoute",
+        "burialMemorialRoute"
+      ],
+      "indicator_capability": "dischargeQualificationGate",
+      "onboarding": {
+        "question_id": "enable_va_benefits_division",
+        "type": "boolean",
+        "question": "Is VA Benefits Division active for this deployment?"
+      }
+    },
+    {
+      "id": "business-opportunity-division",
+      "name": "Business & Opportunity Division",
+      "identifier": "squad-bat.division.business-opportunity.v1",
+      "version": "0.1.0",
+      "status": "framework",
+      "attached_at": "2026-05-22T00:00:00.000Z",
+      "repo": "https://github.com/Auernyx-com/business-opportunity-division",
+      "capabilities": [
+        "dischargeQualificationGate",
+        "sdvosbVosbCertificationRoute",
+        "federalContractingRoute",
+        "sbaProgramsRoute",
+        "gsaSurplusAuctionsRoute",
+        "startupResourcesRoute",
+        "coloradoStateProgramsRoute"
+      ],
+      "indicator_capability": "sdvosbVosbCertificationRoute",
+      "onboarding": {
+        "question_id": "enable_business_opportunity_division",
+        "type": "boolean",
+        "question": "Is Business & Opportunity Division active for this deployment?"
+      }
+    },
+    {
       "id": "medical-disability-division",
       "name": "Medical & Disability Division",
       "identifier": "squad-bat.division.medical-disability.v1",

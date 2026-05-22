@@ -1,0 +1,29 @@
+{
+  "module_id": "VA_BENEFITS",
+  "version": "0.1.0",
+  "status": "framework",
+  "purpose": "Route veterans to non-medical, non-housing VA benefit programs. Covers education (GI Bill, VR&E), employment and transition, home loans and adaptive housing grants, pension and life insurance, survivor and dependent benefits, and burial and memorial programs.",
+  "tracks": [
+    "education_gi_bill",
+    "voc_rehab_ch31",
+    "employment_transition",
+    "home_loan",
+    "adaptive_housing_grants",
+    "va_pension",
+    "life_insurance_vgli",
+    "survivor_dependent_benefits",
+    "burial_memorial"
+  ],
+  "entrypoints": {
+    "python_api": "src/va_benefits_router.py",
+    "cli": "cli/va_benefits_cli.py",
+    "logic": "../../AGENTS/LOGIC/VaBenefits_v0_1.py"
+  },
+  "governing_law": "GOVERNANCE/LAWS/veteran_data_sovereignty.v1.md",
+  "intake_fields_required": ["discharge"],
+  "intake_fields_optional": [
+    "era", "need_branches", "is_transitioning", "disability_rating",
+    "wartime_service", "income_monthly", "has_dependents",
+    "is_survivor_or_dependent", "months_since_separation", "state", "county"
+  ]
+}
