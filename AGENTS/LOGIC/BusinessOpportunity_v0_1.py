@@ -188,8 +188,10 @@ def route_business_opportunity(profile: BusinessOpportunityProfile) -> dict:
         result["flags"].append("oth_limited")
         result["notes"].append(qual["notes"])
 
-    # ── TRACK 1: CERTIFICATION ────────────────────────────────────────────────
-    if "certification" in profile.need_branches or not profile.need_branches:
+    # ── TRACK 1: CERTIFICATION — always runs ─────────────────────────────────
+    # Certification eligibility is fundamental — every veteran business owner
+    # should know what they qualify for regardless of what they came in asking.
+    if True:
         cert_check = check_certification_eligibility(profile)
         result["certifications"] = cert_check["certs"]
         result["flags"].extend(cert_check["flags"])
