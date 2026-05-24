@@ -583,13 +583,16 @@ def synthesize(
     # --- Synthesis confidence ---
     # Average of completed division confidences.
     # Edge cases cap the ceiling — unknown territory means the number can't be high.
+    # Track whether the cap actually reduced the number so the label reflects reality.
+    edge_case_cap_applied = False
     if not completed:
         synthesis_confidence = 0
     else:
         raw_avg = sum(r.get("confidence", 0) for r in completed) / len(completed)
         synthesis_confidence = round(raw_avg / 5) * 5
-        if edge_cases:
-            synthesis_confidence = min(synthesis_confidence, 50)
+        if edge_cases and synthesis_confidence > 50:
+            synthesis_confidence = 50
+            edge_case_cap_applied = True
 
     # --- Primary path ---
     if not quorum_met:
@@ -626,16 +629,36 @@ def synthesize(
 
     # --- Plain-language confidence label ---
     # This is a translation of the number, not a replacement for it.
-    if synthesis_confidence >= 80:
+    # Label must reflect WHY the number is where it is — not just the number itself.
+    #   Edge case cap applied → routing ran, cap is from unknown territory, not gaps
+    #   Edge cases present but cap not applied → unusual circumstances AND gaps
+    #   No edge cases → label is purely about intake completeness
+    if not completed:
+        confidence_label = "No completed routing — manual review required"
+    elif edge_case_cap_applied:
+        ec_count = len(edge_cases)
+        confidence_label = (
+            f"Capped at 50% — {ec_count} unusual circumstance"
+            + ("s" if ec_count != 1 else "")
+            + " detected; routing is valid but human verification required before acting"
+        )
+    elif edge_cases:
+        # Cap wasn't applied (raw was already ≤ 50) but edge cases are still present —
+        # both intake gaps AND unusual circumstances contributed
+        ec_count = len(edge_cases)
+        confidence_label = (
+            f"Low — incomplete intake"
+            + (f" and {ec_count} unusual circumstance" + ("s" if ec_count != 1 else "") if ec_count else "")
+            + "; VSO or human navigator review required"
+        )
+    elif synthesis_confidence >= 80:
         confidence_label = "High — routing based on complete intake data"
     elif synthesis_confidence >= 60:
         confidence_label = "Moderate — some intake fields missing; verify before acting"
     elif synthesis_confidence >= 40:
-        confidence_label = "Low — significant intake gaps; VSO review strongly recommended"
-    elif synthesis_confidence > 0:
-        confidence_label = "Very low — BAT cannot reliably route this case; contact a VSO directly"
+        confidence_label = "Low — incomplete intake data; VSO review strongly recommended"
     else:
-        confidence_label = "No completed routing — manual review required"
+        confidence_label = "Very low — BAT cannot reliably route this case; contact a VSO directly"
 
     # Merge floor contacts with division-surfaced contacts, deduplicate
     merged_contacts: list[str] = list(all_contacts)
