@@ -1,0 +1,76 @@
+{
+  "schema": "squad-bat.coordinator-result.v1",
+  "case_id": "SIM-002-ONGOING",
+  "timestamp": "2026-05-24T09:54:28Z",
+  "founding_law_sha256": "dc0fcb428e24948c5471798bf3c0b77cafade1c68e1aecb39aa13eef264f2f87",
+  "coordinator_status": "WITHIN_TOLERANCE",
+  "crisis_response": {
+    "flagged": false
+  },
+  "edge_cases": [],
+  "division_results": [
+    {
+      "division_id": "va-benefits-division",
+      "domain": "BENEFITS",
+      "status": "SKIPPED",
+      "confidence": 0,
+      "result_summary": "Division entry not configured \u2014 framework-only. Set entry in config/divisions.json.",
+      "next_actions": [],
+      "duration_ms": 0
+    },
+    {
+      "division_id": "medical-disability-division",
+      "domain": "MEDICAL",
+      "status": "SKIPPED",
+      "confidence": 0,
+      "result_summary": "Division entry not configured \u2014 framework-only. Set entry in config/divisions.json.",
+      "next_actions": [],
+      "duration_ms": 0
+    },
+    {
+      "division_id": "legal-division",
+      "domain": "LEGAL",
+      "status": "COMPLETED",
+      "confidence": 100,
+      "result_summary": "Veterans Legal Services \u2014 Free Help Available",
+      "next_actions": [
+        "NVLSP (nvlsp.org) \u2014 national veterans legal services",
+        "lawhelp.org \u2014 state-level free legal aid directory"
+      ],
+      "flags": [],
+      "duration_ms": 10
+    },
+    {
+      "division_id": "toxic-exposure-division",
+      "domain": "TOXIC_EXPOSURE",
+      "status": "SKIPPED",
+      "confidence": 0,
+      "result_summary": "Invocation error: cannot use 'list' as a set element (unhashable type: 'list')",
+      "next_actions": [],
+      "duration_ms": 17
+    }
+  ],
+  "synthesis": {
+    "primary_path": "Veterans Legal Services \u2014 Free Help Available",
+    "confidence": 100,
+    "confidence_label": "High \u2014 routing based on complete intake data",
+    "next_actions": [
+      "NVLSP (nvlsp.org) \u2014 national veterans legal services",
+      "lawhelp.org \u2014 state-level free legal aid directory"
+    ],
+    "domain_summaries": {
+      "BENEFITS": "Division entry not configured \u2014 framework-only. Set entry in config/divisions.json.",
+      "MEDICAL": "Division entry not configured \u2014 framework-only. Set entry in config/divisions.json.",
+      "LEGAL": "Veterans Legal Services \u2014 Free Help Available",
+      "TOXIC_EXPOSURE": "Invocation error: cannot use 'list' as a set element (unhashable type: 'list')"
+    },
+    "if_blocked": [
+      "Contact your local Veterans Service Organization (VSO)",
+      "Call 1-800-827-1000 (VA main line)"
+    ],
+    "quorum_met": true,
+    "edge_cases": []
+  },
+  "gaps": [],
+  "receipt_ref": ""
+}

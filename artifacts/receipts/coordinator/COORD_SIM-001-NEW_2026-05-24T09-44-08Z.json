@@ -1,0 +1,79 @@
+{
+  "schema": "squad-bat.coordinator-result.v1",
+  "case_id": "SIM-001-NEW",
+  "timestamp": "2026-05-24T09:44:08Z",
+  "founding_law_sha256": "dc0fcb428e24948c5471798bf3c0b77cafade1c68e1aecb39aa13eef264f2f87",
+  "coordinator_status": "CONTROLLED",
+  "crisis_response": {
+    "flagged": false
+  },
+  "edge_cases": [],
+  "division_results": [
+    {
+      "division_id": "va-benefits-division",
+      "domain": "BENEFITS",
+      "status": "SKIPPED",
+      "confidence": 0,
+      "result_summary": "Division entry not configured \u2014 framework-only. Set entry in config/divisions.json.",
+      "next_actions": [],
+      "duration_ms": 0
+    },
+    {
+      "division_id": "medical-disability-division",
+      "domain": "MEDICAL",
+      "status": "SKIPPED",
+      "confidence": 0,
+      "result_summary": "Division entry not configured \u2014 framework-only. Set entry in config/divisions.json.",
+      "next_actions": [],
+      "duration_ms": 0
+    },
+    {
+      "division_id": "toxic-exposure-division",
+      "domain": "TOXIC_EXPOSURE",
+      "status": "SKIPPED",
+      "confidence": 0,
+      "result_summary": "Invocation error: 'NoneType' object has no attribute '__dict__'",
+      "next_actions": [],
+      "duration_ms": 8
+    },
+    {
+      "division_id": "transportation-division",
+      "domain": "TRANSPORTATION",
+      "status": "SKIPPED",
+      "confidence": 0,
+      "result_summary": "Invocation error: 'NoneType' object has no attribute '__dict__'",
+      "next_actions": [],
+      "duration_ms": 9
+    },
+    {
+      "division_id": "legal-division",
+      "domain": "LEGAL",
+      "status": "SKIPPED",
+      "confidence": 0,
+      "result_summary": "Invocation error: 'NoneType' object has no attribute '__dict__'",
+      "next_actions": [],
+      "duration_ms": 13
+    }
+  ],
+  "synthesis": {
+    "primary_path": "No Division returned a completed result. Manual review required. Contact your local VA navigator or Veterans Service Organization (VSO).",
+    "confidence": 0,
+    "confidence_label": "No completed routing \u2014 manual review required",
+    "next_actions": [],
+    "domain_summaries": {
+      "BENEFITS": "Division entry not configured \u2014 framework-only. Set entry in config/divisions.json.",
+      "MEDICAL": "Division entry not configured \u2014 framework-only. Set entry in config/divisions.json.",
+      "TOXIC_EXPOSURE": "Invocation error: 'NoneType' object has no attribute '__dict__'",
+      "TRANSPORTATION": "Invocation error: 'NoneType' object has no attribute '__dict__'",
+      "LEGAL": "Invocation error: 'NoneType' object has no attribute '__dict__'"
+    },
+    "if_blocked": [
+      "Contact your local Veterans Service Organization (VSO)",
+      "Call 1-800-827-1000 (VA main line)"
+    ],
+    "quorum_met": false,
+    "edge_cases": []
+  },
+  "gaps": [],
+  "receipt_ref": ""
+}

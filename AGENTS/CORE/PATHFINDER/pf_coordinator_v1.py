@@ -49,6 +49,12 @@ _FOUNDING_LAW_SHA256 = "dc0fcb428e24948c5471798bf3c0b77cafade1c68e1aecb39aa13eef
 _INTAKE_SCHEMA       = "squad-bat.coordinator-intake.v1"
 _RESULT_SCHEMA       = "squad-bat.coordinator-result.v1"
 
+# Floor contacts — always included in synthesis output regardless of which
+# divisions ran. These are verified numbers. Never LLM-generated.
+_VA_MAIN_LINE         = "1-800-827-1000"
+_VA_HOMELESS_VETERANS = "1-877-4AID-VET (1-877-424-3838)"
+_VETERANS_CRISIS_LINE = "988, press 1"
+
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
 # ---------------------------------------------------------------------------
@@ -404,17 +410,33 @@ def invoke_division(
 
         # Normalize — division run() returns a dataclass or dict
         if hasattr(result, "status"):
-            raw_status = result.status
-            summary    = getattr(result, "primary_path", None) or getattr(result, "next_action", "") or ""
-            next_acts  = list(getattr(result, "secondary_options", []))[:3]
-            flags      = list(getattr(result, "flags", []))
-            questions  = list(getattr(result, "questions", []))
+            raw_status    = result.status
+            summary       = getattr(result, "primary_path", None) or getattr(result, "next_action", "") or ""
+            next_acts     = list(getattr(result, "secondary_options", []))[:3]
+            flags         = list(getattr(result, "flags", []))
+            questions     = list(getattr(result, "questions", []))
+            key_resources = list(getattr(result, "key_resources", []))
+            notes         = list(getattr(result, "notes", []))
+            next_action   = getattr(result, "next_action", "") or ""
         else:
-            raw_status = result.get("status", "UNKNOWN")
-            summary    = result.get("primary_path") or result.get("next_action", "")
-            next_acts  = result.get("secondary_options", [])[:3]
-            flags      = result.get("flags", [])
-            questions  = result.get("questions", [])
+            raw_status    = result.get("status", "UNKNOWN")
+            summary       = result.get("primary_path") or result.get("next_action", "")
+            next_acts     = result.get("secondary_options", [])[:3]
+            flags         = result.get("flags", [])
+            questions     = result.get("questions", [])
+            key_resources = result.get("key_resources", [])
+            notes         = result.get("notes", [])
+            next_action   = result.get("next_action", "") or ""
+
+        # Extract verified phone numbers from key_resources and notes.
+        # Any line containing a phone pattern (1-XXX, XXX-XXX-XXXX, 988)
+        # is treated as an immediate contact and surfaced separately.
+        import re as _re
+        _phone_pattern = _re.compile(r'(1-\d{3}-\d{3}-\d{4}|1-\d{3}-\d{4}|1-877-4AID-VET|\d{3}-\d{3}-\d{4}|988)')
+        immediate_contacts: list[str] = []
+        for line in key_resources + notes:
+            if _phone_pattern.search(str(line)) and line not in immediate_contacts:
+                immediate_contacts.append(str(line)[:200])
 
         # Map division status to coordinator status
         if raw_status in ("OK", "WITHIN_TOLERANCE", "COMPLETED"):
@@ -427,17 +449,19 @@ def invoke_division(
         confidence = calculate_division_confidence(domain, intake, coord_status, flags)
 
         result_dict: dict[str, Any] = {
-            "division_id":    division_id,
-            "domain":         domain,
-            "status":         coord_status,
-            "confidence":     confidence,
-            "result_summary": str(summary)[:500] if summary else f"{division_id} completed.",
-            "next_actions":   next_acts,
-            "flags":          flags,
-            "duration_ms":    duration_ms,
+            "division_id":        division_id,
+            "domain":             domain,
+            "status":             coord_status,
+            "confidence":         confidence,
+            "result_summary":     str(summary)[:500] if summary else f"{division_id} completed.",
+            "next_action":        str(next_action)[:300] if next_action else "",
+            "next_actions":       next_acts,
+            "immediate_contacts": immediate_contacts,  # verified phone numbers — always surfaced
+            "flags":              flags,
+            "duration_ms":        duration_ms,
         }
         if questions:
-            result_dict["intake_questions"] = questions  # surface what's missing
+            result_dict["intake_questions"] = questions
 
         return result_dict
 
@@ -513,10 +537,21 @@ def synthesize(
     quorum_met  = len(completed) > 0
 
     all_actions: list[str] = []
+    all_contacts: list[str] = []
     domain_summaries: dict[str, str] = {}
     for r in division_results:
         domain_summaries[r["domain"]] = r.get("result_summary", "No result.")
         all_actions.extend(r.get("next_actions", []))
+        for c in r.get("immediate_contacts", []):
+            if c not in all_contacts:
+                all_contacts.append(c)
+
+    # Always include the VA main line and homeless veterans line as floor contacts
+    _floor_contacts = [
+        f"VA main line — {_VA_MAIN_LINE}",
+        f"VA National Call Center for Homeless Veterans — {_VA_HOMELESS_VETERANS} — 24/7",
+        f"Veterans Crisis Line — {_VETERANS_CRISIS_LINE}",
+    ]
 
     # --- Synthesis confidence ---
     # Average of completed division confidences.
@@ -575,18 +610,26 @@ def synthesize(
     else:
         confidence_label = "No completed routing — manual review required"
 
+    # Merge floor contacts with division-surfaced contacts, deduplicate
+    merged_contacts: list[str] = list(all_contacts)
+    for fc in _floor_contacts:
+        if not any(_VA_MAIN_LINE in c or _VA_HOMELESS_VETERANS in c or _VETERANS_CRISIS_LINE in c
+                   for c in merged_contacts if fc.split("—")[0].strip() in c):
+            merged_contacts.append(fc)
+
     return {
-        "primary_path":      primary_path,
-        "confidence":        synthesis_confidence,   # integer 0–100, always stored
-        "confidence_label":  confidence_label,        # plain-language, for veteran display
-        "next_actions":      all_actions[:5],
-        "domain_summaries":  domain_summaries,
+        "primary_path":       primary_path,
+        "confidence":         synthesis_confidence,
+        "confidence_label":   confidence_label,
+        "next_actions":       all_actions[:5],
+        "immediate_contacts": merged_contacts,        # verified phone numbers — always present
+        "domain_summaries":   domain_summaries,
         "if_blocked": [
             "Contact your local Veterans Service Organization (VSO)",
-            "Call 1-800-827-1000 (VA main line)",
+            f"Call VA main line: {_VA_MAIN_LINE}",
         ],
-        "quorum_met":        quorum_met,
-        "edge_cases":        edge_cases,
+        "quorum_met":         quorum_met,
+        "edge_cases":         edge_cases,
     }
 
 

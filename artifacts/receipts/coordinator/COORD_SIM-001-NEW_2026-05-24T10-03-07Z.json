@@ -1,0 +1,104 @@
+{
+  "schema": "squad-bat.coordinator-result.v1",
+  "case_id": "SIM-001-NEW",
+  "timestamp": "2026-05-24T10:03:07Z",
+  "founding_law_sha256": "dc0fcb428e24948c5471798bf3c0b77cafade1c68e1aecb39aa13eef264f2f87",
+  "coordinator_status": "WITHIN_TOLERANCE",
+  "crisis_response": {
+    "flagged": false
+  },
+  "edge_cases": [],
+  "division_results": [
+    {
+      "division_id": "medical-disability-division",
+      "domain": "MEDICAL",
+      "status": "SKIPPED",
+      "confidence": 0,
+      "result_summary": "Division entry not configured \u2014 framework-only. Set entry in config/divisions.json.",
+      "next_actions": [],
+      "duration_ms": 0
+    },
+    {
+      "division_id": "va-benefits-division",
+      "domain": "BENEFITS",
+      "status": "SKIPPED",
+      "confidence": 0,
+      "result_summary": "Division entry not configured \u2014 framework-only. Set entry in config/divisions.json.",
+      "next_actions": [],
+      "duration_ms": 0
+    },
+    {
+      "division_id": "transportation-division",
+      "domain": "TRANSPORTATION",
+      "status": "COMPLETED",
+      "confidence": 100,
+      "result_summary": "Transportation Assistance \u2014 Multiple Resources Available",
+      "next_actions": [
+        "Colorado Veterans Community Living Centers \u2014 transport included with residential care programs.",
+        "CDOT Mobility Programs \u2014 Colorado Department of Transportation has reduced-fare options for veterans. Check cotrip.org or call 303-757-9011.",
+        "Western Slope specific: RFTA (Roaring Fork Transit Authority) and Grand Valley Transit (GVT) offer reduced fares for disabled veterans. Contact your local transit authority."
+      ],
+      "flags": [
+        "state_transport_programs"
+      ],
+      "duration_ms": 23
+    },
+    {
+      "division_id": "legal-division",
+      "domain": "LEGAL",
+      "status": "COMPLETED",
+      "confidence": 100,
+      "result_summary": "Veterans Legal Services \u2014 Free Help Available",
+      "next_actions": [
+        "NVLSP (nvlsp.org) \u2014 national veterans legal services",
+        "lawhelp.org \u2014 state-level free legal aid directory"
+      ],
+      "flags": [],
+      "duration_ms": 33
+    },
+    {
+      "division_id": "toxic-exposure-division",
+      "domain": "TOXIC_EXPOSURE",
+      "status": "COMPLETED",
+      "confidence": 95,
+      "result_summary": "PACT Act (2022) \u2014 Burn Pit / Airborne Hazard Presumptive Claim",
+      "next_actions": [
+        "PACT Act presumptive coverage applies if you served in: Iraq, Afghanistan, Kuwait, Qatar, Djibouti, Syria, Bahrain, Saudi Arabia, UAE, Oman, Jordan, Somalia, Turkey, or other covered Southwest Asia / post-9/11 locations. On or after August 2, 1990 (Gulf War era) or September 11, 2001 (OEF era).",
+        "Respiratory conditions are now presumptive under PACT Act \u2014 constrictive bronchiolitis, constrictive pericarditis, and other airborne hazard-related conditions. If you have chronic breathing issues from service, file now.",
+        "Enroll in VA health care first \u2014 PACT Act expanded eligibility. Veterans with toxic exposure service may now qualify even if previously denied healthcare. Apply at va.gov/health-care/apply or call 1-800-827-1000."
+      ],
+      "flags": [
+        "registry_enrollment_recommended",
+        "pact_act_candidate"
+      ],
+      "duration_ms": 38
+    }
+  ],
+  "synthesis": {
+    "primary_path": "Multiple programs identified across: TRANSPORTATION, LEGAL, TOXIC_EXPOSURE. Review domain summaries below for next steps in each area.",
+    "confidence": 100,
+    "confidence_label": "High \u2014 routing based on complete intake data",
+    "next_actions": [
+      "Colorado Veterans Community Living Centers \u2014 transport included with residential care programs.",
+      "CDOT Mobility Programs \u2014 Colorado Department of Transportation has reduced-fare options for veterans. Check cotrip.org or call 303-757-9011.",
+      "Western Slope specific: RFTA (Roaring Fork Transit Authority) and Grand Valley Transit (GVT) offer reduced fares for disabled veterans. Contact your local transit authority.",
+      "NVLSP (nvlsp.org) \u2014 national veterans legal services",
+      "lawhelp.org \u2014 state-level free legal aid directory"
+    ],
+    "domain_summaries": {
+      "MEDICAL": "Division entry not configured \u2014 framework-only. Set entry in config/divisions.json.",
+      "BENEFITS": "Division entry not configured \u2014 framework-only. Set entry in config/divisions.json.",
+      "TRANSPORTATION": "Transportation Assistance \u2014 Multiple Resources Available",
+      "LEGAL": "Veterans Legal Services \u2014 Free Help Available",
+      "TOXIC_EXPOSURE": "PACT Act (2022) \u2014 Burn Pit / Airborne Hazard Presumptive Claim"
+    },
+    "if_blocked": [
+      "Contact your local Veterans Service Organization (VSO)",
+      "Call 1-800-827-1000 (VA main line)"
+    ],
+    "quorum_met": true,
+    "edge_cases": []
+  },
+  "gaps": [],
+  "receipt_ref": ""
+}

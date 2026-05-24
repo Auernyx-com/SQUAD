@@ -21,6 +21,63 @@ Benefits routing does not stop housing routing. Everything runs.
 from dataclasses import dataclass, field
 from typing import List, Optional
 
+# ---------------------------------------------------------------------------
+# Hardcoded contact numbers — verified before inclusion.
+# Phone numbers are never LLM-generated. If a number is unverified, it is
+# marked VERIFY_BEFORE_PRODUCTION and must not be surfaced to veterans.
+#
+# Last reviewed: 2026-05-24
+# ---------------------------------------------------------------------------
+
+# Always-available VA numbers — surfaced regardless of track
+_VA_MAIN_LINE             = "1-800-827-1000"
+_VA_HOMELESS_VETERANS     = "1-877-4AID-VET (1-877-424-3838)"   # 24/7 homeless veteran support
+_VETERANS_CRISIS_LINE     = "988, press 1"
+
+# Branch-specific emergency resources — hardcoded per branch
+_BRANCH_EMERGENCY = {
+    "marine_corps": [
+        "Semper Fi & America's Fund — 760-725-3680 — emergency financial assistance for Marines and their families. Same-week response for verified cases.",
+        "Marine Corps Wounded Warrior Regiment — 1-877-487-6299 — recovery support, benefits navigation for injured/ill Marines.",
+    ],
+    "army": [
+        "Army Emergency Relief (AER) — 1-866-878-6378 — emergency financial assistance, interest-free loans.",
+        "Army Wounded Warrior Program (AW2) — 1-800-237-1336",
+    ],
+    "navy": [
+        "Navy-Marine Corps Relief Society — 1-800-654-8364 — emergency financial assistance.",
+        "Wounded Warrior Regiment (Navy component) — 1-877-487-6299",
+    ],
+    "air_force": [
+        "Air Force Aid Society — 1-800-769-8951 — emergency financial assistance.",
+    ],
+    "coast_guard": [
+        "Coast Guard Mutual Assistance (CGMA) — 1-800-881-2462 — emergency financial assistance.",
+        "NOTE: Coast Guard veterans are routinely and incorrectly told they are ineligible for VA benefits. They are fully eligible. Escalate any denial.",
+    ],
+    "army_national_guard": [
+        "Army Emergency Relief (AER) — 1-866-878-6378 — Title 10 activation required for full AER eligibility; Title 32 may qualify for state programs.",
+        "State National Guard Family Assistance Center — contact your state Adjutant General's office.",
+    ],
+    "air_national_guard": [
+        "Air Force Aid Society — 1-800-769-8951",
+        "State National Guard Family Assistance Center — contact your state Adjutant General's office.",
+    ],
+}
+
+# Track-specific verified numbers
+_CONTACT_NUMBERS = {
+    "dav":                   "1-800-741-4990",        # DAV service line
+    "cohen_veterans":        "1-855-204-5784",        # mental health + legal support
+    "va_homeless":           _VA_HOMELESS_VETERANS,
+    "va_main":               _VA_MAIN_LINE,
+    "crisis":                _VETERANS_CRISIS_LINE,
+    # VERIFY_BEFORE_PRODUCTION — do not surface until confirmed:
+    # "vtc_nadcp":           "VERIFY_BEFORE_PRODUCTION",
+    # "nvlsp_direct":        "VERIFY_BEFORE_PRODUCTION",
+    # "amvets_service":      "VERIFY_BEFORE_PRODUCTION",
+}
+
 
 @dataclass
 class VetLegalProfile:
@@ -371,12 +428,16 @@ def route_legal(profile: VetLegalProfile) -> dict:
             "(PTSD, TBI, MST, substance use) are a factor. Over 500 courts nationally. "
             "Find your local VTC at justiceforvets.org — TIME SENSITIVE, request VTC diversion immediately.",
 
-            "VTC Court Advocates — AMVETS, DAV, and American Legion have trained court advocates "
-            "who accompany veterans to VTC proceedings and connect them to treatment. "
-            "Contact your local chapter before your next court date.",
+            f"VTC Court Advocates — DAV ({_CONTACT_NUMBERS['dav']}), AMVETS, and American Legion "
+            "have trained court advocates who accompany veterans to VTC proceedings. "
+            "Call DAV or contact your local AMVETS chapter before your next court date.",
 
-            "National Veterans Legal Services Program (NVLSP) — nvlsp.org — "
-            "can connect you to attorneys experienced in veteran criminal defense.",
+            f"Cohen Veterans Network — {_CONTACT_NUMBERS['cohen_veterans']} — "
+            "mental health support and legal navigation for veterans in the justice system.",
+
+            f"VA National Call Center for Homeless Veterans — {_VA_HOMELESS_VETERANS} — "
+            "24/7 line. If homelessness and a criminal case are both active, "
+            "this line can coordinate across both tracks.",
         ])
 
         if profile.active_criminal_case and profile.criminal_case_type == "dv":
@@ -399,19 +460,30 @@ def route_legal(profile: VetLegalProfile) -> dict:
                     "appeal and the criminal defense are legally connected. Both tracks must run."
                 )
 
+        # Branch-specific emergency resources — surfaced immediately for multi-domain crisis
+        branch_key = (profile.branch or "").lower().replace(" ", "_").replace("-", "_")
+        branch_resources = _BRANCH_EMERGENCY.get(branch_key, [])
+        if branch_resources:
+            result["flags"].append("branch_emergency_resources_available")
+            result["notes"].append(
+                "BRANCH-SPECIFIC EMERGENCY RESOURCES — available now, separate from VA:"
+            )
+            result["notes"].extend(branch_resources)
+
         result["key_resources"].extend([
             "Justice For Vets (VTC locator) — justiceforvets.org",
-            "AMVETS court liaison program — amvets.org",
-            "Cohen Veterans Network — cohenveteransnetwork.org — mental health + legal support",
+            f"DAV service line — {_CONTACT_NUMBERS['dav']}",
+            f"Cohen Veterans Network — {_CONTACT_NUMBERS['cohen_veterans']}",
+            f"VA main line — {_VA_MAIN_LINE}",
         ])
         result["key_forms"].extend([
             "Request VTC diversion at arraignment — ask your attorney to file immediately",
         ])
         if not result["next_action"]:
             result["next_action"] = (
-                "Contact justiceforvets.org NOW to find your local Veterans Treatment Court. "
-                "Request VTC diversion at your next court appearance — timing matters. "
-                "Do not appear in court without an attorney familiar with veteran cases."
+                f"Call VA National Call Center for Homeless Veterans: {_VA_HOMELESS_VETERANS} — 24/7. "
+                "Find your local Veterans Treatment Court at justiceforvets.org — request VTC diversion "
+                "at your next court appearance. Do not appear without an attorney familiar with veteran cases."
             )
 
     # ── TRACK 8: MEDICAL RETIREMENT VA DISPUTE ────────────────────────────────
@@ -467,7 +539,16 @@ def route_legal(profile: VetLegalProfile) -> dict:
                 "no nexus letter needed when the military already documented the connection."
             )
 
+        # Branch-specific resources if not already surfaced
+        branch_key = (profile.branch or "").lower().replace(" ", "_").replace("-", "_")
+        branch_resources = _BRANCH_EMERGENCY.get(branch_key, [])
+        if branch_resources and "branch_emergency_resources_available" not in result["flags"]:
+            result["flags"].append("branch_emergency_resources_available")
+            result["notes"].append("BRANCH-SPECIFIC EMERGENCY RESOURCES — available now, separate from VA:")
+            result["notes"].extend(branch_resources)
+
         result["key_resources"].extend([
+            f"VA main line — {_VA_MAIN_LINE} — ask for Benefits line",
             "VA Form 20-0995 (Supplemental Claim) — submit with PEB letter + MTF records",
             "milConnect — milconnect.dmdc.osd.mil — military records access",
             "NVLSP — nvlsp.org — free legal representation including contested ratings",
@@ -480,11 +561,12 @@ def route_legal(profile: VetLegalProfile) -> dict:
         ])
         if not result["next_action"]:
             result["next_action"] = (
-                "Step 1: Request your PEB decision letter and all military treatment records "
-                "before filing anything with VA. "
-                "Step 2: Contact an accredited veterans attorney — not just a VSO — "
-                "to review those records and build the appeal. "
-                "Find attorneys at va.gov/ogc/apps/accreditation/ or nvlsp.org."
+                f"Call VA main line: {_VA_MAIN_LINE} — ask for the Benefits line and request your "
+                "claims file (C-file) and any existing rating decisions. "
+                "Step 2: Request your PEB decision letter and all military treatment records "
+                "before filing anything. "
+                "Step 3: Contact an accredited veterans attorney — not just a VSO — "
+                "to review those records. Find attorneys at va.gov/ogc/apps/accreditation/ or nvlsp.org."
             )
         result["notes"].append(
             "IMPORTANT: If an active criminal case is also in progress and service-connected PTSD "

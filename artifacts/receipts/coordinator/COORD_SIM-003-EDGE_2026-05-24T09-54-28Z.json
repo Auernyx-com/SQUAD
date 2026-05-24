@@ -1,0 +1,138 @@
+{
+  "schema": "squad-bat.coordinator-result.v1",
+  "case_id": "SIM-003-EDGE",
+  "timestamp": "2026-05-24T09:54:28Z",
+  "founding_law_sha256": "dc0fcb428e24948c5471798bf3c0b77cafade1c68e1aecb39aa13eef264f2f87",
+  "coordinator_status": "WITHIN_TOLERANCE",
+  "crisis_response": {
+    "flagged": true,
+    "resources": [
+      "988 Suicide & Crisis Lifeline \u2014 call or text 988, press 1 for veterans",
+      "Veterans Crisis Line \u2014 text 838255",
+      "Crisis Chat \u2014 veteranscrisisline.net/get-help-now/chat",
+      "Emergency: 911"
+    ],
+    "outcome_note": "Crisis flagged. Resources surfaced below. All other routing continues \u2014 a veteran in crisis still needs housing, benefits, medical, and legal help."
+  },
+  "edge_cases": [
+    {
+      "id": "DISCHARGE_UNKNOWN",
+      "description": "Discharge status unknown \u2014 eligibility cannot be determined reliably"
+    },
+    {
+      "id": "SERVICE_STATUS_UNKNOWN",
+      "description": "Service status not established \u2014 routing may be inaccurate"
+    },
+    {
+      "id": "NO_LOCATION",
+      "description": "No location data \u2014 local resources cannot be identified"
+    },
+    {
+      "id": "RECORDS_UNAVAILABLE",
+      "description": "Records flagged as unavailable or disputed \u2014 eligibility may differ from what routing suggests. Verify with VSO before acting."
+    },
+    {
+      "id": "MULTIPLE_SERVICE_PERIODS",
+      "description": "Multiple service periods detected \u2014 discharge status and eligibility may differ per period. A VSO can assess the full picture."
+    }
+  ],
+  "division_results": [
+    {
+      "division_id": "housing-division",
+      "domain": "HOUSING",
+      "status": "SKIPPED",
+      "confidence": 0,
+      "result_summary": "Division entry not configured \u2014 framework-only. Set entry in config/divisions.json.",
+      "next_actions": [],
+      "duration_ms": 0
+    },
+    {
+      "division_id": "medical-disability-division",
+      "domain": "MEDICAL",
+      "status": "SKIPPED",
+      "confidence": 0,
+      "result_summary": "Division entry not configured \u2014 framework-only. Set entry in config/divisions.json.",
+      "next_actions": [],
+      "duration_ms": 0
+    },
+    {
+      "division_id": "legal-division",
+      "domain": "LEGAL",
+      "status": "COMPLETED",
+      "confidence": 50,
+      "result_summary": "Discharge Upgrade \u2014 DRB or BCMR/BCNR",
+      "next_actions": [
+        "Discharge Review Board (DRB) \u2014 available within 15 years of discharge. Can upgrade character of discharge. Cannot change reason for separation. Free to file. Apply at milconnect.dmdc.osd.mil or mail DD Form 293.",
+        "Board for Correction of Military/Naval Records (BCMR/BCNR) \u2014 available ANY time after discharge. Can correct errors, change reason for separation, upgrade character. Stronger board \u2014 use this if DRB is unavailable or denied. Apply at DD Form 149.",
+        "Supplemental Claim \u2014 submit new and relevant evidence; VA must reconsider. Best first step if you have new medical records, buddy statements, or nexus letters."
+      ],
+      "flags": [
+        "discharge_upgrade_track",
+        "appeals_lane_not_selected",
+        "records_correction_track"
+      ],
+      "duration_ms": 9
+    },
+    {
+      "division_id": "transportation-division",
+      "domain": "TRANSPORTATION",
+      "status": "COMPLETED",
+      "confidence": 35,
+      "result_summary": "Transportation Assistance \u2014 Multiple Resources Available",
+      "next_actions": [
+        "211.org \u2014 local transportation resources by ZIP code",
+        "DAV Transportation Network \u2014 dav.org/find-a-chapter",
+        "VA Beneficiary Travel \u2014 va.gov/health-care/get-reimbursed-for-travel-pay"
+      ],
+      "flags": [],
+      "duration_ms": 14
+    }
+  ],
+  "synthesis": {
+    "primary_path": "Multiple programs identified across: LEGAL, TRANSPORTATION. Review domain summaries below for next steps in each area. IMPORTANT \u2014 unusual circumstances detected: Discharge status unknown \u2014 eligibility cannot be determined reliably; Service status not established \u2014 routing may be inaccurate; No location data \u2014 local resources cannot be identified; Records flagged as unavailable or disputed \u2014 eligibility may differ from what routing suggests. Verify with VSO before acting.; Multiple service periods detected \u2014 discharge status and eligibility may differ per period. A VSO can assess the full picture.. Results may be incomplete. Verify with a VSO or VA navigator before acting.",
+    "confidence": 40,
+    "confidence_label": "Low \u2014 significant intake gaps; VSO review strongly recommended",
+    "next_actions": [
+      "Discharge Review Board (DRB) \u2014 available within 15 years of discharge. Can upgrade character of discharge. Cannot change reason for separation. Free to file. Apply at milconnect.dmdc.osd.mil or mail DD Form 293.",
+      "Board for Correction of Military/Naval Records (BCMR/BCNR) \u2014 available ANY time after discharge. Can correct errors, change reason for separation, upgrade character. Stronger board \u2014 use this if DRB is unavailable or denied. Apply at DD Form 149.",
+      "Supplemental Claim \u2014 submit new and relevant evidence; VA must reconsider. Best first step if you have new medical records, buddy statements, or nexus letters.",
+      "211.org \u2014 local transportation resources by ZIP code",
+      "DAV Transportation Network \u2014 dav.org/find-a-chapter"
+    ],
+    "domain_summaries": {
+      "HOUSING": "Division entry not configured \u2014 framework-only. Set entry in config/divisions.json.",
+      "MEDICAL": "Division entry not configured \u2014 framework-only. Set entry in config/divisions.json.",
+      "LEGAL": "Discharge Upgrade \u2014 DRB or BCMR/BCNR",
+      "TRANSPORTATION": "Transportation Assistance \u2014 Multiple Resources Available"
+    },
+    "if_blocked": [
+      "Contact your local Veterans Service Organization (VSO)",
+      "Call 1-800-827-1000 (VA main line)"
+    ],
+    "quorum_met": true,
+    "edge_cases": [
+      {
+        "id": "DISCHARGE_UNKNOWN",
+        "description": "Discharge status unknown \u2014 eligibility cannot be determined reliably"
+      },
+      {
+        "id": "SERVICE_STATUS_UNKNOWN",
+        "description": "Service status not established \u2014 routing may be inaccurate"
+      },
+      {
+        "id": "NO_LOCATION",
+        "description": "No location data \u2014 local resources cannot be identified"
+      },
+      {
+        "id": "RECORDS_UNAVAILABLE",
+        "description": "Records flagged as unavailable or disputed \u2014 eligibility may differ from what routing suggests. Verify with VSO before acting."
+      },
+      {
+        "id": "MULTIPLE_SERVICE_PERIODS",
+        "description": "Multiple service periods detected \u2014 discharge status and eligibility may differ per period. A VSO can assess the full picture."
+      }
+    ]
+  },
+  "gaps": [],
+  "receipt_ref": ""
+}

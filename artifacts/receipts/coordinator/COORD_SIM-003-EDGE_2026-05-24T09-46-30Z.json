@@ -1,0 +1,118 @@
+{
+  "schema": "squad-bat.coordinator-result.v1",
+  "case_id": "SIM-003-EDGE",
+  "timestamp": "2026-05-24T09:46:30Z",
+  "founding_law_sha256": "dc0fcb428e24948c5471798bf3c0b77cafade1c68e1aecb39aa13eef264f2f87",
+  "coordinator_status": "CONTROLLED",
+  "crisis_response": {
+    "flagged": true,
+    "resources": [
+      "988 Suicide & Crisis Lifeline \u2014 call or text 988, press 1 for veterans",
+      "Veterans Crisis Line \u2014 text 838255",
+      "Crisis Chat \u2014 veteranscrisisline.net/get-help-now/chat",
+      "Emergency: 911"
+    ],
+    "outcome_note": "Crisis flagged. Resources surfaced below. All other routing continues \u2014 a veteran in crisis still needs housing, benefits, medical, and legal help."
+  },
+  "edge_cases": [
+    {
+      "id": "DISCHARGE_UNKNOWN",
+      "description": "Discharge status unknown \u2014 eligibility cannot be determined reliably"
+    },
+    {
+      "id": "SERVICE_STATUS_UNKNOWN",
+      "description": "Service status not established \u2014 routing may be inaccurate"
+    },
+    {
+      "id": "NO_LOCATION",
+      "description": "No location data \u2014 local resources cannot be identified"
+    },
+    {
+      "id": "RECORDS_UNAVAILABLE",
+      "description": "Records flagged as unavailable or disputed \u2014 eligibility may differ from what routing suggests. Verify with VSO before acting."
+    },
+    {
+      "id": "MULTIPLE_SERVICE_PERIODS",
+      "description": "Multiple service periods detected \u2014 discharge status and eligibility may differ per period. A VSO can assess the full picture."
+    }
+  ],
+  "division_results": [
+    {
+      "division_id": "medical-disability-division",
+      "domain": "MEDICAL",
+      "status": "SKIPPED",
+      "confidence": 0,
+      "result_summary": "Division entry not configured \u2014 framework-only. Set entry in config/divisions.json.",
+      "next_actions": [],
+      "duration_ms": 0
+    },
+    {
+      "division_id": "housing-division",
+      "domain": "HOUSING",
+      "status": "SKIPPED",
+      "confidence": 0,
+      "result_summary": "Division entry not configured \u2014 framework-only. Set entry in config/divisions.json.",
+      "next_actions": [],
+      "duration_ms": 0
+    },
+    {
+      "division_id": "legal-division",
+      "domain": "LEGAL",
+      "status": "SKIPPED",
+      "confidence": 0,
+      "result_summary": "Invocation error: 'NoneType' object has no attribute '__dict__'",
+      "next_actions": [],
+      "duration_ms": 5
+    },
+    {
+      "division_id": "transportation-division",
+      "domain": "TRANSPORTATION",
+      "status": "SKIPPED",
+      "confidence": 0,
+      "result_summary": "Invocation error: 'NoneType' object has no attribute '__dict__'",
+      "next_actions": [],
+      "duration_ms": 8
+    }
+  ],
+  "synthesis": {
+    "primary_path": "No Division returned a completed result. Manual review required. Contact your local VA navigator or Veterans Service Organization (VSO). IMPORTANT \u2014 unusual circumstances detected: Discharge status unknown \u2014 eligibility cannot be determined reliably; Service status not established \u2014 routing may be inaccurate; No location data \u2014 local resources cannot be identified; Records flagged as unavailable or disputed \u2014 eligibility may differ from what routing suggests. Verify with VSO before acting.; Multiple service periods detected \u2014 discharge status and eligibility may differ per period. A VSO can assess the full picture.. Results may be incomplete. Verify with a VSO or VA navigator before acting.",
+    "confidence": 0,
+    "confidence_label": "No completed routing \u2014 manual review required",
+    "next_actions": [],
+    "domain_summaries": {
+      "MEDICAL": "Division entry not configured \u2014 framework-only. Set entry in config/divisions.json.",
+      "HOUSING": "Division entry not configured \u2014 framework-only. Set entry in config/divisions.json.",
+      "LEGAL": "Invocation error: 'NoneType' object has no attribute '__dict__'",
+      "TRANSPORTATION": "Invocation error: 'NoneType' object has no attribute '__dict__'"
+    },
+    "if_blocked": [
+      "Contact your local Veterans Service Organization (VSO)",
+      "Call 1-800-827-1000 (VA main line)"
+    ],
+    "quorum_met": false,
+    "edge_cases": [
+      {
+        "id": "DISCHARGE_UNKNOWN",
+        "description": "Discharge status unknown \u2014 eligibility cannot be determined reliably"
+      },
+      {
+        "id": "SERVICE_STATUS_UNKNOWN",
+        "description": "Service status not established \u2014 routing may be inaccurate"
+      },
+      {
+        "id": "NO_LOCATION",
+        "description": "No location data \u2014 local resources cannot be identified"
+      },
+      {
+        "id": "RECORDS_UNAVAILABLE",
+        "description": "Records flagged as unavailable or disputed \u2014 eligibility may differ from what routing suggests. Verify with VSO before acting."
+      },
+      {
+        "id": "MULTIPLE_SERVICE_PERIODS",
+        "description": "Multiple service periods detected \u2014 discharge status and eligibility may differ per period. A VSO can assess the full picture."
+      }
+    ]
+  },
+  "gaps": [],
+  "receipt_ref": ""
+}
