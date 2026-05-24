@@ -16,9 +16,9 @@
       "notes": "Medical & Disability Division entry path. Set to local clone of medical-disability-division repo entry point, or set SQUAD_BAT_DIVISION_ENTRY_MEDICAL_DISABILITY_DIVISION env var."
     },
     "housing-division": {
-      "entry": "",
+      "entry": "MODULES/HOUSING/src/housing_router.py",
       "type": "python",
-      "notes": "Housing Division entry path. Set to local clone of housing-division repo entry point, or set SQUAD_BAT_DIVISION_ENTRY_HOUSING_DIVISION env var."
+      "notes": "Housing Division — HUD-VASH, SSVF, adaptive housing, VA home loan, eviction defense, DV housing, criminal record housing barrier. Entry is local MODULES path."
     },
     "legal-division": {
       "entry": "MODULES/LEGAL/src/legal_router.py",

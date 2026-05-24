@@ -1,0 +1,82 @@
+{
+  "schema": "squad-bat.coordinator-result.v1",
+  "case_id": "1a81fd2c-628e-4bb2-85eb-dd8abed9259d",
+  "timestamp": "2026-05-24T22:15:18Z",
+  "founding_law_sha256": "dc0fcb428e24948c5471798bf3c0b77cafade1c68e1aecb39aa13eef264f2f87",
+  "coordinator_status": "CONTROLLED",
+  "crisis_response": {
+    "flagged": false
+  },
+  "edge_cases": [
+    {
+      "id": "SERVICE_STATUS_UNKNOWN",
+      "description": "Service status not established \u2014 routing may be inaccurate"
+    },
+    {
+      "id": "MEDICAL_RETIREMENT_VA_DISPUTE",
+      "description": "Medical retirement with VA post-discharge causation dispute. DoD medically retired this veteran \u2014 VA claiming conditions are post-service directly contradicts DoD's own finding. Records-first appeal path required. Accredited attorney recommended, not standard VSO intake."
+    },
+    {
+      "id": "CHRONIC_HOMELESS",
+      "description": "Chronic homelessness (6+ months or repeat episodes). HUD-VASH priority tier \u2014 immediate housing routing required alongside all other domains."
+    },
+    {
+      "id": "ACTIVE_CRIMINAL_CASE",
+      "description": "Active criminal case in progress. Veterans Treatment Court routing is time-sensitive \u2014 request VTC diversion at next court appearance. Benefits routing continues in parallel."
+    },
+    {
+      "id": "MULTI_DOMAIN_CRISIS",
+      "description": "Three or more urgent domains active simultaneously. This case requires a human navigator to coordinate across tracks \u2014 no single automated path covers this. Human coordinator referral is priority."
+    },
+    {
+      "id": "VA_FACILITY_OBSTRUCTION",
+      "description": "Local VA facility flagged as the obstruction. Routing must go AROUND the facility \u2014 OIG, congressional caseworker, Vet Center, Community Care, and VAMC transfer are the parallel escalation paths. Do not route back through a facility the veteran has identified as a barrier."
+    }
+  ],
+  "division_results": [],
+  "synthesis": {
+    "primary_path": "No Division returned a completed result. Manual review required. Contact your local VA navigator or Veterans Service Organization (VSO). IMPORTANT \u2014 unusual circumstances detected: Service status not established \u2014 routing may be inaccurate; Medical retirement with VA post-discharge causation dispute. DoD medically retired this veteran \u2014 VA claiming conditions are post-service directly contradicts DoD's own finding. Records-first appeal path required. Accredited attorney recommended, not standard VSO intake.; Chronic homelessness (6+ months or repeat episodes). HUD-VASH priority tier \u2014 immediate housing routing required alongside all other domains.; Active criminal case in progress. Veterans Treatment Court routing is time-sensitive \u2014 request VTC diversion at next court appearance. Benefits routing continues in parallel.; Three or more urgent domains active simultaneously. This case requires a human navigator to coordinate across tracks \u2014 no single automated path covers this. Human coordinator referral is priority.; Local VA facility flagged as the obstruction. Routing must go AROUND the facility \u2014 OIG, congressional caseworker, Vet Center, Community Care, and VAMC transfer are the parallel escalation paths. Do not route back through a facility the veteran has identified as a barrier.. Results may be incomplete. Verify with a VSO or VA navigator before acting.",
+    "confidence": 0,
+    "confidence_label": "No completed routing \u2014 manual review required",
+    "next_actions": [],
+    "immediate_contacts": [
+      "VA main line \u2014 1-800-827-1000",
+      "VA National Call Center for Homeless Veterans \u2014 1-877-4AID-VET (1-877-424-3838) \u2014 24/7",
+      "Veterans Crisis Line \u2014 988, press 1"
+    ],
+    "domain_summaries": {},
+    "if_blocked": [
+      "Contact your local Veterans Service Organization (VSO)",
+      "Call VA main line: 1-800-827-1000"
+    ],
+    "quorum_met": false,
+    "edge_cases": [
+      {
+        "id": "SERVICE_STATUS_UNKNOWN",
+        "description": "Service status not established \u2014 routing may be inaccurate"
+      },
+      {
+        "id": "MEDICAL_RETIREMENT_VA_DISPUTE",
+        "description": "Medical retirement with VA post-discharge causation dispute. DoD medically retired this veteran \u2014 VA claiming conditions are post-service directly contradicts DoD's own finding. Records-first appeal path required. Accredited attorney recommended, not standard VSO intake."
+      },
+      {
+        "id": "CHRONIC_HOMELESS",
+        "description": "Chronic homelessness (6+ months or repeat episodes). HUD-VASH priority tier \u2014 immediate housing routing required alongside all other domains."
+      },
+      {
+        "id": "ACTIVE_CRIMINAL_CASE",
+        "description": "Active criminal case in progress. Veterans Treatment Court routing is time-sensitive \u2014 request VTC diversion at next court appearance. Benefits routing continues in parallel."
+      },
+      {
+        "id": "MULTI_DOMAIN_CRISIS",
+        "description": "Three or more urgent domains active simultaneously. This case requires a human navigator to coordinate across tracks \u2014 no single automated path covers this. Human coordinator referral is priority."
+      },
+      {
+        "id": "VA_FACILITY_OBSTRUCTION",
+        "description": "Local VA facility flagged as the obstruction. Routing must go AROUND the facility \u2014 OIG, congressional caseworker, Vet Center, Community Care, and VAMC transfer are the parallel escalation paths. Do not route back through a facility the veteran has identified as a barrier."
+      }
+    ]
+  },
+  "gaps": [],
+  "receipt_ref": ""
+}

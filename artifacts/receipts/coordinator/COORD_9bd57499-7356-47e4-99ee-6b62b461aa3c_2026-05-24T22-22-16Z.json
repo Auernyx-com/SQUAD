@@ -1,0 +1,161 @@
+{
+  "schema": "squad-bat.coordinator-result.v1",
+  "case_id": "9bd57499-7356-47e4-99ee-6b62b461aa3c",
+  "timestamp": "2026-05-24T22:22:16Z",
+  "founding_law_sha256": "dc0fcb428e24948c5471798bf3c0b77cafade1c68e1aecb39aa13eef264f2f87",
+  "coordinator_status": "WITHIN_TOLERANCE",
+  "crisis_response": {
+    "flagged": false
+  },
+  "edge_cases": [
+    {
+      "id": "SERVICE_STATUS_UNKNOWN",
+      "description": "Service status not established \u2014 routing may be inaccurate"
+    },
+    {
+      "id": "MEDICAL_RETIREMENT_VA_DISPUTE",
+      "description": "Medical retirement with VA post-discharge causation dispute. DoD medically retired this veteran \u2014 VA claiming conditions are post-service directly contradicts DoD's own finding. Records-first appeal path required. Accredited attorney recommended, not standard VSO intake."
+    },
+    {
+      "id": "CHRONIC_HOMELESS",
+      "description": "Chronic homelessness (6+ months or repeat episodes). HUD-VASH priority tier \u2014 immediate housing routing required alongside all other domains."
+    },
+    {
+      "id": "ACTIVE_CRIMINAL_CASE",
+      "description": "Active criminal case in progress. Veterans Treatment Court routing is time-sensitive \u2014 request VTC diversion at next court appearance. Benefits routing continues in parallel."
+    },
+    {
+      "id": "MULTI_DOMAIN_CRISIS",
+      "description": "Three or more urgent domains active simultaneously. This case requires a human navigator to coordinate across tracks \u2014 no single automated path covers this. Human coordinator referral is priority."
+    },
+    {
+      "id": "VA_FACILITY_OBSTRUCTION",
+      "description": "Local VA facility flagged as the obstruction. Routing must go AROUND the facility \u2014 OIG, congressional caseworker, Vet Center, Community Care, and VAMC transfer are the parallel escalation paths. Do not route back through a facility the veteran has identified as a barrier."
+    }
+  ],
+  "division_results": [
+    {
+      "division_id": "housing-division",
+      "domain": "HOUSING",
+      "status": "COMPLETED",
+      "confidence": 100,
+      "result_summary": "HUD-VASH \u2014 VA + HUD Housing Voucher Program (Priority Tier)",
+      "next_action": "Call VA National Call Center for Homeless Veterans now: 1-877-4AID-VET (1-877-424-3838) \u2014 24/7. Tell them you are a veteran, you are currently unhoused, and you have been homeless for 6+ months. Ask specifically for a HUD-VASH referral. No paperwork required to make this call.",
+      "next_actions": [
+        "VA National Call Center for Homeless Veterans \u2014 1-877-4AID-VET (1-877-424-3838) \u2014 24/7. This line connects to VA coordinators who initiate HUD-VASH referrals. Call this first. It is the fastest path into the system.",
+        "HUD-VASH (HUD-VA Supportive Housing) \u2014 joint VA and HUD program providing Section 8 vouchers specifically for homeless veterans, paired with VA case management. This is the priority tier. Chronic homelessness is the highest priority classification. Contact initiates the referral \u2014 no advance paperwork required to call.",
+        "VA Healthcare for Homeless Veterans (HCHV) \u2014 outreach and case management program operating at most VA facilities. Can connect to shelter, transitional housing, and long-term housing support. Entry point: same call line as above."
+      ],
+      "immediate_contacts": [
+        "VA National Call Center for Homeless Veterans \u2014 1-877-4AID-VET (1-877-424-3838) (24/7)",
+        "VA facility flagged as obstruction for housing services. Route AROUND the facility: SSVF providers are community-based and not connected to the VAMC. VA National Call Center (1-877-4AID-VET (1-877-424",
+        "Semper Fi & America's Fund \u2014 760-725-3680 \u2014 emergency financial assistance for Marines and their families. Same-week response for verified cases.",
+        "Marine Corps Wounded Warrior Regiment \u2014 1-877-487-6299 \u2014 recovery support and benefits navigation for injured/ill Marines."
+      ],
+      "flags": [
+        "chronically_homeless",
+        "dv_housing_need",
+        "criminal_record_housing_flag",
+        "va_facility_obstruction_housing",
+        "branch_emergency_resources_available"
+      ],
+      "duration_ms": 5
+    },
+    {
+      "division_id": "legal-division",
+      "domain": "LEGAL",
+      "status": "COMPLETED",
+      "confidence": 100,
+      "result_summary": "Veterans Treatment Court \u2014 Diversion Before Incarceration",
+      "next_action": "Call VA National Call Center for Homeless Veterans: 1-877-4AID-VET (1-877-424-3838) \u2014 24/7. Find your local Veterans Treatment Court at justiceforvets.org \u2014 request VTC diversion at your next court appearance. Do not appear without an attorney familiar with veteran cases.",
+      "next_actions": [
+        "Veterans Treatment Court (VTC) \u2014 specialized courts that divert veteran criminal cases into treatment tracks rather than incarceration when service-connected conditions (PTSD, TBI, MST, substance use) are a factor. Over 500 courts nationally. Find your local VTC at justiceforvets.org \u2014 TIME SENSITIVE, request VTC diversion immediately.",
+        "VTC Court Advocates \u2014 DAV (1-800-741-4990), AMVETS, and American Legion have trained court advocates who accompany veterans to VTC proceedings. Call DAV or contact your local AMVETS chapter before your next court date.",
+        "Cohen Veterans Network \u2014 1-855-204-5784 \u2014 mental health support and legal navigation for veterans in the justice system."
+      ],
+      "immediate_contacts": [
+        "DAV service line \u2014 1-800-741-4990",
+        "Cohen Veterans Network \u2014 1-855-204-5784",
+        "VA main line \u2014 1-800-827-1000",
+        "VA main line \u2014 1-800-827-1000 \u2014 ask for Benefits line",
+        "VA OIG Hotline \u2014 1-800-488-8244",
+        "Vet Center locator \u2014 1-877-WAR-VETS (1-877-927-8387)",
+        "Semper Fi & America's Fund \u2014 760-725-3680 \u2014 emergency financial assistance for Marines and their families. Same-week response for verified cases.",
+        "Marine Corps Wounded Warrior Regiment \u2014 1-877-487-6299 \u2014 recovery support and benefits navigation for injured/ill Marines."
+      ],
+      "flags": [
+        "vtc_track",
+        "dv_criminal_case",
+        "self_defense_claim",
+        "branch_emergency_resources_available",
+        "medical_retirement_dispute_track",
+        "strong_records_appeal_grounds",
+        "chapter_61_ides_strong_grounds",
+        "va_facility_obstruction_track"
+      ],
+      "duration_ms": 8
+    }
+  ],
+  "synthesis": {
+    "primary_path": "Multiple programs identified across: HOUSING, LEGAL. Review domain summaries below for next steps in each area. IMPORTANT \u2014 unusual circumstances detected: Service status not established \u2014 routing may be inaccurate; Medical retirement with VA post-discharge causation dispute. DoD medically retired this veteran \u2014 VA claiming conditions are post-service directly contradicts DoD's own finding. Records-first appeal path required. Accredited attorney recommended, not standard VSO intake.; Chronic homelessness (6+ months or repeat episodes). HUD-VASH priority tier \u2014 immediate housing routing required alongside all other domains.; Active criminal case in progress. Veterans Treatment Court routing is time-sensitive \u2014 request VTC diversion at next court appearance. Benefits routing continues in parallel.; Three or more urgent domains active simultaneously. This case requires a human navigator to coordinate across tracks \u2014 no single automated path covers this. Human coordinator referral is priority.; Local VA facility flagged as the obstruction. Routing must go AROUND the facility \u2014 OIG, congressional caseworker, Vet Center, Community Care, and VAMC transfer are the parallel escalation paths. Do not route back through a facility the veteran has identified as a barrier.. Results may be incomplete. Verify with a VSO or VA navigator before acting.",
+    "confidence": 50,
+    "confidence_label": "Low \u2014 significant intake gaps; VSO review strongly recommended",
+    "next_actions": [
+      "VA National Call Center for Homeless Veterans \u2014 1-877-4AID-VET (1-877-424-3838) \u2014 24/7. This line connects to VA coordinators who initiate HUD-VASH referrals. Call this first. It is the fastest path into the system.",
+      "HUD-VASH (HUD-VA Supportive Housing) \u2014 joint VA and HUD program providing Section 8 vouchers specifically for homeless veterans, paired with VA case management. This is the priority tier. Chronic homelessness is the highest priority classification. Contact initiates the referral \u2014 no advance paperwork required to call.",
+      "VA Healthcare for Homeless Veterans (HCHV) \u2014 outreach and case management program operating at most VA facilities. Can connect to shelter, transitional housing, and long-term housing support. Entry point: same call line as above.",
+      "Veterans Treatment Court (VTC) \u2014 specialized courts that divert veteran criminal cases into treatment tracks rather than incarceration when service-connected conditions (PTSD, TBI, MST, substance use) are a factor. Over 500 courts nationally. Find your local VTC at justiceforvets.org \u2014 TIME SENSITIVE, request VTC diversion immediately.",
+      "VTC Court Advocates \u2014 DAV (1-800-741-4990), AMVETS, and American Legion have trained court advocates who accompany veterans to VTC proceedings. Call DAV or contact your local AMVETS chapter before your next court date."
+    ],
+    "immediate_contacts": [
+      "VA National Call Center for Homeless Veterans \u2014 1-877-4AID-VET (1-877-424-3838) (24/7)",
+      "VA facility flagged as obstruction for housing services. Route AROUND the facility: SSVF providers are community-based and not connected to the VAMC. VA National Call Center (1-877-4AID-VET (1-877-424",
+      "Semper Fi & America's Fund \u2014 760-725-3680 \u2014 emergency financial assistance for Marines and their families. Same-week response for verified cases.",
+      "Marine Corps Wounded Warrior Regiment \u2014 1-877-487-6299 \u2014 recovery support and benefits navigation for injured/ill Marines.",
+      "DAV service line \u2014 1-800-741-4990",
+      "Cohen Veterans Network \u2014 1-855-204-5784",
+      "VA main line \u2014 1-800-827-1000",
+      "VA main line \u2014 1-800-827-1000 \u2014 ask for Benefits line",
+      "VA OIG Hotline \u2014 1-800-488-8244",
+      "Vet Center locator \u2014 1-877-WAR-VETS (1-877-927-8387)",
+      "Veterans Crisis Line \u2014 988, press 1"
+    ],
+    "domain_summaries": {
+      "HOUSING": "HUD-VASH \u2014 VA + HUD Housing Voucher Program (Priority Tier)",
+      "LEGAL": "Veterans Treatment Court \u2014 Diversion Before Incarceration"
+    },
+    "if_blocked": [
+      "Contact your local Veterans Service Organization (VSO)",
+      "Call VA main line: 1-800-827-1000"
+    ],
+    "quorum_met": true,
+    "edge_cases": [
+      {
+        "id": "SERVICE_STATUS_UNKNOWN",
+        "description": "Service status not established \u2014 routing may be inaccurate"
+      },
+      {
+        "id": "MEDICAL_RETIREMENT_VA_DISPUTE",
+        "description": "Medical retirement with VA post-discharge causation dispute. DoD medically retired this veteran \u2014 VA claiming conditions are post-service directly contradicts DoD's own finding. Records-first appeal path required. Accredited attorney recommended, not standard VSO intake."
+      },
+      {
+        "id": "CHRONIC_HOMELESS",
+        "description": "Chronic homelessness (6+ months or repeat episodes). HUD-VASH priority tier \u2014 immediate housing routing required alongside all other domains."
+      },
+      {
+        "id": "ACTIVE_CRIMINAL_CASE",
+        "description": "Active criminal case in progress. Veterans Treatment Court routing is time-sensitive \u2014 request VTC diversion at next court appearance. Benefits routing continues in parallel."
+      },
+      {
+        "id": "MULTI_DOMAIN_CRISIS",
+        "description": "Three or more urgent domains active simultaneously. This case requires a human navigator to coordinate across tracks \u2014 no single automated path covers this. Human coordinator referral is priority."
+      },
+      {
+        "id": "VA_FACILITY_OBSTRUCTION",
+        "description": "Local VA facility flagged as the obstruction. Routing must go AROUND the facility \u2014 OIG, congressional caseworker, Vet Center, Community Care, and VAMC transfer are the parallel escalation paths. Do not route back through a facility the veteran has identified as a barrier."
+      }
+    ]
+  },
+  "gaps": [],
+  "receipt_ref": ""
+}
