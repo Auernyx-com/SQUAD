@@ -62,11 +62,14 @@ def _validate(payload: Dict[str, Any]) -> List[str]:
                 if v not in valid_set:
                     errors.append(f"Invalid {field_name} value '{v}'. Valid: {sorted(valid_set)}")
 
-    era = payload.get("era", "")
+    # era and discharge may arrive as lists (multi-select intake) — normalize to first value
+    era_raw = payload.get("era", "")
+    era = era_raw[0] if isinstance(era_raw, list) else era_raw
     if era and era not in VALID_ERA:
         errors.append(f"Invalid era '{era}'. Valid: {sorted(VALID_ERA)}")
 
-    discharge = payload.get("discharge", "")
+    discharge_raw = payload.get("discharge", "")
+    discharge = discharge_raw[0] if isinstance(discharge_raw, list) else discharge_raw
     if discharge and discharge not in VALID_DISCHARGE:
         errors.append(f"Invalid discharge '{discharge}'. Valid: {sorted(VALID_DISCHARGE)}")
 
@@ -81,9 +84,13 @@ def _build_profile(payload: Dict[str, Any]) -> ToxicExposureProfile:
         val = payload.get(key, [])
         return val if isinstance(val, list) else []
 
+    def _str_or_first(key: str, default: str = "") -> str:
+        val = payload.get(key, default)
+        return val[0] if isinstance(val, list) else (val or default)
+
     return ToxicExposureProfile(
         exposure_types=_list("exposure_types"),
-        era=payload.get("era", "unknown"),
+        era=_str_or_first("era", "unknown"),
         locations_served=_list("locations_served"),
         conditions=_list("conditions"),
         camp_lejeune=_bool("camp_lejeune"),
@@ -91,7 +98,7 @@ def _build_profile(payload: Dict[str, Any]) -> ToxicExposureProfile:
         has_existing_claim=_bool("has_existing_claim"),
         was_previously_denied=_bool("was_previously_denied"),
         enrolled_va_healthcare=_bool("enrolled_va_healthcare"),
-        discharge=payload.get("discharge", "unknown"),
+        discharge=_str_or_first("discharge", "unknown"),
         state=payload.get("state", ""),
         county=payload.get("county", ""),
     )

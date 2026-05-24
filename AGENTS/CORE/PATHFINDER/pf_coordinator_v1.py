@@ -126,6 +126,57 @@ _EDGE_CASE_PATTERNS: list[dict[str, Any]] = [
             len(i.get("service_periods", [])) > 1
         ),
     },
+    {
+        "id": "MEDICAL_RETIREMENT_VA_DISPUTE",
+        "description": (
+            "Medical retirement with VA post-discharge causation dispute. "
+            "DoD medically retired this veteran — VA claiming conditions are post-service "
+            "directly contradicts DoD's own finding. Records-first appeal path required. "
+            "Accredited attorney recommended, not standard VSO intake."
+        ),
+        "check": lambda i: (
+            i.get("discharge") == "medical" and
+            i.get("medical_retirement_va_dispute") is True
+        ),
+    },
+    {
+        "id": "CHRONIC_HOMELESS",
+        "description": (
+            "Chronic homelessness (6+ months or repeat episodes). "
+            "HUD-VASH priority tier — immediate housing routing required alongside all other domains."
+        ),
+        "check": lambda i: (
+            i.get("is_chronically_homeless") is True or
+            (i.get("housing_status") in ("unhoused", "unstable") and
+             i.get("homelessness_months", 0) >= 6)
+        ),
+    },
+    {
+        "id": "ACTIVE_CRIMINAL_CASE",
+        "description": (
+            "Active criminal case in progress. Veterans Treatment Court routing is time-sensitive — "
+            "request VTC diversion at next court appearance. Benefits routing continues in parallel."
+        ),
+        "check": lambda i: i.get("active_criminal_case") is True,
+    },
+    {
+        "id": "MULTI_DOMAIN_CRISIS",
+        "description": (
+            "Three or more urgent domains active simultaneously. "
+            "This case requires a human navigator to coordinate across tracks — "
+            "no single automated path covers this. Human coordinator referral is priority."
+        ),
+        "check": lambda i: (
+            sum([
+                i.get("housing_status") in ("unhoused", "unstable"),
+                i.get("active_criminal_case") is True,
+                (i.get("crisis") or {}).get("flagged") is True,
+                i.get("medical_retirement_va_dispute") is True,
+                i.get("urgency") == "high",
+                i.get("is_chronically_homeless") is True,
+            ]) >= 3
+        ),
+    },
 ]
 
 
@@ -340,7 +391,9 @@ def invoke_division(
         if spec is None or spec.loader is None:
             return _division_skipped(division_id, domain, "Could not load module spec", start_ms)
 
+        import sys as _sys
         mod = importlib.util.module_from_spec(spec)
+        _sys.modules[spec.name] = mod   # required in Python 3.14+ — dataclass needs module in sys.modules
         spec.loader.exec_module(mod)  # type: ignore[union-attr]
 
         if not hasattr(mod, "run"):

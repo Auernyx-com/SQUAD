@@ -21,11 +21,15 @@ from Legal_v0_1 import VetLegalProfile, route_legal  # type: ignore
 
 VALID_LEGAL_NEEDS = {
     "discharge_upgrade", "va_appeal", "mst", "civilian_legal",
-    "records_correction", "predatory_lending", "benefits_denial"
+    "records_correction", "predatory_lending", "benefits_denial",
+    "medical_retirement_dispute", "veterans_treatment_court", "criminal_defense",
 }
-VALID_DISCHARGE = {"honorable", "general", "other_than_honorable", "dishonorable", "unknown"}
+VALID_DISCHARGE = {
+    "honorable", "general", "other_than_honorable", "dishonorable",
+    "unknown", "medical", "entry_level", "bcd",
+}
 VALID_APPEALS_LANE = {"none", "hlr", "supplemental", "bva", "cavc", "unknown"}
-VALID_CIVILIAN_ISSUE = {"housing", "employment", "family", "consumer", "criminal_record", "other", ""}
+VALID_CIVILIAN_ISSUE = {"housing", "employment", "family", "consumer", "criminal_record", "dv", "other", ""}
 
 
 @dataclass(frozen=True)
@@ -53,7 +57,8 @@ def _validate(payload: Dict[str, Any]) -> List[str]:
             if n not in VALID_LEGAL_NEEDS:
                 errors.append(f"Invalid legal_need '{n}'. Valid: {sorted(VALID_LEGAL_NEEDS)}")
 
-    discharge = payload.get("discharge", "")
+    discharge_raw = payload.get("discharge", "")
+    discharge = discharge_raw[0] if isinstance(discharge_raw, list) else discharge_raw
     if discharge and discharge not in VALID_DISCHARGE:
         errors.append(f"Invalid discharge '{discharge}'. Valid: {sorted(VALID_DISCHARGE)}")
 
@@ -92,16 +97,27 @@ def _build_profile(payload: Dict[str, Any]) -> VetLegalProfile:
         except (ValueError, TypeError):
             return None
 
+    def _str_or_first(key: str, default: str = "") -> str:
+        val = payload.get(key, default)
+        return val[0] if isinstance(val, list) else (val or default)
+
     return VetLegalProfile(
         legal_needs=_list("legal_needs"),
-        discharge=payload.get("discharge", "unknown"),
+        discharge=_str_or_first("discharge", "unknown"),
+        medical_discharge_type=payload.get("medical_discharge_type", "unknown"),
         years_since_discharge=_int_or_none("years_since_discharge"),
-        branch=payload.get("branch", "unknown"),
+        branch=_str_or_first("branch", "unknown"),
         has_denied_claim=_bool("has_denied_claim"),
+        medical_retirement_va_dispute=_bool("medical_retirement_va_dispute"),
+        has_extensive_military_medical_records=_bool("has_extensive_military_medical_records"),
         appeals_lane=payload.get("appeals_lane", "none"),
         has_mst=_bool("has_mst"),
+        active_criminal_case=_bool("active_criminal_case"),
+        criminal_case_type=payload.get("criminal_case_type", ""),
+        claiming_self_defense=_bool("claiming_self_defense"),
         civilian_issue=payload.get("civilian_issue", ""),
         has_ucmj_history=_bool("has_ucmj_history"),
+        is_chronically_homeless=_bool("is_chronically_homeless"),
         state=payload.get("state", ""),
         county=payload.get("county", ""),
     )

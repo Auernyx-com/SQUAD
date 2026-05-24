@@ -1,0 +1,23 @@
+{
+  "schema": "squad-bat.coordinator-intake.v1",
+  "founding_law_sha256": "dc0fcb428e24948c5471798bf3c0b77cafade1c68e1aecb39aa13eef264f2f87",
+  "case_id": "SIM-003-EDGE",
+  "service_status": "not_sure",
+  "discharge": "unknown",
+  "branch": ["army", "army_national_guard"],
+  "component": ["enlisted"],
+  "era": ["post_9_11", "gulf_war"],
+  "service_periods": ["2000-2003", "2005-2009"],
+  "records_disputed": true,
+  "va_history": "denied",
+  "disability_rating": null,
+  "current_programs": [],
+  "housing_status": "unstable",
+  "income_monthly": 800,
+  "crisis": { "flagged": true },
+  "urgency": "high",
+  "legal_needs": ["discharge_upgrade", "va_appeal", "records_correction"],
+  "has_denied_claim": true,
+  "appeals_lane": "unknown",
+  "domains": ["LEGAL", "MEDICAL", "CLAIMS", "HOUSING", "TRANSPORTATION", "MENTAL_HEALTH"]
+}

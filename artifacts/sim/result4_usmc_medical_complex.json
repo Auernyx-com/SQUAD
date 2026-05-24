@@ -1,0 +1,145 @@
+{
+  "schema": "squad-bat.coordinator-result.v1",
+  "case_id": "SIM-004-COMPLEX",
+  "timestamp": "2026-05-24T10:31:10Z",
+  "founding_law_sha256": "dc0fcb428e24948c5471798bf3c0b77cafade1c68e1aecb39aa13eef264f2f87",
+  "coordinator_status": "WITHIN_TOLERANCE",
+  "crisis_response": {
+    "flagged": false
+  },
+  "edge_cases": [
+    {
+      "id": "NO_LOCATION",
+      "description": "No location data \u2014 local resources cannot be identified"
+    },
+    {
+      "id": "MEDICAL_RETIREMENT_VA_DISPUTE",
+      "description": "Medical retirement with VA post-discharge causation dispute. DoD medically retired this veteran \u2014 VA claiming conditions are post-service directly contradicts DoD's own finding. Records-first appeal path required. Accredited attorney recommended, not standard VSO intake."
+    },
+    {
+      "id": "CHRONIC_HOMELESS",
+      "description": "Chronic homelessness (6+ months or repeat episodes). HUD-VASH priority tier \u2014 immediate housing routing required alongside all other domains."
+    },
+    {
+      "id": "ACTIVE_CRIMINAL_CASE",
+      "description": "Active criminal case in progress. Veterans Treatment Court routing is time-sensitive \u2014 request VTC diversion at next court appearance. Benefits routing continues in parallel."
+    },
+    {
+      "id": "MULTI_DOMAIN_CRISIS",
+      "description": "Three or more urgent domains active simultaneously. This case requires a human navigator to coordinate across tracks \u2014 no single automated path covers this. Human coordinator referral is priority."
+    }
+  ],
+  "division_results": [
+    {
+      "division_id": "housing-division",
+      "domain": "HOUSING",
+      "status": "SKIPPED",
+      "confidence": 0,
+      "result_summary": "Division entry not configured \u2014 framework-only. Set entry in config/divisions.json.",
+      "next_actions": [],
+      "duration_ms": 0
+    },
+    {
+      "division_id": "medical-disability-division",
+      "domain": "MEDICAL",
+      "status": "SKIPPED",
+      "confidence": 0,
+      "result_summary": "Division entry not configured \u2014 framework-only. Set entry in config/divisions.json.",
+      "next_actions": [],
+      "duration_ms": 0
+    },
+    {
+      "division_id": "va-benefits-division",
+      "domain": "BENEFITS",
+      "status": "SKIPPED",
+      "confidence": 0,
+      "result_summary": "Division entry not configured \u2014 framework-only. Set entry in config/divisions.json.",
+      "next_actions": [],
+      "duration_ms": 0
+    },
+    {
+      "division_id": "transportation-division",
+      "domain": "TRANSPORTATION",
+      "status": "COMPLETED",
+      "confidence": 35,
+      "result_summary": "Transportation Assistance \u2014 Multiple Resources Available",
+      "next_actions": [
+        "211.org \u2014 local transportation resources by ZIP code",
+        "DAV Transportation Network \u2014 dav.org/find-a-chapter",
+        "VA Beneficiary Travel \u2014 va.gov/health-care/get-reimbursed-for-travel-pay"
+      ],
+      "flags": [],
+      "duration_ms": 10
+    },
+    {
+      "division_id": "legal-division",
+      "domain": "LEGAL",
+      "status": "COMPLETED",
+      "confidence": 50,
+      "result_summary": "VA Appeals \u2014 Three Lanes Available",
+      "next_actions": [
+        "Supplemental Claim \u2014 submit new and relevant evidence; VA must reconsider. Best first step if you have new medical records, buddy statements, or nexus letters.",
+        "Higher-Level Review (HLR) \u2014 senior VA reviewer re-examines the same evidence. No new evidence allowed. Use if you believe VA made a clear error.",
+        "Board of Veterans Appeals (BVA) \u2014 formal appeal to the Board. Three options: Direct Review, Evidence Submission, or Hearing. Can take 1\u20135 years. Get a VSO or accredited attorney before filing."
+      ],
+      "flags": [
+        "appeals_lane_not_selected",
+        "vtc_track",
+        "dv_criminal_case",
+        "self_defense_claim",
+        "medical_retirement_dispute_track",
+        "strong_records_appeal_grounds",
+        "chapter_61_ides_strong_grounds"
+      ],
+      "duration_ms": 27
+    }
+  ],
+  "synthesis": {
+    "primary_path": "Multiple programs identified across: TRANSPORTATION, LEGAL. Review domain summaries below for next steps in each area. IMPORTANT \u2014 unusual circumstances detected: No location data \u2014 local resources cannot be identified; Medical retirement with VA post-discharge causation dispute. DoD medically retired this veteran \u2014 VA claiming conditions are post-service directly contradicts DoD's own finding. Records-first appeal path required. Accredited attorney recommended, not standard VSO intake.; Chronic homelessness (6+ months or repeat episodes). HUD-VASH priority tier \u2014 immediate housing routing required alongside all other domains.; Active criminal case in progress. Veterans Treatment Court routing is time-sensitive \u2014 request VTC diversion at next court appearance. Benefits routing continues in parallel.; Three or more urgent domains active simultaneously. This case requires a human navigator to coordinate across tracks \u2014 no single automated path covers this. Human coordinator referral is priority.. Results may be incomplete. Verify with a VSO or VA navigator before acting.",
+    "confidence": 40,
+    "confidence_label": "Low \u2014 significant intake gaps; VSO review strongly recommended",
+    "next_actions": [
+      "211.org \u2014 local transportation resources by ZIP code",
+      "DAV Transportation Network \u2014 dav.org/find-a-chapter",
+      "VA Beneficiary Travel \u2014 va.gov/health-care/get-reimbursed-for-travel-pay",
+      "Supplemental Claim \u2014 submit new and relevant evidence; VA must reconsider. Best first step if you have new medical records, buddy statements, or nexus letters.",
+      "Higher-Level Review (HLR) \u2014 senior VA reviewer re-examines the same evidence. No new evidence allowed. Use if you believe VA made a clear error."
+    ],
+    "domain_summaries": {
+      "HOUSING": "Division entry not configured \u2014 framework-only. Set entry in config/divisions.json.",
+      "MEDICAL": "Division entry not configured \u2014 framework-only. Set entry in config/divisions.json.",
+      "BENEFITS": "Division entry not configured \u2014 framework-only. Set entry in config/divisions.json.",
+      "TRANSPORTATION": "Transportation Assistance \u2014 Multiple Resources Available",
+      "LEGAL": "VA Appeals \u2014 Three Lanes Available"
+    },
+    "if_blocked": [
+      "Contact your local Veterans Service Organization (VSO)",
+      "Call 1-800-827-1000 (VA main line)"
+    ],
+    "quorum_met": true,
+    "edge_cases": [
+      {
+        "id": "NO_LOCATION",
+        "description": "No location data \u2014 local resources cannot be identified"
+      },
+      {
+        "id": "MEDICAL_RETIREMENT_VA_DISPUTE",
+        "description": "Medical retirement with VA post-discharge causation dispute. DoD medically retired this veteran \u2014 VA claiming conditions are post-service directly contradicts DoD's own finding. Records-first appeal path required. Accredited attorney recommended, not standard VSO intake."
+      },
+      {
+        "id": "CHRONIC_HOMELESS",
+        "description": "Chronic homelessness (6+ months or repeat episodes). HUD-VASH priority tier \u2014 immediate housing routing required alongside all other domains."
+      },
+      {
+        "id": "ACTIVE_CRIMINAL_CASE",
+        "description": "Active criminal case in progress. Veterans Treatment Court routing is time-sensitive \u2014 request VTC diversion at next court appearance. Benefits routing continues in parallel."
+      },
+      {
+        "id": "MULTI_DOMAIN_CRISIS",
+        "description": "Three or more urgent domains active simultaneously. This case requires a human navigator to coordinate across tracks \u2014 no single automated path covers this. Human coordinator referral is priority."
+      }
+    ]
+  },
+  "gaps": [],
+  "receipt_ref": "artifacts/receipts/coordinator/COORD_SIM-004-COMPLEX_2026-05-24T10-31-10Z.json"
+}

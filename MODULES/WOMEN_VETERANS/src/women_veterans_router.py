@@ -50,7 +50,8 @@ def _validate(payload: Dict[str, Any]) -> List[str]:
             if n not in VALID_NEEDS:
                 errors.append(f"Invalid need '{n}'. Valid: {sorted(VALID_NEEDS)}")
 
-    discharge = payload.get("discharge", "")
+    discharge_raw = payload.get("discharge", "")
+    discharge = discharge_raw[0] if isinstance(discharge_raw, list) else discharge_raw
     if discharge and discharge not in VALID_DISCHARGE:
         errors.append(f"Invalid discharge '{discharge}'. Valid: {sorted(VALID_DISCHARGE)}")
 
@@ -97,7 +98,7 @@ def _build_profile(payload: Dict[str, Any]) -> WomenVetProfile:
         has_depression_anxiety=_bool("has_depression_anxiety"),
         housing_situation=payload.get("housing_situation", "unknown"),
         disability_rating=_int_or_none("disability_rating"),
-        discharge=payload.get("discharge", "unknown"),
+        discharge=(lambda v: v[0] if isinstance(v, list) else v)(payload.get("discharge", "unknown")),
         state=payload.get("state", ""),
         county=payload.get("county", ""),
     )

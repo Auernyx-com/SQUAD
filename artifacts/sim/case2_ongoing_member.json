@@ -1,0 +1,23 @@
+{
+  "schema": "squad-bat.coordinator-intake.v1",
+  "founding_law_sha256": "dc0fcb428e24948c5471798bf3c0b77cafade1c68e1aecb39aa13eef264f2f87",
+  "case_id": "SIM-002-ONGOING",
+  "service_status": "veteran",
+  "discharge": "honorable",
+  "branch": ["army"],
+  "component": ["enlisted"],
+  "era": ["vietnam"],
+  "va_history": "receiving_compensation",
+  "disability_rating": 70,
+  "current_programs": ["va_healthcare", "disability_compensation"],
+  "housing_status": "housed",
+  "income_monthly": 1900,
+  "state": "CO",
+  "county": "Garfield",
+  "urgency": "low",
+  "legal_needs": ["va_appeal"],
+  "appeals_lane": "supplemental",
+  "years_since_discharge": 45,
+  "has_denied_claim": false,
+  "domains": ["BENEFITS", "MEDICAL", "CLAIMS", "TOXIC_EXPOSURE", "LEGAL"]
+}

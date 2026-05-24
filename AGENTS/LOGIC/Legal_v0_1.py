@@ -3,14 +3,19 @@ Legal_v0_1.py
 SQUAD BAT — Legal Division routing engine.
 
 Tracks:
-  1. Discharge Upgrade        — DRB, BCMR/BCNR, Character of Discharge review
-  2. VA Benefits Appeals      — HLR, Supplemental Claim, BVA, CAVC
-  3. Military Sexual Trauma   — MST legal resources, disability claims, discharge upgrade
-  4. Civilian Legal Aid       — housing, employment, family law, consumer protection
-  5. Records Correction       — DD-214 errors, military records
-  6. Predatory Lending        — scam VSOs, benefits poachers, accredited rep access
+  1. Discharge Upgrade            — DRB, BCMR/BCNR, Character of Discharge review
+  2. VA Benefits Appeals          — HLR, Supplemental Claim, BVA, CAVC
+  3. Military Sexual Trauma       — MST legal resources, disability claims, discharge upgrade
+  4. Civilian Legal Aid           — housing, employment, family law, consumer protection
+  5. Records Correction           — DD-214 errors, military records
+  6. Predatory Lending            — scam VSOs, benefits poachers, accredited rep access
+  7. Veterans Treatment Court     — criminal diversion for veterans with service-connected conditions
+  8. Medical Retirement Dispute   — VA post-discharge causation error when DoD medically retired
+  9. Active Criminal Defense      — DV, assault, other charges; PTSD/TBI mitigation; self-defense framing
 
 Gate: Legal issues never block — every veteran gets a path.
+Design law: Multi-domain crises run in parallel. Criminal case does not stop benefits routing.
+Benefits routing does not stop housing routing. Everything runs.
 """
 
 from dataclasses import dataclass, field
@@ -21,11 +26,16 @@ from typing import List, Optional
 class VetLegalProfile:
     # What legal issue(s) they face (multi-select)
     # "discharge_upgrade" | "va_appeal" | "mst" | "civilian_legal" |
-    # "records_correction" | "predatory_lending" | "benefits_denial"
+    # "records_correction" | "predatory_lending" | "benefits_denial" |
+    # "criminal_defense" | "medical_retirement_dispute" | "veterans_treatment_court"
     legal_needs: List[str] = field(default_factory=list)
 
     # Discharge character — affects upgrade pathway
     discharge: str = "unknown"
+
+    # Medical discharge sub-type
+    # "severance" | "chapter_61_retirement" | "tdrl" | "ides" | "unknown"
+    medical_discharge_type: str = "unknown"
 
     # Years since discharge (affects DRB vs BCMR availability)
     years_since_discharge: Optional[int] = None
@@ -36,6 +46,12 @@ class VetLegalProfile:
     # VA claim denied or rated low
     has_denied_claim: bool = False
 
+    # VA claiming conditions are post-discharge when DoD medically retired for same conditions
+    medical_retirement_va_dispute: bool = False
+
+    # Extensive military medical records exist (e.g. long treatment history before discharge)
+    has_extensive_military_medical_records: bool = False
+
     # Which VA appeals lane they're in (if any)
     # "none" | "hlr" | "supplemental" | "bva" | "cavc" | "unknown"
     appeals_lane: str = "none"
@@ -43,12 +59,25 @@ class VetLegalProfile:
     # Military Sexual Trauma
     has_mst: bool = False
 
+    # Active criminal case
+    active_criminal_case: bool = False
+
+    # Type of criminal charge
+    # "dv" | "assault" | "drug" | "property" | "other" | ""
+    criminal_case_type: str = ""
+
+    # Claiming self-defense (affects VTC routing and defense strategy)
+    claiming_self_defense: bool = False
+
     # Civilian legal issue type
     # "housing" | "employment" | "family" | "consumer" | "criminal_record" | "other"
     civilian_issue: str = ""
 
     # Was charged or faced NJP (affects discharge upgrade framing)
     has_ucmj_history: bool = False
+
+    # Homelessness — chronic flag (6+ months or repeat episodes)
+    is_chronically_homeless: bool = False
 
     # Location
     state: str = ""
@@ -325,6 +354,143 @@ def route_legal(profile: VetLegalProfile) -> dict:
         result["notes"].append(
             "It is illegal to charge veterans a fee for preparing, presenting, or prosecuting "
             "a VA benefits claim before the VA issues a final decision. Period."
+        )
+
+    # ── TRACK 7: VETERANS TREATMENT COURT ────────────────────────────────────
+    if (
+        "veterans_treatment_court" in needs or
+        "criminal_defense" in needs or
+        profile.active_criminal_case
+    ):
+        result["flags"].append("vtc_track")
+        result["primary_path"] = result["primary_path"] or "Veterans Treatment Court — Diversion Before Incarceration"
+
+        result["secondary_options"].extend([
+            "Veterans Treatment Court (VTC) — specialized courts that divert veteran criminal cases "
+            "into treatment tracks rather than incarceration when service-connected conditions "
+            "(PTSD, TBI, MST, substance use) are a factor. Over 500 courts nationally. "
+            "Find your local VTC at justiceforvets.org — TIME SENSITIVE, request VTC diversion immediately.",
+
+            "VTC Court Advocates — AMVETS, DAV, and American Legion have trained court advocates "
+            "who accompany veterans to VTC proceedings and connect them to treatment. "
+            "Contact your local chapter before your next court date.",
+
+            "National Veterans Legal Services Program (NVLSP) — nvlsp.org — "
+            "can connect you to attorneys experienced in veteran criminal defense.",
+        ])
+
+        if profile.active_criminal_case and profile.criminal_case_type == "dv":
+            result["flags"].append("dv_criminal_case")
+            result["notes"].append(
+                "DV charges with a veteran defendant require a defense attorney familiar with "
+                "PTSD, hypervigilance, and combat-trained responses. These are recognized mitigating "
+                "factors in veteran criminal cases. VTC is the priority routing — request it at arraignment."
+            )
+            if profile.claiming_self_defense:
+                result["flags"].append("self_defense_claim")
+                result["notes"].append(
+                    "Self-defense claim in a DV case: the combat-trained response dynamic is documented "
+                    "legal territory. An attorney experienced in veteran cases can frame the PTSD "
+                    "hypervigilance response within self-defense. Do not navigate this without counsel."
+                )
+                result["notes"].append(
+                    "CRITICAL — if VA has service-connected PTSD documented, that record directly "
+                    "supports the defense. If VA is disputing service connection, resolving the VA "
+                    "appeal and the criminal defense are legally connected. Both tracks must run."
+                )
+
+        result["key_resources"].extend([
+            "Justice For Vets (VTC locator) — justiceforvets.org",
+            "AMVETS court liaison program — amvets.org",
+            "Cohen Veterans Network — cohenveteransnetwork.org — mental health + legal support",
+        ])
+        result["key_forms"].extend([
+            "Request VTC diversion at arraignment — ask your attorney to file immediately",
+        ])
+        if not result["next_action"]:
+            result["next_action"] = (
+                "Contact justiceforvets.org NOW to find your local Veterans Treatment Court. "
+                "Request VTC diversion at your next court appearance — timing matters. "
+                "Do not appear in court without an attorney familiar with veteran cases."
+            )
+
+    # ── TRACK 8: MEDICAL RETIREMENT VA DISPUTE ────────────────────────────────
+    if (
+        "medical_retirement_dispute" in needs or
+        profile.medical_retirement_va_dispute or
+        (profile.discharge == "medical" and profile.has_denied_claim)
+    ):
+        result["flags"].append("medical_retirement_dispute_track")
+        result["primary_path"] = result["primary_path"] or (
+            "Medical Retirement VA Dispute — DoD Records ARE the Evidence"
+        )
+
+        result["secondary_options"].extend([
+            "Military medical records from active duty are your primary evidence. "
+            "If DoD medically retired you FOR a condition, VA claiming that condition is "
+            "post-service directly contradicts DoD's own finding. "
+            "Request ALL military treatment records — these are separate from service records.",
+
+            "Military treatment records request: submit to the Military Treatment Facility (MTF) "
+            "where you received care, OR request through milConnect (milconnect.dmdc.osd.mil). "
+            "Post-2015 records may be in MHS GENESIS. Pre-digital records: SF 180 to NPRC.",
+
+            "Physical Evaluation Board (PEB) decision letter — this document states the DoD's "
+            "finding that you were unfit for duty due to a specific condition. "
+            "It is the cornerstone of your VA appeal. Get it before anything else moves.",
+
+            "File a Supplemental Claim (VA Form 20-0995) with the PEB decision letter and "
+            "military treatment records as new and relevant evidence. "
+            "If you went through IDES, the joint DoD-VA rating should have established service "
+            "connection — VA contradicting it is grounds for a stronger appeal.",
+
+            "Accredited claims agent or veterans attorney — this case needs representation, "
+            "not just a VSO intake. Find accredited attorneys at va.gov/ogc/apps/accreditation/. "
+            "Many work on contingency (no win, no fee).",
+        ])
+
+        if profile.has_extensive_military_medical_records:
+            result["flags"].append("strong_records_appeal_grounds")
+            result["notes"].append(
+                "Extensive military medical records significantly strengthen this appeal. "
+                "The volume and duration of documented in-service treatment directly contradicts "
+                "a VA post-discharge causation finding. An accredited attorney reviewing those "
+                "records before filing can build a much stronger case than a standard VSO intake."
+            )
+
+        if profile.medical_discharge_type in ("chapter_61_retirement", "ides"):
+            result["flags"].append("chapter_61_ides_strong_grounds")
+            result["notes"].append(
+                "Chapter 61 medical retirement and IDES both involve formal DoD determination "
+                "of unfitness for duty due to a specific condition. VA contradicting that determination "
+                "is the strongest appeal scenario. The DoD's own paperwork is the evidence — "
+                "no nexus letter needed when the military already documented the connection."
+            )
+
+        result["key_resources"].extend([
+            "VA Form 20-0995 (Supplemental Claim) — submit with PEB letter + MTF records",
+            "milConnect — milconnect.dmdc.osd.mil — military records access",
+            "NVLSP — nvlsp.org — free legal representation including contested ratings",
+            "National Organization of Veterans Advocates (NOVA) — veteransadvocates.org — accredited attorneys",
+        ])
+        result["key_forms"].extend([
+            "VA Form 20-0995 (Supplemental Claim — new and relevant evidence)",
+            "SF 180 (Military Records Request)",
+            "PEB Decision Letter (obtain from branch Physical Evaluation Board)",
+        ])
+        if not result["next_action"]:
+            result["next_action"] = (
+                "Step 1: Request your PEB decision letter and all military treatment records "
+                "before filing anything with VA. "
+                "Step 2: Contact an accredited veterans attorney — not just a VSO — "
+                "to review those records and build the appeal. "
+                "Find attorneys at va.gov/ogc/apps/accreditation/ or nvlsp.org."
+            )
+        result["notes"].append(
+            "IMPORTANT: If an active criminal case is also in progress and service-connected PTSD "
+            "or TBI is a factor in both — the VA appeal and the criminal defense are legally connected. "
+            "Resolving VA service connection strengthens the criminal mitigation argument. "
+            "An attorney who understands both tracks is the goal."
         )
 
     # ── FALLBACK ──────────────────────────────────────────────────────────────
