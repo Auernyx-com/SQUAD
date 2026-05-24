@@ -19,6 +19,21 @@
       "entry": "",
       "type": "python",
       "notes": "Housing Division entry path. Set to local clone of housing-division repo entry point, or set SQUAD_BAT_DIVISION_ENTRY_HOUSING_DIVISION env var."
+    },
+    "legal-division": {
+      "entry": "MODULES/LEGAL/src/legal_router.py",
+      "type": "python",
+      "notes": "Legal Division — discharge upgrade, VA appeals, MST legal support, civilian legal aid, records correction, predatory lending. Entry is local MODULES path; no external repo required for embedded deployment."
+    },
+    "transportation-division": {
+      "entry": "MODULES/TRANSPORTATION/src/transportation_router.py",
+      "type": "python",
+      "notes": "Transportation Division — BTSSS travel pay, DAV transport, adaptive vehicles, rural/community transport, crisis transport. Configure location data for accurate regional resources."
+    },
+    "women-veterans-division": {
+      "entry": "MODULES/WOMEN_VETERANS/src/women_veterans_router.py",
+      "type": "python",
+      "notes": "Women Veterans Division — women's healthcare, maternity, MST care, mental health, reproductive health, housing, childcare, peer support."
     }
   }
 }

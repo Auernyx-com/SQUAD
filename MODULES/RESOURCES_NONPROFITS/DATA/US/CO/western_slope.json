@@ -2,6 +2,201 @@
   "region_id": "US/CO/western_slope",
   "country": "US",
   "state": "CO",
-  "notes": "Shard placeholder. Populate with factual provider records; no scoring/ranking fields.",
-  "providers": []
+  "region_label": "Western Slope Colorado",
+  "counties_covered": [
+    "Mesa", "Garfield", "Delta", "Montrose", "San Miguel",
+    "Ouray", "Gunnison", "Rio Blanco", "Moffat", "Grand",
+    "Eagle", "Pitkin"
+  ],
+  "notes": "Western Slope Colorado. Primary VA facility: Grand Junction VAMC (2121 N Avenue, GJ 81501, 970-242-0731). Data current as of 2026 — verify contact info before use in production.",
+  "providers": [
+    {
+      "provider_id": "US/CO/western_slope/mesa-county-vso",
+      "name": "Mesa County Veterans Service Office",
+      "org_type": "county_vso",
+      "coverage_counties": ["Mesa"],
+      "cities": ["Grand Junction"],
+      "services": ["claims_assistance", "benefits_navigation", "resource_referral"],
+      "va_visibility": "high",
+      "notes": "County-funded VSO. Free claims assistance and benefits navigation for Mesa County veterans. Accredited representatives.",
+      "contact": { "office": "Mesa County Human Services" },
+      "urls": ["https://www.mesacounty.us"],
+      "phones": [],
+      "source_hints": ["mesa county website", "verify current direct line before deployment"]
+    },
+    {
+      "provider_id": "US/CO/western_slope/garfield-county-vso",
+      "name": "Garfield County Veterans Service Office",
+      "org_type": "county_vso",
+      "coverage_counties": ["Garfield"],
+      "cities": ["Glenwood Springs", "Rifle"],
+      "services": ["claims_assistance", "benefits_navigation", "resource_referral"],
+      "va_visibility": "high",
+      "notes": "County-funded VSO. Accredited representatives. Serves all Garfield County veterans.",
+      "contact": { "office": "Garfield County Human Services" },
+      "urls": ["https://www.garfield-county.com"],
+      "phones": [],
+      "source_hints": ["garfield county website", "verify current phone before deployment"]
+    },
+    {
+      "provider_id": "US/CO/western_slope/delta-county-vso",
+      "name": "Delta County Veterans Service Office",
+      "org_type": "county_vso",
+      "coverage_counties": ["Delta"],
+      "cities": ["Delta"],
+      "services": ["claims_assistance", "benefits_navigation", "resource_referral"],
+      "va_visibility": "medium",
+      "notes": "County-funded VSO serving Delta County veterans.",
+      "urls": ["https://www.deltacounty.com"],
+      "phones": [],
+      "source_hints": ["delta county website", "verify before deployment"]
+    },
+    {
+      "provider_id": "US/CO/western_slope/montrose-county-vso",
+      "name": "Montrose County Veterans Service Office",
+      "org_type": "county_vso",
+      "coverage_counties": ["Montrose", "Ouray", "San Miguel"],
+      "cities": ["Montrose"],
+      "services": ["claims_assistance", "benefits_navigation", "resource_referral"],
+      "va_visibility": "medium",
+      "notes": "County VSO serving Montrose, Ouray, and San Miguel counties.",
+      "phones": [],
+      "source_hints": ["verify coverage counties and contact before deployment"]
+    },
+    {
+      "provider_id": "US/CO/western_slope/grand-junction-vet-center",
+      "name": "Grand Junction Vet Center",
+      "org_type": "vet_center",
+      "coverage_counties": ["Mesa", "Garfield", "Delta", "Montrose", "Grand", "Rio Blanco", "Moffat"],
+      "cities": ["Grand Junction"],
+      "services": [
+        "mental_health_peer_support",
+        "clinical_therapy_referral",
+        "resource_referral",
+        "family_support",
+        "caregiver_support"
+      ],
+      "va_visibility": "high",
+      "notes": "VA-affiliated Vet Center. Walk-in eligible. No VA enrollment required. Counseling for combat veterans, MST survivors, and families. Serves wide Western Slope area.",
+      "contact": { "address": "2472 F Road, Suite 16, Grand Junction, CO 81505" },
+      "phones": ["(970) 245-4156"],
+      "urls": ["https://www.va.gov/grand-junction-vet-center"],
+      "source_hints": ["va.gov vet center locator"]
+    },
+    {
+      "provider_id": "US/CO/western_slope/dav-chapter-58-grand-junction",
+      "name": "DAV Chapter 58 — Grand Junction",
+      "org_type": "vso_chapter",
+      "coverage_counties": ["Mesa"],
+      "cities": ["Grand Junction"],
+      "services": ["claims_assistance", "benefits_navigation", "advocacy", "resource_referral"],
+      "va_visibility": "high",
+      "notes": "Disabled American Veterans Chapter 58. Free claims assistance, transportation program coordination, peer support.",
+      "urls": ["https://www.dav.org"],
+      "phones": [],
+      "source_hints": ["dav.org chapter locator", "verify chapter contact before deployment"]
+    },
+    {
+      "provider_id": "US/CO/western_slope/vfw-post-3513-grand-junction",
+      "name": "VFW Post 3513 — Grand Junction",
+      "org_type": "vso_post",
+      "coverage_counties": ["Mesa"],
+      "cities": ["Grand Junction"],
+      "services": [
+        "claims_assistance", "benefits_navigation",
+        "social_connection", "memorial_civic", "emergency_financial_aid"
+      ],
+      "va_visibility": "medium",
+      "notes": "Veterans of Foreign Wars Post 3513. Claims assistance, emergency financial aid, peer community.",
+      "urls": ["https://www.vfw.org"],
+      "phones": [],
+      "source_hints": ["vfw.org post locator", "verify contact before deployment"]
+    },
+    {
+      "provider_id": "US/CO/western_slope/american-legion-post-5-grand-junction",
+      "name": "American Legion Post 5 — Grand Junction",
+      "org_type": "vso_post",
+      "coverage_counties": ["Mesa"],
+      "cities": ["Grand Junction"],
+      "services": [
+        "claims_assistance", "benefits_navigation",
+        "social_connection", "memorial_civic",
+        "education_support", "emergency_financial_aid"
+      ],
+      "va_visibility": "medium",
+      "notes": "American Legion Post 5. Claims assistance, scholarship programs, peer community.",
+      "urls": ["https://www.legion.org"],
+      "phones": [],
+      "source_hints": ["legion.org post locator", "verify contact before deployment"]
+    },
+    {
+      "provider_id": "US/CO/western_slope/cdva-grand-junction",
+      "name": "Colorado Division of Veterans Affairs — Western Region",
+      "org_type": "state_agency",
+      "coverage_counties": [
+        "Mesa", "Garfield", "Delta", "Montrose", "Grand",
+        "Rio Blanco", "Moffat", "Gunnison", "San Miguel",
+        "Ouray", "Eagle", "Pitkin"
+      ],
+      "cities": ["Grand Junction"],
+      "services": [
+        "claims_assistance", "benefits_navigation",
+        "resource_referral", "advocacy"
+      ],
+      "va_visibility": "high",
+      "notes": "State Veterans Service Organization. Regional office serving all of Western Colorado. Accredited representatives for VA claims. Coordinates with county VSOs.",
+      "urls": ["https://vets.colorado.gov"],
+      "phones": [],
+      "source_hints": ["vets.colorado.gov", "verify current Grand Junction office address and phone"]
+    },
+    {
+      "provider_id": "US/CO/western_slope/independence-center-grand-junction",
+      "name": "The Independence Center",
+      "org_type": "nonprofit",
+      "coverage_counties": ["Mesa", "Garfield", "Delta", "Montrose"],
+      "cities": ["Grand Junction"],
+      "services": [
+        "resource_referral", "caregiver_support",
+        "benefits_navigation", "advocacy"
+      ],
+      "va_visibility": "medium",
+      "notes": "Independent Living Center serving people with disabilities including veterans. Benefits navigation, peer support, ADA advocacy.",
+      "contact": { "address": "740 Gunnison Ave, Grand Junction, CO 81501" },
+      "phones": ["(970) 241-0315"],
+      "urls": ["https://www.independencecenter.net"],
+      "source_hints": ["independencecenter.net"]
+    },
+    {
+      "provider_id": "US/CO/western_slope/grand-valley-catholic-outreach",
+      "name": "Grand Valley Catholic Outreach",
+      "org_type": "nonprofit",
+      "coverage_counties": ["Mesa"],
+      "cities": ["Grand Junction"],
+      "services": [
+        "emergency_financial_aid", "housing_support",
+        "resource_referral", "social_connection"
+      ],
+      "va_visibility": "low",
+      "notes": "Emergency financial assistance regardless of faith background. Serves veterans among general population. Food, utilities, short-term housing support.",
+      "phones": ["(970) 242-7067"],
+      "urls": ["https://www.gvcatholicoutreach.org"],
+      "source_hints": ["gvcatholicoutreach.org"]
+    },
+    {
+      "provider_id": "US/CO/western_slope/home-base-colorado",
+      "name": "Home Base Colorado",
+      "org_type": "nonprofit",
+      "coverage_counties": ["Mesa", "Garfield", "Delta", "Montrose"],
+      "cities": ["Grand Junction"],
+      "services": [
+        "housing_support", "homelessness_prevention",
+        "resource_referral", "benefits_navigation", "caregiver_support"
+      ],
+      "va_visibility": "high",
+      "notes": "Statewide veteran housing and services organization with Western Slope presence. Partners with VA for HUD-VASH and rapid rehousing.",
+      "urls": ["https://homebasecolorado.org"],
+      "phones": [],
+      "source_hints": ["homebasecolorado.org", "verify Western Slope coverage scope and current contact"]
+    }
+  ]
 }

@@ -101,6 +101,79 @@
         "type": "boolean",
         "question": "Is Housing Division active for this deployment?\n   Only enable if housing-division repo is configured with valid PHA overrides for this location."
       }
+    },
+    {
+      "id": "legal-division",
+      "name": "Legal Division",
+      "identifier": "squad-bat.division.legal.v1",
+      "version": "0.1.0",
+      "status": "framework",
+      "attached_at": "2026-05-23T00:00:00.000Z",
+      "repo": "https://github.com/Auernyx-com/legal-division",
+      "capabilities": [
+        "dischargeUpgradeRoute",
+        "vaBenefitsAppealsRoute",
+        "mstLegalRoute",
+        "civilianLegalAidRoute",
+        "recordsCorrectionRoute",
+        "predatoryLendingRoute"
+      ],
+      "indicator_capability": "dischargeUpgradeRoute",
+      "design_note": "Legal issues never block — every veteran receives a path regardless of discharge status.",
+      "onboarding": {
+        "question_id": "enable_legal_division",
+        "type": "boolean",
+        "question": "Is Legal Division active for this deployment?"
+      }
+    },
+    {
+      "id": "transportation-division",
+      "name": "Transportation Division",
+      "identifier": "squad-bat.division.transportation.v1",
+      "version": "0.1.0",
+      "status": "framework",
+      "attached_at": "2026-05-23T00:00:00.000Z",
+      "repo": "https://github.com/Auernyx-com/transportation-division",
+      "capabilities": [
+        "btsssTravelPayRoute",
+        "davTransportRoute",
+        "adaptiveVehicleGrantRoute",
+        "ruralTransportRoute",
+        "crisisTransportRoute"
+      ],
+      "indicator_capability": "btsssTravelPayRoute",
+      "design_note": "Transportation barriers never block access to care.",
+      "onboarding": {
+        "question_id": "enable_transportation_division",
+        "type": "boolean",
+        "question": "Is Transportation Division active for this deployment?\n   Rural and urban transport resources differ significantly — configure location data."
+      }
+    },
+    {
+      "id": "women-veterans-division",
+      "name": "Women Veterans Division",
+      "identifier": "squad-bat.division.women-veterans.v1",
+      "version": "0.1.0",
+      "status": "framework",
+      "attached_at": "2026-05-23T00:00:00.000Z",
+      "repo": "https://github.com/Auernyx-com/women-veterans-division",
+      "capabilities": [
+        "womensHealthcareRoute",
+        "maternityNewbornRoute",
+        "mstCareRoute",
+        "mentalHealthRoute",
+        "reproductiveHealthRoute",
+        "housingHomelessnessRoute",
+        "childcareAccessRoute",
+        "peerSupportRoute"
+      ],
+      "indicator_capability": "womensHealthcareRoute",
+      "design_note": "VA historically underserved women veterans. Every path leads to a specific named resource.",
+      "onboarding": {
+        "question_id": "enable_women_veterans_division",
+        "type": "boolean",
+        "question": "Is Women Veterans Division active for this deployment?"
+      }
     }
   ]
 }

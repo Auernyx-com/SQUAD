@@ -1,0 +1,58 @@
+{
+  "region_id": "US/CO",
+  "country": "US",
+  "state": "CO",
+  "region_label": "Colorado — Statewide",
+  "notes": "Statewide Colorado shard. Providers here are available state-wide or serve multiple regions. Regional shards (western_slope, front_range, etc.) take precedence for local queries — this shard is loaded as fallback when no regional shard exists for a county.",
+  "expansion_note": "Add region shards under DATA/US/CO/{region_slug}.json. Update county_to_region map in location_resolver.py. This file stays lean — only truly statewide providers belong here.",
+  "providers": [
+    {
+      "provider_id": "US/CO/cdva-statewide",
+      "name": "Colorado Division of Veterans Affairs",
+      "org_type": "state_agency",
+      "coverage_counties": [],
+      "cities": ["Denver"],
+      "services": [
+        "claims_assistance", "benefits_navigation",
+        "resource_referral", "advocacy"
+      ],
+      "va_visibility": "high",
+      "notes": "State agency. Statewide claims assistance, benefits navigation. Regional offices across Colorado. Find your nearest office at vets.colorado.gov.",
+      "urls": ["https://vets.colorado.gov"],
+      "phones": ["1-844-263-2778"],
+      "source_hints": ["vets.colorado.gov statewide contact"]
+    },
+    {
+      "provider_id": "US/CO/colorado-vet-centers-statewide",
+      "name": "Colorado Vet Centers (All Locations)",
+      "org_type": "vet_center",
+      "coverage_counties": [],
+      "cities": ["Grand Junction", "Denver", "Colorado Springs", "Fort Collins", "Pueblo"],
+      "services": [
+        "mental_health_peer_support", "clinical_therapy_referral",
+        "resource_referral", "family_support", "caregiver_support"
+      ],
+      "va_visibility": "high",
+      "notes": "VA-affiliated Vet Centers across Colorado. No VA enrollment required. Walk-in eligible. Find all locations at va.gov/find-locations (select Vet Center).",
+      "urls": ["https://www.va.gov/find-locations"],
+      "phones": [],
+      "source_hints": ["va.gov vet center locator"]
+    },
+    {
+      "provider_id": "US/CO/home-base-colorado-statewide",
+      "name": "Home Base Colorado",
+      "org_type": "nonprofit",
+      "coverage_counties": [],
+      "cities": ["Denver"],
+      "services": [
+        "housing_support", "homelessness_prevention",
+        "resource_referral", "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "Statewide veteran housing services. Partners with VA HUD-VASH and SSVF grantees across Colorado.",
+      "urls": ["https://homebasecolorado.org"],
+      "phones": [],
+      "source_hints": ["homebasecolorado.org"]
+    }
+  ]
+}

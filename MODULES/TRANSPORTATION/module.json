@@ -1,0 +1,26 @@
+{
+  "module_id": "TRANSPORTATION",
+  "version": "0.1.0",
+  "status": "framework",
+  "purpose": "Route veterans to transportation resources. Covers VA Beneficiary Travel (BTSSS mileage reimbursement), DAV transportation network, adaptive vehicle grants, community and rural transport, state-specific programs, and crisis transport.",
+  "tracks": [
+    "va_appointment",
+    "adaptive_vehicle",
+    "rural",
+    "daily_transit",
+    "crisis"
+  ],
+  "entrypoints": {
+    "python_api": "src/transportation_router.py",
+    "cli": "cli/transportation_cli.py",
+    "logic": "../../AGENTS/LOGIC/Transportation_v0_1.py"
+  },
+  "governing_law": "GOVERNANCE/LAWS/veteran_data_sovereignty.v1.md",
+  "intake_fields_required": [],
+  "intake_fields_optional": [
+    "transport_needs", "has_sc_disability", "disability_rating",
+    "enrolled_va_healthcare", "is_rural", "has_vehicle",
+    "can_drive", "needs_adaptive_vehicle", "state", "county"
+  ],
+  "design_note": "Transportation barriers never block access to care. Every veteran gets a path."
+}

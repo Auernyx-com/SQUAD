@@ -1,0 +1,30 @@
+{
+  "module_id": "WOMEN_VETERANS",
+  "version": "0.1.0",
+  "status": "framework",
+  "purpose": "Route women veterans to gender-specific programs and resources. Covers VA women's health care enrollment, maternity and newborn care, Military Sexual Trauma (MST) care, reproductive health, mental health, housing and homelessness, childcare access during VA appointments, and peer support organizations.",
+  "tracks": [
+    "healthcare",
+    "maternity",
+    "mst",
+    "mental_health",
+    "reproductive_health",
+    "housing",
+    "childcare",
+    "peer_support",
+    "benefits_help"
+  ],
+  "entrypoints": {
+    "python_api": "src/women_veterans_router.py",
+    "cli": "cli/women_veterans_cli.py",
+    "logic": "../../AGENTS/LOGIC/WomenVeterans_v0_1.py"
+  },
+  "governing_law": "GOVERNANCE/LAWS/veteran_data_sovereignty.v1.md",
+  "intake_fields_required": [],
+  "intake_fields_optional": [
+    "needs", "enrolled_va_healthcare", "is_pregnant", "has_young_children",
+    "has_mst", "has_ptsd", "has_depression_anxiety", "housing_situation",
+    "disability_rating", "discharge", "state", "county"
+  ],
+  "design_note": "VA historically underserved women veterans. Every path leads to a specific named resource — no generic responses."
+}

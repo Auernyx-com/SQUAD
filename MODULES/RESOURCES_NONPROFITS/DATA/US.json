@@ -1,0 +1,113 @@
+{
+  "region_id": "US",
+  "country": "US",
+  "region_label": "United States — National",
+  "notes": "National-level shard. Providers here are available to all US veterans regardless of location. State and regional shards take precedence — this shard loads last as the universal fallback.",
+  "expansion_note": "Add state shards under DATA/US/{STATE}.json. National providers only belong here if they operate in every state or provide virtual/phone services nationwide.",
+  "providers": [
+    {
+      "provider_id": "US/national/nvlsp",
+      "name": "National Veterans Legal Services Program (NVLSP)",
+      "org_type": "nonprofit",
+      "coverage_counties": [],
+      "cities": [],
+      "services": ["claims_assistance", "benefits_navigation", "legal_referral", "advocacy"],
+      "va_visibility": "high",
+      "notes": "Free legal representation for veterans on VA benefits claims including CAVC appeals. National reach. Apply online.",
+      "urls": ["https://www.nvlsp.org"],
+      "phones": ["(202) 265-8305"],
+      "source_hints": ["nvlsp.org"]
+    },
+    {
+      "provider_id": "US/national/dav-national",
+      "name": "Disabled American Veterans (DAV) — National",
+      "org_type": "vso_national",
+      "coverage_counties": [],
+      "cities": [],
+      "services": ["claims_assistance", "benefits_navigation", "advocacy", "resource_referral"],
+      "va_visibility": "high",
+      "notes": "National VSO with chapters in every state. Free VA claims assistance. Transportation program (VANTAP). Find your chapter at dav.org/find-a-chapter.",
+      "urls": ["https://www.dav.org"],
+      "phones": ["1-800-424-3838"],
+      "source_hints": ["dav.org"]
+    },
+    {
+      "provider_id": "US/national/vfw-national",
+      "name": "Veterans of Foreign Wars (VFW) — National",
+      "org_type": "vso_national",
+      "coverage_counties": [],
+      "cities": [],
+      "services": ["claims_assistance", "benefits_navigation", "social_connection", "memorial_civic", "emergency_financial_aid"],
+      "va_visibility": "high",
+      "notes": "National VSO. Free claims assistance through VFW National Veterans Service. Unmet Needs emergency financial program. Find posts at vfw.org.",
+      "urls": ["https://www.vfw.org"],
+      "phones": ["1-816-756-3390"],
+      "source_hints": ["vfw.org"]
+    },
+    {
+      "provider_id": "US/national/american-legion-national",
+      "name": "American Legion — National",
+      "org_type": "vso_national",
+      "coverage_counties": [],
+      "cities": [],
+      "services": ["claims_assistance", "benefits_navigation", "social_connection", "memorial_civic", "education_support"],
+      "va_visibility": "high",
+      "notes": "National VSO. Free claims assistance. Scholarship programs. Find posts at legion.org.",
+      "urls": ["https://www.legion.org"],
+      "phones": ["1-800-433-3318"],
+      "source_hints": ["legion.org"]
+    },
+    {
+      "provider_id": "US/national/nchv",
+      "name": "National Coalition for Homeless Veterans (NCHV)",
+      "org_type": "nonprofit",
+      "coverage_counties": [],
+      "cities": [],
+      "services": ["homelessness_prevention", "housing_support", "resource_referral", "advocacy"],
+      "va_visibility": "high",
+      "notes": "National network of veteran homelessness service providers. Referral hub and advocacy. SSVF grantee coordination.",
+      "urls": ["https://www.nchv.org"],
+      "phones": ["1-800-VET-HELP"],
+      "source_hints": ["nchv.org"]
+    },
+    {
+      "provider_id": "US/national/swords-to-plowshares",
+      "name": "Swords to Plowshares",
+      "org_type": "nonprofit",
+      "coverage_counties": [],
+      "cities": ["San Francisco", "Oakland", "Los Angeles"],
+      "services": ["legal_referral", "claims_assistance", "benefits_navigation", "resource_referral"],
+      "va_visibility": "high",
+      "notes": "Veterans legal services. Discharge upgrade expertise. Strong national reputation for MST and OTH discharge cases. Primarily West Coast but legal resources available nationally.",
+      "urls": ["https://www.swords-to-plowshares.org"],
+      "phones": [],
+      "source_hints": ["swords-to-plowshares.org"]
+    },
+    {
+      "provider_id": "US/national/final-salute-inc",
+      "name": "Final Salute Inc.",
+      "org_type": "nonprofit",
+      "coverage_counties": [],
+      "cities": [],
+      "services": ["housing_support", "homelessness_prevention", "resource_referral"],
+      "va_visibility": "medium",
+      "notes": "Safe, stable housing for women veterans and their children. National reach. Virtual intake.",
+      "urls": ["https://www.finalsaluteinc.org"],
+      "phones": [],
+      "source_hints": ["finalsaluteinc.org"]
+    },
+    {
+      "provider_id": "US/national/servicewomen-action-network",
+      "name": "Service Women's Action Network (SWAN)",
+      "org_type": "nonprofit",
+      "coverage_counties": [],
+      "cities": [],
+      "services": ["advocacy", "legal_referral", "resource_referral", "mental_health_peer_support"],
+      "va_visibility": "medium",
+      "notes": "National advocacy and peer support for women who served. MST legal resources and discharge upgrade support.",
+      "urls": ["https://www.servicewomen.org"],
+      "phones": [],
+      "source_hints": ["servicewomen.org"]
+    }
+  ]
+}

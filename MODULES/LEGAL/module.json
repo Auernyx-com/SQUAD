@@ -1,0 +1,27 @@
+{
+  "module_id": "LEGAL",
+  "version": "0.1.0",
+  "status": "framework",
+  "purpose": "Route veterans to legal resources. Covers discharge upgrades (DRB, BCMR/BCNR), VA benefits appeals (Supplemental Claim, HLR, BVA, CAVC), Military Sexual Trauma legal support, civilian legal aid (housing, employment, family, consumer, criminal record), military records correction, and predatory lending / scam VSO reporting.",
+  "tracks": [
+    "discharge_upgrade",
+    "va_appeal",
+    "mst",
+    "civilian_legal",
+    "records_correction",
+    "predatory_lending"
+  ],
+  "entrypoints": {
+    "python_api": "src/legal_router.py",
+    "cli": "cli/legal_cli.py",
+    "logic": "../../AGENTS/LOGIC/Legal_v0_1.py"
+  },
+  "governing_law": "GOVERNANCE/LAWS/veteran_data_sovereignty.v1.md",
+  "intake_fields_required": [],
+  "intake_fields_optional": [
+    "legal_needs", "discharge", "years_since_discharge", "branch",
+    "has_denied_claim", "appeals_lane", "has_mst", "civilian_issue",
+    "has_ucmj_history", "state", "county"
+  ],
+  "design_note": "Legal issues never block. Every veteran receives a path regardless of discharge status or situation."
+}
