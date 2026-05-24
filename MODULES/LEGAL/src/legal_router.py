@@ -23,6 +23,7 @@ VALID_LEGAL_NEEDS = {
     "discharge_upgrade", "va_appeal", "mst", "civilian_legal",
     "records_correction", "predatory_lending", "benefits_denial",
     "medical_retirement_dispute", "veterans_treatment_court", "criminal_defense",
+    "va_facility_issues",
 }
 VALID_DISCHARGE = {
     "honorable", "general", "other_than_honorable", "dishonorable",
@@ -101,6 +102,14 @@ def _build_profile(payload: Dict[str, Any]) -> VetLegalProfile:
         val = payload.get(key, default)
         return val[0] if isinstance(val, list) else (val or default)
 
+    # va_facility_issues comes from the intake as a single-select string value.
+    # Any value other than 'no' or empty means obstruction routing is required.
+    _va_facility_raw = payload.get("va_facility_issues", "") or ""
+    _va_facility_obstruction = (
+        _bool("va_facility_obstruction") or
+        _va_facility_raw in ("complaints", "obstruction", "distrust")
+    )
+
     return VetLegalProfile(
         legal_needs=_list("legal_needs"),
         discharge=_str_or_first("discharge", "unknown"),
@@ -118,6 +127,7 @@ def _build_profile(payload: Dict[str, Any]) -> VetLegalProfile:
         civilian_issue=payload.get("civilian_issue", ""),
         has_ucmj_history=_bool("has_ucmj_history"),
         is_chronically_homeless=_bool("is_chronically_homeless"),
+        va_facility_obstruction=_va_facility_obstruction,
         state=payload.get("state", ""),
         county=payload.get("county", ""),
     )

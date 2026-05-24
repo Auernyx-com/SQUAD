@@ -12,70 +12,53 @@ Tracks:
   7. Veterans Treatment Court     — criminal diversion for veterans with service-connected conditions
   8. Medical Retirement Dispute   — VA post-discharge causation error when DoD medically retired
   9. Active Criminal Defense      — DV, assault, other charges; PTSD/TBI mitigation; self-defense framing
+ 10. VA Facility Obstruction      — local VA is the problem; OIG, congressional caseworker, Vet Center bypass
 
 Gate: Legal issues never block — every veteran gets a path.
 Design law: Multi-domain crises run in parallel. Criminal case does not stop benefits routing.
 Benefits routing does not stop housing routing. Everything runs.
 """
 
+import os
+import sys
 from dataclasses import dataclass, field
 from typing import List, Optional
 
 # ---------------------------------------------------------------------------
-# Hardcoded contact numbers — verified before inclusion.
-# Phone numbers are never LLM-generated. If a number is unverified, it is
-# marked VERIFY_BEFORE_PRODUCTION and must not be surfaced to veterans.
-#
-# Last reviewed: 2026-05-24
+# Shared verified contacts — single source of truth
+# Phone numbers are never LLM-generated. Do not define numbers here directly.
+# To add or update a number, edit MODULES/_shared/contacts.py only.
 # ---------------------------------------------------------------------------
 
-# Always-available VA numbers — surfaced regardless of track
-_VA_MAIN_LINE             = "1-800-827-1000"
-_VA_HOMELESS_VETERANS     = "1-877-4AID-VET (1-877-424-3838)"   # 24/7 homeless veteran support
-_VETERANS_CRISIS_LINE     = "988, press 1"
+_SHARED_PATH = os.path.normpath(
+    os.path.join(os.path.dirname(__file__), '..', '..', 'MODULES', '_shared')
+)
+if _SHARED_PATH not in sys.path:
+    sys.path.insert(0, _SHARED_PATH)
 
-# Branch-specific emergency resources — hardcoded per branch
-_BRANCH_EMERGENCY = {
-    "marine_corps": [
-        "Semper Fi & America's Fund — 760-725-3680 — emergency financial assistance for Marines and their families. Same-week response for verified cases.",
-        "Marine Corps Wounded Warrior Regiment — 1-877-487-6299 — recovery support, benefits navigation for injured/ill Marines.",
-    ],
-    "army": [
-        "Army Emergency Relief (AER) — 1-866-878-6378 — emergency financial assistance, interest-free loans.",
-        "Army Wounded Warrior Program (AW2) — 1-800-237-1336",
-    ],
-    "navy": [
-        "Navy-Marine Corps Relief Society — 1-800-654-8364 — emergency financial assistance.",
-        "Wounded Warrior Regiment (Navy component) — 1-877-487-6299",
-    ],
-    "air_force": [
-        "Air Force Aid Society — 1-800-769-8951 — emergency financial assistance.",
-    ],
-    "coast_guard": [
-        "Coast Guard Mutual Assistance (CGMA) — 1-800-881-2462 — emergency financial assistance.",
-        "NOTE: Coast Guard veterans are routinely and incorrectly told they are ineligible for VA benefits. They are fully eligible. Escalate any denial.",
-    ],
-    "army_national_guard": [
-        "Army Emergency Relief (AER) — 1-866-878-6378 — Title 10 activation required for full AER eligibility; Title 32 may qualify for state programs.",
-        "State National Guard Family Assistance Center — contact your state Adjutant General's office.",
-    ],
-    "air_national_guard": [
-        "Air Force Aid Society — 1-800-769-8951",
-        "State National Guard Family Assistance Center — contact your state Adjutant General's office.",
-    ],
-}
+from contacts import (  # type: ignore
+    VA_MAIN_LINE         as _VA_MAIN_LINE,
+    VA_HOMELESS_VETERANS as _VA_HOMELESS_VETERANS,
+    VETERANS_CRISIS_LINE as _VETERANS_CRISIS_LINE,
+    VA_OIG               as _VA_OIG,
+    VA_VET_CENTER        as _VA_VET_CENTER,
+    CONGRESSIONAL_NOTE   as _CONGRESSIONAL_NOTE,
+    CONGRESSIONAL_LOOKUP as _CONGRESSIONAL_LOOKUP,
+    DAV_SERVICE_LINE     as _DAV_SERVICE_LINE,
+    COHEN_VETERANS_NETWORK     as _COHEN_VETERANS_NETWORK,
+    SERVICEMEMBER_LEGAL_CENTER as _SERVICEMEMBER_LEGAL_CENTER,
+    SAFE_HELPLINE        as _SAFE_HELPLINE,
+    HUD_HOUSING_COUNSELORS     as _HUD_HOUSING_COUNSELORS,
+    BRANCH_EMERGENCY     as _BRANCH_EMERGENCY,
+)
 
-# Track-specific verified numbers
+# Backward-compat aliases used inline below
 _CONTACT_NUMBERS = {
-    "dav":                   "1-800-741-4990",        # DAV service line
-    "cohen_veterans":        "1-855-204-5784",        # mental health + legal support
-    "va_homeless":           _VA_HOMELESS_VETERANS,
-    "va_main":               _VA_MAIN_LINE,
-    "crisis":                _VETERANS_CRISIS_LINE,
-    # VERIFY_BEFORE_PRODUCTION — do not surface until confirmed:
-    # "vtc_nadcp":           "VERIFY_BEFORE_PRODUCTION",
-    # "nvlsp_direct":        "VERIFY_BEFORE_PRODUCTION",
-    # "amvets_service":      "VERIFY_BEFORE_PRODUCTION",
+    "dav":          _DAV_SERVICE_LINE,
+    "cohen_veterans": _COHEN_VETERANS_NETWORK,
+    "va_homeless":  _VA_HOMELESS_VETERANS,
+    "va_main":      _VA_MAIN_LINE,
+    "crisis":       _VETERANS_CRISIS_LINE,
 }
 
 
@@ -135,6 +118,9 @@ class VetLegalProfile:
 
     # Homelessness — chronic flag (6+ months or repeat episodes)
     is_chronically_homeless: bool = False
+
+    # VA facility is the obstruction — complaints filed, access denied, retaliation suspected
+    va_facility_obstruction: bool = False
 
     # Location
     state: str = ""
@@ -574,6 +560,92 @@ def route_legal(profile: VetLegalProfile) -> dict:
             "Resolving VA service connection strengthens the criminal mitigation argument. "
             "An attorney who understands both tracks is the goal."
         )
+
+    # ── TRACK 10: VA FACILITY OBSTRUCTION ────────────────────────────────────
+    # Triggered when the local VA facility is the problem — complaints, obstruction,
+    # denied access, retaliation, pattern misconduct. Routes AROUND the local VA,
+    # not through it.
+    if (
+        "va_facility_issues" in needs or
+        getattr(profile, "va_facility_obstruction", False)
+    ):
+        result["flags"].append("va_facility_obstruction_track")
+        result["primary_path"] = result["primary_path"] or (
+            "VA Facility Obstruction — Escalate Around, Not Through, the Problem"
+        )
+
+        result["secondary_options"].extend([
+            # OIG — external oversight, not the facility itself
+            f"VA Office of Inspector General (OIG) — {_VA_OIG} — "
+            "reports facility misconduct, retaliation, denied care. "
+            "OIG operates independently of the facility and its parent VISN. "
+            "You can file anonymously. Online: va.gov/oig",
+
+            # Congressional caseworker — most effective single escalation path
+            _CONGRESSIONAL_NOTE,
+
+            # Vet Center — entirely separate system from VA medical centers
+            f"Vet Centers — {_VA_VET_CENTER} — "
+            "community-based readjustment counseling centers that operate "
+            "OUTSIDE the VA medical center system. They have no reporting relationship "
+            "to your local VAMC. Mental health, MST support, benefits referrals. "
+            "Find your nearest at va.gov/find-locations/?facilityType=vet_center",
+
+            # VAMC transfer request — you can request care at a different facility
+            "Request transfer to a different VA Medical Center — "
+            "you are not locked to your nearest facility. "
+            "Call VA main line and ask to be assigned to a different VAMC or CBOC. "
+            "Document every refusal in writing.",
+
+            # Community Care — non-VA provider through VA authorization
+            "Community Care Network (CCN) — if the VA cannot provide timely or adequate care "
+            "at your facility, you may qualify for Community Care — VA-authorized non-VA providers. "
+            "Request eligibility determination at va.gov/communitycare or call VA main line. "
+            "Do not accept 'not eligible' without written documentation of the specific criterion "
+            "that disqualifies you.",
+
+            # VA Patient Advocate — per-facility but recorded
+            "VA Patient Advocate — every VA facility has one. "
+            "File a formal complaint with the Patient Advocate and REQUEST a written response. "
+            "Verbal responses disappear. Written responses create a paper trail that OIG and "
+            "congressional caseworkers can act on. Ask for the complaint number.",
+
+            # Telehealth bypass
+            "VA Video Connect — if in-person care at the local facility is compromised, "
+            "VA telehealth can connect you to providers at other facilities. "
+            "Request telehealth at your next scheduling call or through MyHealtheVet.",
+        ])
+
+        result["key_resources"].extend([
+            f"VA OIG Hotline — {_VA_OIG}",
+            f"Vet Center locator — {_VA_VET_CENTER}",
+            f"Find your representative (congressional caseworker) — {_CONGRESSIONAL_LOOKUP}",
+            "VA Community Care — va.gov/communitycare",
+            "MyHealtheVet (telehealth, secure messaging) — myhealth.va.gov",
+        ])
+
+        if not result["next_action"]:
+            result["next_action"] = (
+                f"Two parallel moves — do both, do not wait:\n"
+                f"1. Call VA OIG: {_VA_OIG} — report the specific obstruction. Request a case number.\n"
+                f"2. Call your congressional rep's district office and ask for the VA caseworker. "
+                f"Find your rep at {_CONGRESSIONAL_LOOKUP}. Congressional caseworkers have "
+                f"direct escalation paths that bypass facility leadership.\n"
+                f"Document everything: dates, names, what was said, what was refused."
+            )
+
+        result["notes"].extend([
+            "Pattern of complaints against a specific facility is significant. "
+            "Document each incident separately with dates and names. "
+            "A pattern strengthens both the OIG complaint and the congressional referral.",
+
+            "If this case involves an active benefits dispute AND facility misconduct, "
+            "the misconduct may itself be grounds for an equitable tolling argument "
+            "on any missed deadlines — get this in front of an accredited attorney.",
+
+            "Filing an OIG complaint does not require a lawyer. "
+            "Filing formal VAOIG complaint form online: va.gov/oig/hotline.asp",
+        ])
 
     # ── FALLBACK ──────────────────────────────────────────────────────────────
     if not result["primary_path"]:

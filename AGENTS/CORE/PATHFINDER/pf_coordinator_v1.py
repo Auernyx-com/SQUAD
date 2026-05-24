@@ -35,11 +35,30 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
+import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+# ---------------------------------------------------------------------------
+# Shared verified contacts — imported from single source of truth
+# ---------------------------------------------------------------------------
+
+_SHARED_PATH = os.path.normpath(
+    os.path.join(os.path.dirname(__file__), '..', '..', '..', 'MODULES', '_shared')
+)
+if _SHARED_PATH not in sys.path:
+    sys.path.insert(0, _SHARED_PATH)
+
+from contacts import (  # type: ignore
+    VA_MAIN_LINE         as _VA_MAIN_LINE,
+    VA_HOMELESS_VETERANS as _VA_HOMELESS_VETERANS,
+    VETERANS_CRISIS_LINE as _VETERANS_CRISIS_LINE,
+    VA_OIG               as _VA_OIG,
+)
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -48,12 +67,6 @@ from typing import Any
 _FOUNDING_LAW_SHA256 = "dc0fcb428e24948c5471798bf3c0b77cafade1c68e1aecb39aa13eef264f2f87"
 _INTAKE_SCHEMA       = "squad-bat.coordinator-intake.v1"
 _RESULT_SCHEMA       = "squad-bat.coordinator-result.v1"
-
-# Floor contacts — always included in synthesis output regardless of which
-# divisions ran. These are verified numbers. Never LLM-generated.
-_VA_MAIN_LINE         = "1-800-827-1000"
-_VA_HOMELESS_VETERANS = "1-877-4AID-VET (1-877-424-3838)"
-_VETERANS_CRISIS_LINE = "988, press 1"
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
@@ -181,6 +194,20 @@ _EDGE_CASE_PATTERNS: list[dict[str, Any]] = [
                 i.get("urgency") == "high",
                 i.get("is_chronically_homeless") is True,
             ]) >= 3
+        ),
+    },
+    {
+        "id": "VA_FACILITY_OBSTRUCTION",
+        "description": (
+            "Local VA facility flagged as the obstruction. "
+            "Routing must go AROUND the facility — OIG, congressional caseworker, Vet Center, "
+            "Community Care, and VAMC transfer are the parallel escalation paths. "
+            "Do not route back through a facility the veteran has identified as a barrier."
+        ),
+        "check": lambda i: (
+            i.get("va_facility_obstruction") is True or
+            "va_facility_issues" in (i.get("legal_needs") or []) or
+            i.get("va_facility_issues") in ("complaints", "obstruction", "distrust")
         ),
     },
 ]
