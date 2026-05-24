@@ -174,6 +174,32 @@
         "type": "boolean",
         "question": "Is Women Veterans Division active for this deployment?"
       }
+    },
+    {
+      "id": "toxic-exposure-division",
+      "name": "Toxic Exposure Division",
+      "identifier": "squad-bat.division.toxic-exposure.v1",
+      "version": "0.1.0",
+      "status": "framework",
+      "attached_at": "2026-05-23T00:00:00.000Z",
+      "repo": "https://github.com/Auernyx-com/toxic-exposure-division",
+      "capabilities": [
+        "burnPitPactActRoute",
+        "agentOrangeRoute",
+        "campLejeuneRoute",
+        "gulfWarSyndromeRoute",
+        "radiationRoute",
+        "pfasRoute",
+        "burnPitRegistryRoute",
+        "previouslyDeniedRefileRoute"
+      ],
+      "indicator_capability": "burnPitPactActRoute",
+      "design_note": "Most OIF/OEF veterans do not know PACT Act (2022) made burn pit exposure presumptive. Previously denied claims can be refiled. Toxic exposure never blocks.",
+      "onboarding": {
+        "question_id": "enable_toxic_exposure_division",
+        "type": "boolean",
+        "question": "Is Toxic Exposure Division active for this deployment?"
+      }
     }
   ]
 }

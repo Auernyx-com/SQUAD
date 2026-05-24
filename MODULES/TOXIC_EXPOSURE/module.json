@@ -1,0 +1,28 @@
+{
+  "module_id": "TOXIC_EXPOSURE",
+  "version": "0.1.0",
+  "status": "framework",
+  "purpose": "Route veterans to toxic exposure benefits and resources. Covers PACT Act burn pit / airborne hazard presumptive claims (primary for OIF/OEF), Agent Orange (Vietnam/Korea/Blue Water Navy), Camp Lejeune water contamination, Gulf War Syndrome, radiation exposure, and PFAS. Surfaces refile opportunities for previously denied claims.",
+  "tracks": [
+    "burn_pit_pact_act",
+    "agent_orange",
+    "camp_lejeune",
+    "gulf_war_syndrome",
+    "radiation",
+    "pfas"
+  ],
+  "entrypoints": {
+    "python_api": "src/toxic_exposure_router.py",
+    "cli": "cli/toxic_exposure_cli.py",
+    "logic": "../../AGENTS/LOGIC/ToxicExposure_v0_1.py"
+  },
+  "governing_law": "GOVERNANCE/LAWS/veteran_data_sovereignty.v1.md",
+  "intake_fields_required": [],
+  "intake_fields_optional": [
+    "exposure_types", "era", "locations_served", "conditions",
+    "camp_lejeune", "is_lejeune_family_member", "has_existing_claim",
+    "was_previously_denied", "enrolled_va_healthcare", "discharge",
+    "state", "county"
+  ],
+  "design_note": "Most OIF/OEF veterans do not know their conditions are covered by PACT Act (2022) presumptive. Previously denied claims can be refiled. Toxic exposure never blocks — every veteran gets routed."
+}

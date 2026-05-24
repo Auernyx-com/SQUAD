@@ -34,6 +34,11 @@
       "entry": "MODULES/WOMEN_VETERANS/src/women_veterans_router.py",
       "type": "python",
       "notes": "Women Veterans Division — women's healthcare, maternity, MST care, mental health, reproductive health, housing, childcare, peer support."
+    },
+    "toxic-exposure-division": {
+      "entry": "MODULES/TOXIC_EXPOSURE/src/toxic_exposure_router.py",
+      "type": "python",
+      "notes": "Toxic Exposure Division — PACT Act burn pit presumptive (OIF/OEF primary), Agent Orange, Camp Lejeune, Gulf War Syndrome, radiation, PFAS. Surfaces refile opportunities for previously denied claims."
     }
   }
 }
