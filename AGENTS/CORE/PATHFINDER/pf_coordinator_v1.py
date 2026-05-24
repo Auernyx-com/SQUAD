@@ -5,14 +5,30 @@ Routes a veteran case through the Division swarm.
 
 Routing rules (Foundational — immutable):
   1. Founding law SHA-256 verified before any Division runs. Mismatch = fail closed.
-  2. Crisis gate runs first. If flagged, crisis Division blocks all others until resolved.
-  3. Every Division result — including SKIPPED and FAILED — is recorded. Nothing dropped.
+     This is one of only three legitimate fail-closed triggers in BAT.
+  2. Crisis response is ADDITIVE — never blocks other divisions.
+     A veteran in crisis still needs housing, benefits, medical, and legal routing.
+  3. Every Division result — including SKIPPED, NEEDS_INPUT, and FAILED — is recorded.
+     Nothing dropped.
   4. Quorum: at least one Division must return COMPLETED for synthesis to be actionable.
+  5. Confidence is a hard percentage based on known facts in the intake.
+     Never a label. Never a guess. Displayed raw to navigators; translated to plain
+     language for veterans. Always stored. Never suppressed.
+  6. Edge cases surface honestly — no path invented where none exists.
+     Unknown territory routes to specific humans, not plausible-sounding guesses.
+
+Legitimate fail-closed triggers (the ONLY three):
+  1. FOUNDING_LAW_MISSING or FOUNDING_LAW_TAMPERED — data sovereignty integrity
+  2. Unknown intake schema — request cannot be verified as a valid BAT intake
+  3. Intake founding_law_sha256 mismatch — intake produced under wrong governance version
+
+Nothing about the veteran — discharge status, crisis flag, eligibility, service history,
+identity, or any situational data — ever triggers fail-closed. Those route, with explanation.
 
 Routing rules (Mutable — subject to registry updates):
   - Active Divisions resolved from config/divisions.json at runtime.
   - Domain-to-Division mapping resolved from config/division-registry.json.
-  - Non-crisis Divisions run in parallel where possible.
+  - All Divisions run in parallel regardless of crisis flag.
 """
 from __future__ import annotations
 
@@ -20,7 +36,6 @@ import argparse
 import hashlib
 import json
 import time
-import uuid
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
@@ -31,11 +46,87 @@ from typing import Any
 # ---------------------------------------------------------------------------
 
 _FOUNDING_LAW_SHA256 = "dc0fcb428e24948c5471798bf3c0b77cafade1c68e1aecb39aa13eef264f2f87"
-_INTAKE_SCHEMA    = "squad-bat.coordinator-intake.v1"
-_RESULT_SCHEMA    = "squad-bat.coordinator-result.v1"
-_CRISIS_DOMAINS   = {"CRISIS", "MENTAL_HEALTH"}
+_INTAKE_SCHEMA       = "squad-bat.coordinator-intake.v1"
+_RESULT_SCHEMA       = "squad-bat.coordinator-result.v1"
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
+
+# ---------------------------------------------------------------------------
+# Confidence fields — per domain
+#
+# These are the intake fields that materially affect routing quality for each
+# domain. Confidence percentage = how many of these are present and non-empty.
+# Missing fields don't stop routing — they reduce the confidence number.
+# ---------------------------------------------------------------------------
+
+_CONFIDENCE_FIELDS: dict[str, list[str]] = {
+    "BENEFITS":       ["discharge", "era", "disability_rating", "va_history",
+                       "service_status", "state", "income_monthly"],
+    "EMPLOYMENT":     ["discharge", "service_status", "era", "state"],
+    "MEDICAL":        ["discharge", "disability_rating", "va_history", "state", "county"],
+    "CLAIMS":         ["discharge", "disability_rating", "va_history", "state"],
+    "MENTAL_HEALTH":  ["discharge", "service_status", "state"],
+    "HOUSING":        ["discharge", "state", "county", "housing_status"],
+    "LEGAL":          ["discharge", "state"],
+    "BUSINESS":       ["discharge", "state", "service_status"],
+    "TRANSPORTATION": ["state", "county", "service_status"],
+    "WOMEN_VETERANS": ["discharge", "state", "service_status"],
+    "TOXIC_EXPOSURE": ["discharge", "era", "branch", "state"],
+    "CRISIS":         ["service_status", "state"],
+}
+
+# Flags from divisions that indicate uncertain routing — each reduces confidence by 5
+_UNCERTAIN_MARKERS = ("unknown", "candidate", "check_recommended", "verify", "needs_review")
+
+# ---------------------------------------------------------------------------
+# Edge case patterns — situations BAT has no reliable routing path for
+#
+# These don't stop routing. They reduce the synthesis confidence ceiling and
+# surface an explicit human handoff note. Never suppressed, never guessed around.
+# ---------------------------------------------------------------------------
+
+_EDGE_CASE_PATTERNS: list[dict[str, Any]] = [
+    {
+        "id": "DISCHARGE_UNKNOWN",
+        "description": "Discharge status unknown — eligibility cannot be determined reliably",
+        "check": lambda i: i.get("discharge") in ("unknown", None, ""),
+    },
+    {
+        "id": "SERVICE_STATUS_UNKNOWN",
+        "description": "Service status not established — routing may be inaccurate",
+        "check": lambda i: i.get("service_status") in ("not_sure", None, ""),
+    },
+    {
+        "id": "NO_LOCATION",
+        "description": "No location data — local resources cannot be identified",
+        "check": lambda i: (
+            not i.get("state") and
+            not (i.get("location") or {}).get("state")
+        ),
+    },
+    {
+        "id": "RECORDS_UNAVAILABLE",
+        "description": (
+            "Records flagged as unavailable or disputed — eligibility may differ "
+            "from what routing suggests. Verify with VSO before acting."
+        ),
+        "check": lambda i: (
+            i.get("records_available") is False or
+            i.get("records_disputed") is True
+        ),
+    },
+    {
+        "id": "MULTIPLE_SERVICE_PERIODS",
+        "description": (
+            "Multiple service periods detected — discharge status and eligibility "
+            "may differ per period. A VSO can assess the full picture."
+        ),
+        "check": lambda i: (
+            isinstance(i.get("service_periods"), list) and
+            len(i.get("service_periods", [])) > 1
+        ),
+    },
+]
 
 
 # ---------------------------------------------------------------------------
@@ -55,6 +146,14 @@ def assert_founding_law() -> None:
 
 
 def _fail_closed(reason: str) -> None:
+    """
+    Hard stop. Called ONLY for the three legitimate fail-closed triggers:
+      1. Founding law missing or tampered
+      2. Unknown intake schema
+      3. Intake founding_law_sha256 mismatch
+
+    Nothing about the veteran ever calls this function.
+    """
     raise SystemExit(f"[PATHFINDER-COORDINATOR FAIL-CLOSED] {reason}")
 
 
@@ -89,30 +188,110 @@ def resolve_divisions_for_domains(
     gaps: list of {domain, reason} for domains with no active Division.
     """
     active_divisions = divisions_cfg.get("divisions", {})
-    reg_modules = {m["id"]: m for m in registry.get("modules", [])}
+    reg_divisions = {d["id"]: d for d in registry.get("divisions", [])}
+
+    domain_to_division: dict[str, str] = {}
+    for div_id, div in reg_divisions.items():
+        for domain in div.get("domains", []):
+            if domain not in domain_to_division:
+                domain_to_division[domain] = div_id
 
     matched: list[dict[str, Any]] = []
     gaps: list[dict[str, Any]] = []
     seen_divisions: set[str] = set()
 
     for domain in domains:
-        found = False
-        for mod_id, mod in reg_modules.items():
-            if domain in mod.get("domains", []) and mod_id not in seen_divisions:
-                div_cfg = active_divisions.get(mod_id, {})
-                matched.append({
-                    "division_id": mod_id,
-                    "domain": domain,
-                    "entry": div_cfg.get("entry", ""),
-                    "founding_law_sha256": mod.get("founding_law_sha256", ""),
-                })
-                seen_divisions.add(mod_id)
-                found = True
-                break
-        if not found:
-            gaps.append({"domain": domain, "reason": "No active Division registered for this domain"})
+        div_id = domain_to_division.get(domain)
+        if div_id and div_id not in seen_divisions:
+            div_reg = reg_divisions[div_id]
+            div_cfg = active_divisions.get(div_id, {})
+            entry = div_cfg.get("entry", "")
+            matched.append({
+                "division_id": div_id,
+                "domain": domain,
+                "entry": entry,
+                "entry_configured": bool(entry),
+                "status": div_reg.get("status", "unknown"),
+                "founding_law_sha256": registry.get("founding_law_sha256", ""),
+            })
+            seen_divisions.add(div_id)
+        elif not div_id:
+            gaps.append({"domain": domain, "reason": "No Division registered for this domain"})
 
     return matched, gaps
+
+
+# ---------------------------------------------------------------------------
+# Confidence calculation
+# ---------------------------------------------------------------------------
+
+def calculate_division_confidence(
+    domain: str,
+    intake: dict[str, Any],
+    status: str,
+    flags: list[str],
+) -> int:
+    """
+    Returns routing confidence as integer 0–100, derived from known facts.
+
+    Never a vibe. Never a label. Derivation:
+      - Base = percentage of domain-relevant confidence fields present in intake
+      - SKIPPED → 0 (division did not run)
+      - NEEDS_INPUT → capped at 45 (intake incomplete for this domain)
+      - FAILED → capped at 25 (routing attempted but failed)
+      - COMPLETED → no ceiling (base holds)
+      - Each uncertain flag (unknown/candidate/check/verify) → -5, floor 10
+      - Rounded to nearest 5
+    """
+    if status == "SKIPPED":
+        return 0
+
+    fields = _CONFIDENCE_FIELDS.get(domain, ["discharge", "state"])
+
+    # Resolve location fields — intake may nest state/county under "location"
+    location = intake.get("location") or {}
+    effective: dict[str, Any] = dict(intake)
+    if not effective.get("state") and location.get("state"):
+        effective["state"] = location["state"]
+    if not effective.get("county") and location.get("county"):
+        effective["county"] = location["county"]
+
+    present = sum(1 for f in fields if effective.get(f))
+    base = round((present / len(fields)) * 100 / 5) * 5
+
+    # Status ceiling
+    if status == "FAILED":
+        base = min(base, 25)
+    elif status == "NEEDS_INPUT":
+        base = min(base, 45)
+
+    # Uncertain flags reduce confidence
+    uncertain = sum(
+        1 for f in flags
+        if any(m in f.lower() for m in _UNCERTAIN_MARKERS)
+    )
+    base = max(10, base - (uncertain * 5))
+
+    return min(100, base)
+
+
+# ---------------------------------------------------------------------------
+# Edge case detection
+# ---------------------------------------------------------------------------
+
+def detect_edge_cases(intake: dict[str, Any]) -> list[dict[str, Any]]:
+    """
+    Checks intake for patterns that indicate unknown territory BAT cannot
+    reliably route. Returns list of {id, description}. Empty = no edge cases.
+
+    Edge cases do not stop routing — they reduce the synthesis confidence ceiling
+    and surface an explicit human handoff note. BAT never invents a path.
+    """
+    return [
+        {"id": p["id"], "description": p["description"]}
+        for p in _EDGE_CASE_PATTERNS
+        if p["check"](intake)
+    ]
 
 
 # ---------------------------------------------------------------------------
@@ -124,52 +303,91 @@ def invoke_division(
     intake: dict[str, Any],
 ) -> dict[str, Any]:
     """
-    Invokes a single Division and returns a DivisionResult dict.
-    Currently calls the PowerShell DivisionInvoke layer via subprocess.
-    Falls back to a DEGRADED result on any error — never raises.
+    Invokes a single Division's Python entry point and returns a DivisionResult dict.
+    Falls back to SKIPPED on any error — never raises.
+
+    Status values returned:
+      COMPLETED   — division ran, rule matched, result produced
+      NEEDS_INPUT — division ran, intake incomplete for this domain
+      FAILED      — division ran, routing exception or hard failure
+      SKIPPED     — division entry not configured or not found
     """
-    import subprocess
+    import importlib.util
 
     division_id = division["division_id"]
     domain = division["domain"]
+    entry = division.get("entry", "")
     start_ms = int(time.monotonic() * 1000)
 
-    invoke_script = REPO_ROOT / "consumers" / "divisions" / "Invoke-HousingDivision.ps1"
-    if not invoke_script.exists():
-        return _division_skipped(division_id, domain, "No consumer script found", start_ms)
+    if not entry:
+        return _division_skipped(
+            division_id, domain,
+            f"Division entry not configured — framework-only. "
+            f"Set entry in config/divisions.json.",
+            start_ms,
+        )
+
+    entry_path = REPO_ROOT / entry
+    if not entry_path.exists():
+        return _division_skipped(
+            division_id, domain,
+            f"Division entry not found at {entry_path}",
+            start_ms,
+        )
 
     try:
-        result = subprocess.run(
-            ["pwsh", "-NoProfile", "-NonInteractive", "-File", str(invoke_script)],
-            input=json.dumps(intake),
-            capture_output=True,
-            text=True,
-            timeout=120,
-        )
+        spec = importlib.util.spec_from_file_location(division_id, entry_path)
+        if spec is None or spec.loader is None:
+            return _division_skipped(division_id, domain, "Could not load module spec", start_ms)
+
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)  # type: ignore[union-attr]
+
+        if not hasattr(mod, "run"):
+            return _division_skipped(division_id, domain, "Division has no run() entrypoint", start_ms)
+
+        result = mod.run(intake)
         duration_ms = int(time.monotonic() * 1000) - start_ms
 
-        if result.returncode == 0:
-            return {
-                "division_id": division_id,
-                "domain": domain,
-                "status": "COMPLETED",
-                "confidence": "MEDIUM",
-                "result_summary": result.stdout.strip()[:500] or "Division completed.",
-                "next_actions": [],
-                "duration_ms": duration_ms,
-            }
+        # Normalize — division run() returns a dataclass or dict
+        if hasattr(result, "status"):
+            raw_status = result.status
+            summary    = getattr(result, "primary_path", None) or getattr(result, "next_action", "") or ""
+            next_acts  = list(getattr(result, "secondary_options", []))[:3]
+            flags      = list(getattr(result, "flags", []))
+            questions  = list(getattr(result, "questions", []))
         else:
-            return {
-                "division_id": division_id,
-                "domain": domain,
-                "status": "FAILED",
-                "confidence": "VERIFY_REQUIRED",
-                "result_summary": (result.stderr.strip() or "Division exited non-zero.")[:500],
-                "next_actions": [],
-                "duration_ms": duration_ms,
-            }
-    except subprocess.TimeoutExpired:
-        return _division_skipped(division_id, domain, "Division timed out (120s)", start_ms)
+            raw_status = result.get("status", "UNKNOWN")
+            summary    = result.get("primary_path") or result.get("next_action", "")
+            next_acts  = result.get("secondary_options", [])[:3]
+            flags      = result.get("flags", [])
+            questions  = result.get("questions", [])
+
+        # Map division status to coordinator status
+        if raw_status in ("OK", "WITHIN_TOLERANCE", "COMPLETED"):
+            coord_status = "COMPLETED"
+        elif raw_status == "NEEDS_INPUT":
+            coord_status = "NEEDS_INPUT"
+        else:
+            coord_status = "FAILED"
+
+        confidence = calculate_division_confidence(domain, intake, coord_status, flags)
+
+        result_dict: dict[str, Any] = {
+            "division_id":    division_id,
+            "domain":         domain,
+            "status":         coord_status,
+            "confidence":     confidence,
+            "result_summary": str(summary)[:500] if summary else f"{division_id} completed.",
+            "next_actions":   next_acts,
+            "flags":          flags,
+            "duration_ms":    duration_ms,
+        }
+        if questions:
+            result_dict["intake_questions"] = questions  # surface what's missing
+
+        return result_dict
+
     except Exception as exc:
         return _division_skipped(division_id, domain, f"Invocation error: {exc}", start_ms)
 
@@ -178,51 +396,47 @@ def _division_skipped(
     division_id: str, domain: str, reason: str, start_ms: int
 ) -> dict[str, Any]:
     return {
-        "division_id": division_id,
-        "domain": domain,
-        "status": "SKIPPED",
-        "confidence": "VERIFY_REQUIRED",
+        "division_id":    division_id,
+        "domain":         domain,
+        "status":         "SKIPPED",
+        "confidence":     0,
         "result_summary": reason,
-        "next_actions": [],
-        "duration_ms": int(time.monotonic() * 1000) - start_ms,
+        "next_actions":   [],
+        "duration_ms":    int(time.monotonic() * 1000) - start_ms,
     }
 
 
 # ---------------------------------------------------------------------------
-# Crisis gate
+# Crisis response — additive, never blocking
 # ---------------------------------------------------------------------------
 
-def run_crisis_gate(
-    intake: dict[str, Any],
-    divisions: list[dict[str, Any]],
-) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+_CRISIS_RESOURCES = [
+    "988 Suicide & Crisis Lifeline — call or text 988, press 1 for veterans",
+    "Veterans Crisis Line — text 838255",
+    "Crisis Chat — veteranscrisisline.net/get-help-now/chat",
+    "Emergency: 911",
+]
+
+
+def run_crisis_response(intake: dict[str, Any]) -> dict[str, Any]:
     """
-    If crisis is flagged, invoke the crisis/mental-health Division first.
-    Block all other Divisions until it resolves.
-    Returns (crisis_gate_result, crisis_division_results).
+    If crisis is flagged, surface crisis resources immediately.
+    DOES NOT block other divisions — all routing continues in parallel.
+    Crisis response is additive, never a gate.
     """
     crisis = intake.get("crisis", {})
     if not crisis.get("flagged", False):
-        return {"flagged": False, "resolved": True}, []
-
-    crisis_divs = [d for d in divisions if d["domain"] in _CRISIS_DOMAINS]
-    if not crisis_divs:
-        return {
-            "flagged": True,
-            "resolved": False,
-            "outcome_note": "Crisis flagged but no crisis Division is registered. Routing blocked.",
-        }, []
-
-    crisis_div = crisis_divs[0]
-    result = invoke_division(crisis_div, intake)
-    resolved = result["status"] == "COMPLETED"
+        return {"flagged": False}
 
     return {
         "flagged": True,
-        "resolved": resolved,
-        "division_invoked": crisis_div["division_id"],
-        "outcome_note": result.get("result_summary", ""),
-    }, [result]
+        "resources": _CRISIS_RESOURCES,
+        "outcome_note": (
+            "Crisis flagged. Resources surfaced below. "
+            "All other routing continues — a veteran in crisis still needs "
+            "housing, benefits, medical, and legal help."
+        ),
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -232,9 +446,18 @@ def run_crisis_gate(
 def synthesize(
     division_results: list[dict[str, Any]],
     gaps: list[dict[str, Any]],
+    edge_cases: list[dict[str, Any]],
 ) -> dict[str, Any]:
-    completed = [r for r in division_results if r["status"] == "COMPLETED"]
-    quorum_met = len(completed) > 0
+    """
+    Synthesizes division results into a single coordinator output.
+
+    Confidence is calculated as the average of completed division confidences,
+    capped at 50 when edge cases are present. Always an integer 0–100.
+    Always accompanied by a plain-language label for veteran-facing display.
+    """
+    completed   = [r for r in division_results if r["status"] == "COMPLETED"]
+    needs_input = [r for r in division_results if r["status"] == "NEEDS_INPUT"]
+    quorum_met  = len(completed) > 0
 
     all_actions: list[str] = []
     domain_summaries: dict[str, str] = {}
@@ -242,34 +465,75 @@ def synthesize(
         domain_summaries[r["domain"]] = r.get("result_summary", "No result.")
         all_actions.extend(r.get("next_actions", []))
 
+    # --- Synthesis confidence ---
+    # Average of completed division confidences.
+    # Edge cases cap the ceiling — unknown territory means the number can't be high.
+    if not completed:
+        synthesis_confidence = 0
+    else:
+        raw_avg = sum(r.get("confidence", 0) for r in completed) / len(completed)
+        synthesis_confidence = round(raw_avg / 5) * 5
+        if edge_cases:
+            synthesis_confidence = min(synthesis_confidence, 50)
+
+    # --- Primary path ---
     if not quorum_met:
         primary_path = (
             "No Division returned a completed result. Manual review required. "
             "Contact your local VA navigator or Veterans Service Organization (VSO)."
         )
-        confidence = "VERIFY_REQUIRED"
     elif len(completed) == 1:
         primary_path = completed[0].get("result_summary", "See Division result.")
-        confidence = completed[0].get("confidence", "MEDIUM")
     else:
         domains_covered = ", ".join(r["domain"] for r in completed)
         primary_path = (
             f"Multiple programs identified across: {domains_covered}. "
             "Review domain summaries below for next steps in each area."
         )
-        confidence = "MEDIUM"
 
     if gaps:
         gap_domains = ", ".join(g["domain"] for g in gaps)
-        primary_path += f" Note: no active Division found for {gap_domains} — these areas need manual follow-up."
+        primary_path += (
+            f" Note: no active Division found for {gap_domains} — "
+            "these areas need manual follow-up."
+        )
+
+    if edge_cases:
+        edge_notes = "; ".join(e["description"] for e in edge_cases)
+        primary_path += (
+            f" IMPORTANT — unusual circumstances detected: {edge_notes}. "
+            "Results may be incomplete. Verify with a VSO or VA navigator before acting."
+        )
+
+    if needs_input:
+        ni_domains = ", ".join(r["domain"] for r in needs_input)
+        primary_path += f" Additional intake information needed for: {ni_domains}."
+
+    # --- Plain-language confidence label ---
+    # This is a translation of the number, not a replacement for it.
+    if synthesis_confidence >= 80:
+        confidence_label = "High — routing based on complete intake data"
+    elif synthesis_confidence >= 60:
+        confidence_label = "Moderate — some intake fields missing; verify before acting"
+    elif synthesis_confidence >= 40:
+        confidence_label = "Low — significant intake gaps; VSO review strongly recommended"
+    elif synthesis_confidence > 0:
+        confidence_label = "Very low — BAT cannot reliably route this case; contact a VSO directly"
+    else:
+        confidence_label = "No completed routing — manual review required"
 
     return {
-        "primary_path": primary_path,
-        "confidence": confidence,
-        "next_actions": all_actions[:5],
-        "domain_summaries": domain_summaries,
-        "if_blocked": ["Contact your local Veterans Service Organization (VSO)", "Call 1-800-827-1000 (VA main line)"],
-        "quorum_met": quorum_met,
+        "primary_path":      primary_path,
+        "confidence":        synthesis_confidence,   # integer 0–100, always stored
+        "confidence_label":  confidence_label,        # plain-language, for veteran display
+        "next_actions":      all_actions[:5],
+        "domain_summaries":  domain_summaries,
+        "if_blocked": [
+            "Contact your local Veterans Service Organization (VSO)",
+            "Call 1-800-827-1000 (VA main line)",
+        ],
+        "quorum_met":        quorum_met,
+        "edge_cases":        edge_cases,
     }
 
 
@@ -280,7 +544,10 @@ def synthesize(
 def write_receipt(result: dict[str, Any]) -> Path:
     receipts_dir = REPO_ROOT / "artifacts" / "receipts" / "coordinator"
     receipts_dir.mkdir(parents=True, exist_ok=True)
-    receipt_path = receipts_dir / f"COORD_{result['case_id']}_{result['timestamp'].replace(':', '-')}.json"
+    receipt_path = (
+        receipts_dir /
+        f"COORD_{result['case_id']}_{result['timestamp'].replace(':', '-')}.json"
+    )
     with open(receipt_path, "w", encoding="utf-8") as f:
         json.dump(result, f, indent=2)
     return receipt_path
@@ -291,6 +558,7 @@ def write_receipt(result: dict[str, Any]) -> Path:
 # ---------------------------------------------------------------------------
 
 def run_coordinator(intake: dict[str, Any]) -> dict[str, Any]:
+    # Legitimate fail-closed triggers (the only three)
     assert_founding_law()
 
     if intake.get("schema") != _INTAKE_SCHEMA:
@@ -298,58 +566,54 @@ def run_coordinator(intake: dict[str, Any]) -> dict[str, Any]:
     if intake.get("founding_law_sha256") != _FOUNDING_LAW_SHA256:
         _fail_closed("Intake founding_law_sha256 mismatch — intake rejected.")
 
-    registry = load_division_registry()
+    registry      = load_division_registry()
     divisions_cfg = load_divisions_config()
 
     domains = intake.get("domains", [])
     matched_divisions, gaps = resolve_divisions_for_domains(domains, registry, divisions_cfg)
 
-    # Crisis gate — foundational, cannot be bypassed
-    crisis_gate_result, crisis_results = run_crisis_gate(intake, matched_divisions)
+    # Crisis response — additive, never blocking
+    crisis_response = run_crisis_response(intake)
 
-    if crisis_gate_result["flagged"] and not crisis_gate_result["resolved"]:
-        coordinator_status = "FAILED_CLOSED"
-        all_results = crisis_results
+    # Edge case detection — affects confidence ceiling, surfaces human handoff
+    edge_cases = detect_edge_cases(intake)
+
+    # All divisions run in parallel regardless of crisis flag or edge cases
+    all_results: list[dict[str, Any]] = []
+    if matched_divisions:
+        with ThreadPoolExecutor(max_workers=max(1, len(matched_divisions))) as pool:
+            futures = {
+                pool.submit(invoke_division, div, intake): div
+                for div in matched_divisions
+            }
+            for future in as_completed(futures):
+                all_results.append(future.result())
+
+    completed_count   = sum(1 for r in all_results if r["status"] == "COMPLETED")
+    failed_count      = sum(1 for r in all_results if r["status"] == "FAILED")
+    needs_input_count = sum(1 for r in all_results if r["status"] == "NEEDS_INPUT")
+
+    if completed_count == 0:
+        coordinator_status = "CONTROLLED"
+    elif failed_count > 0 or needs_input_count > 0:
+        coordinator_status = "CONTROLLED"
     else:
-        non_crisis_divisions = [
-            d for d in matched_divisions if d["domain"] not in _CRISIS_DOMAINS
-        ]
+        coordinator_status = "WITHIN_TOLERANCE"
 
-        # Fan out to non-crisis Divisions in parallel
-        non_crisis_results: list[dict[str, Any]] = []
-        if non_crisis_divisions:
-            with ThreadPoolExecutor(max_workers=len(non_crisis_divisions)) as pool:
-                futures = {
-                    pool.submit(invoke_division, div, intake): div
-                    for div in non_crisis_divisions
-                }
-                for future in as_completed(futures):
-                    non_crisis_results.append(future.result())
-
-        all_results = crisis_results + non_crisis_results
-        completed_count = sum(1 for r in all_results if r["status"] == "COMPLETED")
-        failed_count = sum(1 for r in all_results if r["status"] == "FAILED")
-
-        if completed_count == 0:
-            coordinator_status = "CONTROLLED"
-        elif failed_count > 0:
-            coordinator_status = "CONTROLLED"
-        else:
-            coordinator_status = "WITHIN_TOLERANCE"
-
-    synthesis = synthesize(all_results, gaps)
+    synthesis = synthesize(all_results, gaps, edge_cases)
 
     result: dict[str, Any] = {
-        "schema": _RESULT_SCHEMA,
-        "case_id": intake["case_id"],
-        "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "schema":             _RESULT_SCHEMA,
+        "case_id":            intake["case_id"],
+        "timestamp":          datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "founding_law_sha256": _FOUNDING_LAW_SHA256,
         "coordinator_status": coordinator_status,
-        "crisis_gate_result": crisis_gate_result,
-        "division_results": all_results,
-        "synthesis": synthesis,
-        "gaps": gaps,
-        "receipt_ref": "",
+        "crisis_response":    crisis_response,
+        "edge_cases":         edge_cases,
+        "division_results":   all_results,
+        "synthesis":          synthesis,
+        "gaps":               gaps,
+        "receipt_ref":        "",
     }
 
     receipt_path = write_receipt(result)

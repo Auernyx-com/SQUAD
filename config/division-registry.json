@@ -11,6 +11,7 @@
       "status": "framework",
       "attached_at": "2026-05-22T00:00:00.000Z",
       "repo": "https://github.com/Auernyx-com/va-benefits-division",
+      "domains": ["BENEFITS", "EMPLOYMENT"],
       "capabilities": [
         "dischargeQualificationGate",
         "educationGiBillRoute",
@@ -38,6 +39,7 @@
       "status": "framework",
       "attached_at": "2026-05-22T00:00:00.000Z",
       "repo": "https://github.com/Auernyx-com/business-opportunity-division",
+      "domains": ["BUSINESS"],
       "capabilities": [
         "dischargeQualificationGate",
         "sdvosbVosbCertificationRoute",
@@ -62,6 +64,7 @@
       "status": "framework",
       "attached_at": "2026-05-22T00:00:00.000Z",
       "repo": "https://github.com/Auernyx-com/medical-disability-division",
+      "domains": ["MEDICAL", "CLAIMS", "MENTAL_HEALTH"],
       "capabilities": [
         "dischargeQualificationGate",
         "healthcareEnrollmentRoute",
@@ -89,6 +92,7 @@
       "version": "1.0.0",
       "attached_at": "2026-05-05T00:00:00.000Z",
       "repo": "https://github.com/Auernyx-com/housing-division",
+      "domains": ["HOUSING"],
       "capabilities": [
         "listingLegitimacyCheck",
         "programGateHUDVASH",
@@ -110,6 +114,7 @@
       "status": "framework",
       "attached_at": "2026-05-23T00:00:00.000Z",
       "repo": "https://github.com/Auernyx-com/legal-division",
+      "domains": ["LEGAL"],
       "capabilities": [
         "dischargeUpgradeRoute",
         "vaBenefitsAppealsRoute",
@@ -134,6 +139,7 @@
       "status": "framework",
       "attached_at": "2026-05-23T00:00:00.000Z",
       "repo": "https://github.com/Auernyx-com/transportation-division",
+      "domains": ["TRANSPORTATION"],
       "capabilities": [
         "btsssTravelPayRoute",
         "davTransportRoute",
@@ -157,6 +163,7 @@
       "status": "framework",
       "attached_at": "2026-05-23T00:00:00.000Z",
       "repo": "https://github.com/Auernyx-com/women-veterans-division",
+      "domains": ["WOMEN_VETERANS"],
       "capabilities": [
         "womensHealthcareRoute",
         "maternityNewbornRoute",
@@ -183,6 +190,7 @@
       "status": "framework",
       "attached_at": "2026-05-23T00:00:00.000Z",
       "repo": "https://github.com/Auernyx-com/toxic-exposure-division",
+      "domains": ["TOXIC_EXPOSURE"],
       "capabilities": [
         "burnPitPactActRoute",
         "agentOrangeRoute",
