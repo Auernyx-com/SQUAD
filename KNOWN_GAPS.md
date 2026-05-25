@@ -63,6 +63,23 @@ the allowed number of requests could slip through before the count is written.
 For a beta-scale deployment this is acceptable. At production scale, Durable
 Objects would eliminate this race.
 
+**KV index append has a race condition.**
+The feedback index (the list of all feedback IDs) is maintained with a
+read-modify-write pattern on a single KV key. Two simultaneous feedback
+submissions could both read the same index, both append, and one could
+overwrite the other's entry. The individual feedback records are written
+atomically and are not lost — only the index entry could be missed. Rate
+limiting makes this unlikely in practice. Fix at production scale: use
+Durable Objects for the index, or drop the index entirely and use KV list().
+
+**CF_Authorization JWT is parsed without signature verification.**
+The `parseAccessJWT` helper reads the CF Access session cookie and trusts
+the payload to display session expiry info. The signature is not verified
+against Cloudflare's public keys. This does not gate any access — it only
+surfaces a session expiry notice to the user — so the security impact is
+minimal. A spoofed JWT payload could only change what expiry message the
+user sees. Noted for completeness.
+
 **No monitoring or alerting.**
 There is no automated alerting if the worker errors, the AI binding returns
 unexpected responses, or KV writes fail. Errors are logged to Cloudflare's
