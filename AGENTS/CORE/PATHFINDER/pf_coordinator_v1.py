@@ -660,12 +660,37 @@ def synthesize(
     else:
         confidence_label = "Very low — BAT cannot reliably route this case; contact a VSO directly"
 
-    # Merge floor contacts with division-surfaced contacts, deduplicate
-    merged_contacts: list[str] = list(all_contacts)
-    for fc in _floor_contacts:
-        if not any(_VA_MAIN_LINE in c or _VA_HOMELESS_VETERANS in c or _VETERANS_CRISIS_LINE in c
-                   for c in merged_contacts if fc.split("—")[0].strip() in c):
-            merged_contacts.append(fc)
+    # Deduplicate division-surfaced contacts by phone number substring.
+    # Two contacts with the same number but different labels are the same contact.
+    # Keep the first occurrence (usually more specific), drop later ones.
+    import re as _re
+    _phone_re = _re.compile(r'1-\d{3}-[\d-]{7,}|1-877-4AID-VET|\d{3}-\d{3}-\d{4}|988')
+    _seen_numbers: set[str] = set()
+    _seen_exact: set[str] = set()
+    deduped: list[str] = []
+    for c in all_contacts:
+        if c in _seen_exact:
+            continue
+        nums_in_c = set(_phone_re.findall(c))
+        if nums_in_c and nums_in_c.issubset(_seen_numbers):
+            continue   # all numbers in this contact already represented
+        _seen_exact.add(c)
+        _seen_numbers.update(nums_in_c)
+        deduped.append(c)
+
+    # Add floor contacts if their phone number isn't already present anywhere.
+    # Check by number substring — catches "VA main line — 1-800-827-1000 — ask for Benefits"
+    # and "VA main line — 1-800-827-1000" as the same number without needing exact label match.
+    _floor_pairs = [
+        (f"VA main line — {_VA_MAIN_LINE}", _VA_MAIN_LINE),
+        (f"VA National Call Center for Homeless Veterans — {_VA_HOMELESS_VETERANS} — 24/7",
+         _VA_HOMELESS_VETERANS),
+        (f"Veterans Crisis Line — {_VETERANS_CRISIS_LINE}", _VETERANS_CRISIS_LINE),
+    ]
+    merged_contacts: list[str] = deduped
+    for label, number in _floor_pairs:
+        if not any(number in c for c in merged_contacts):
+            merged_contacts.append(label)
 
     return {
         "primary_path":       primary_path,
