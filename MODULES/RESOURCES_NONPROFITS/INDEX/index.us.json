@@ -4,6 +4,7 @@
     "CO": {
       "regions": [
         "DATA/US/CO/western_slope.json",
+        "DATA/US/CO/front_range.json",
         "DATA/US/CO/denver_metro.json"
       ]
     },

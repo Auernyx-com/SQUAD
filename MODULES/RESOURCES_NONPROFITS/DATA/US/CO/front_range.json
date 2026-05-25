@@ -1,0 +1,271 @@
+{
+  "region_id": "US/CO/front_range",
+  "country": "US",
+  "state": "CO",
+  "region_label": "Front Range Colorado — Southern",
+  "counties_covered": [
+    "El Paso", "Teller", "Pueblo", "Fremont", "Custer"
+  ],
+  "notes": "Southern Front Range Colorado. Primary VA facility: Pueblo VA Medical Center (1008 Bermuda Ave, Pueblo CO 81001). Colorado Springs has a VA CBOC and Vet Center but no full VAMC — veterans needing inpatient or specialty care go to Pueblo VAMC or Eastern Colorado VA (Denver/Aurora). Fort Carson and Peterson/Schriever SFBs are major installation presence in El Paso County — TAP and ACS resources available on-base for transitioning service members. Significant Gulf War era veteran population in El Paso County — PACT Act (2022) and Gulf War Syndrome presumptives are high-value routing targets here. Data current as of 2026 — verify all contact info before production deployment.",
+  "gulf_war_note": "El Paso County has a high concentration of Gulf War era veterans (1990–2001). Gulf War Syndrome is a VA presumptive — fibromyalgia, functional gastrointestinal disorders, and undiagnosed multi-symptom illnesses qualify without proof of nexus. PACT Act (2022) extended coverage. Veterans who were denied in the past should refile. Route to toxic-exposure-division for refile guidance.",
+  "providers": [
+    {
+      "provider_id": "US/CO/front_range/pueblo-vamc",
+      "name": "Pueblo VA Medical Center",
+      "org_type": "vamc",
+      "coverage_counties": ["El Paso", "Teller", "Pueblo", "Fremont", "Custer"],
+      "cities": ["Pueblo"],
+      "services": [
+        "primary_care", "mental_health", "specialty_care",
+        "inpatient", "substance_use", "prosthetics",
+        "benefits_navigation", "social_work"
+      ],
+      "va_visibility": "high",
+      "notes": "Main VA Medical Center serving the Southern Front Range. El Paso County veterans are assigned here — not to Denver. VA enrollment required for most services. Mental health and crisis services available same-day. Patient Advocate on-site for facility complaints.",
+      "contact": {
+        "address": "1008 Bermuda Ave, Pueblo, CO 81001"
+      },
+      "phones": ["719-553-1000"],
+      "urls": ["https://www.va.gov/southern-colorado-health-care/"],
+      "verify_before_production": ["719-553-1000 — verify current main line"],
+      "source_hints": ["va.gov Southern Colorado Health Care System"]
+    },
+    {
+      "provider_id": "US/CO/front_range/colorado-springs-cboc",
+      "name": "Colorado Springs VA Clinic (CBOC)",
+      "org_type": "va_clinic",
+      "coverage_counties": ["El Paso", "Teller"],
+      "cities": ["Colorado Springs"],
+      "services": [
+        "primary_care", "mental_health", "lab", "pharmacy",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "Community-Based Outpatient Clinic (CBOC) — primary care for El Paso County veterans. No inpatient or full specialty care. Specialty referrals go to Pueblo VAMC or Eastern Colorado VA. VA enrollment required. This is the first-contact clinic for most Colorado Springs veterans.",
+      "contact": {},
+      "phones": [],
+      "urls": ["https://www.va.gov/find-locations"],
+      "verify_before_production": ["CBOC address and phone — use va.gov/find-locations, filter by Colorado Springs"],
+      "source_hints": ["va.gov facility locator — Colorado Springs CBOC"]
+    },
+    {
+      "provider_id": "US/CO/front_range/colorado-springs-vet-center",
+      "name": "Colorado Springs Vet Center",
+      "org_type": "vet_center",
+      "coverage_counties": ["El Paso", "Teller"],
+      "cities": ["Colorado Springs"],
+      "services": [
+        "mental_health_peer_support", "clinical_therapy_referral",
+        "mst_counseling", "resource_referral",
+        "family_support", "caregiver_support", "bereavement"
+      ],
+      "va_visibility": "high",
+      "notes": "VA-affiliated Vet Center. No VA enrollment required — walk-in eligible. Counseling for combat veterans and MST survivors. Readjustment counseling for OEF/OIF/Gulf War veterans. Family members eligible for bereavement and caregiver services. Important first stop for veterans avoiding the VA system.",
+      "contact": {
+        "address": "602 S. Nevada Ave, Colorado Springs, CO 80903"
+      },
+      "phones": ["719-471-9992"],
+      "urls": ["https://www.va.gov/colorado-springs-vet-center/"],
+      "verify_before_production": ["602 S. Nevada Ave — verify current address", "719-471-9992 — verify current main line"],
+      "source_hints": ["va.gov vet center locator — Colorado Springs"]
+    },
+    {
+      "provider_id": "US/CO/front_range/el-paso-county-vso",
+      "name": "El Paso County Veterans Service Office",
+      "org_type": "county_vso",
+      "coverage_counties": ["El Paso", "Teller"],
+      "cities": ["Colorado Springs"],
+      "services": [
+        "claims_assistance", "benefits_navigation",
+        "resource_referral", "advocacy"
+      ],
+      "va_visibility": "high",
+      "notes": "County-funded VSO. Free VA claims assistance and accredited representation. Serves El Paso and Teller County veterans. First stop for new claims, appeals, and benefits navigation for Colorado Springs area veterans.",
+      "contact": {
+        "office": "El Paso County Human Services"
+      },
+      "phones": [],
+      "urls": ["https://www.elpasoco.com"],
+      "verify_before_production": ["El Paso County VSO direct phone and address — check elpasoco.com or CDVA directory"],
+      "source_hints": ["elpasoco.com human services", "vets.colorado.gov county VSO directory"]
+    },
+    {
+      "provider_id": "US/CO/front_range/pueblo-county-vso",
+      "name": "Pueblo County Veterans Service Office",
+      "org_type": "county_vso",
+      "coverage_counties": ["Pueblo"],
+      "cities": ["Pueblo"],
+      "services": [
+        "claims_assistance", "benefits_navigation",
+        "resource_referral", "advocacy"
+      ],
+      "va_visibility": "high",
+      "notes": "County-funded VSO serving Pueblo County veterans. Close to Pueblo VAMC — can coordinate appointments and navigate claims alongside medical care.",
+      "phones": [],
+      "urls": ["https://www.pueblocounty.us"],
+      "verify_before_production": ["Pueblo County VSO phone and address — check pueblocounty.us or CDVA directory"],
+      "source_hints": ["pueblocounty.us", "vets.colorado.gov county VSO directory"]
+    },
+    {
+      "provider_id": "US/CO/front_range/cdva-southern-region",
+      "name": "Colorado Division of Veterans Affairs — Southern Region",
+      "org_type": "state_agency",
+      "coverage_counties": ["El Paso", "Teller", "Pueblo", "Fremont", "Custer"],
+      "cities": ["Colorado Springs", "Pueblo"],
+      "services": [
+        "claims_assistance", "benefits_navigation",
+        "resource_referral", "advocacy"
+      ],
+      "va_visibility": "high",
+      "notes": "State Veterans Service Organization. Accredited representatives for VA claims. Coordinates with county VSOs across southern Colorado. 1-844-263-2778 is the statewide CDVA line.",
+      "phones": ["1-844-263-2778"],
+      "urls": ["https://vets.colorado.gov"],
+      "source_hints": ["vets.colorado.gov — statewide line confirmed"]
+    },
+    {
+      "provider_id": "US/CO/front_range/dav-colorado-springs",
+      "name": "DAV — Colorado Springs Area",
+      "org_type": "vso_chapter",
+      "coverage_counties": ["El Paso"],
+      "cities": ["Colorado Springs"],
+      "services": [
+        "claims_assistance", "benefits_navigation",
+        "transportation", "advocacy", "resource_referral"
+      ],
+      "va_visibility": "high",
+      "notes": "Disabled American Veterans. Free claims assistance and DAV transport program coordination for medical appointments (DAVTS). Active DAV presence in Colorado Springs area.",
+      "phones": [],
+      "urls": ["https://www.dav.org"],
+      "verify_before_production": ["DAV Colorado Springs chapter contact — check dav.org chapter locator"],
+      "source_hints": ["dav.org chapter locator — El Paso County"]
+    },
+    {
+      "provider_id": "US/CO/front_range/vfw-colorado-springs",
+      "name": "VFW — Colorado Springs Area Posts",
+      "org_type": "vso_post",
+      "coverage_counties": ["El Paso"],
+      "cities": ["Colorado Springs"],
+      "services": [
+        "claims_assistance", "benefits_navigation",
+        "social_connection", "memorial_civic", "emergency_financial_aid"
+      ],
+      "va_visibility": "medium",
+      "notes": "Multiple VFW posts in Colorado Springs. Claims assistance, emergency financial aid, peer community. Use vfw.org post locator for the post nearest to the veteran's address.",
+      "phones": [],
+      "urls": ["https://www.vfw.org"],
+      "verify_before_production": ["Use vfw.org post locator for El Paso County — do not hardcode a single post number"],
+      "source_hints": ["vfw.org post locator"]
+    },
+    {
+      "provider_id": "US/CO/front_range/american-legion-colorado-springs",
+      "name": "American Legion — Colorado Springs Area Posts",
+      "org_type": "vso_post",
+      "coverage_counties": ["El Paso"],
+      "cities": ["Colorado Springs"],
+      "services": [
+        "claims_assistance", "benefits_navigation",
+        "social_connection", "memorial_civic",
+        "education_support", "emergency_financial_aid"
+      ],
+      "va_visibility": "medium",
+      "notes": "Multiple American Legion posts in Colorado Springs. Claims assistance, scholarship programs, peer community. Use legion.org post locator.",
+      "phones": [],
+      "urls": ["https://www.legion.org"],
+      "verify_before_production": ["Use legion.org post locator for El Paso County"],
+      "source_hints": ["legion.org post locator"]
+    },
+    {
+      "provider_id": "US/CO/front_range/fort-carson-acs",
+      "name": "Fort Carson Army Community Service (ACS)",
+      "org_type": "military_installation",
+      "coverage_counties": ["El Paso"],
+      "cities": ["Colorado Springs"],
+      "services": [
+        "employment_transition", "financial_counseling",
+        "family_support", "resource_referral",
+        "skillbridge_coordination"
+      ],
+      "va_visibility": "high",
+      "notes": "On-base transition resource. TAP (Transition Assistance Program) and SkillBridge coordination for currently separating soldiers. ACS also assists veterans who have recently separated. Must coordinate access for non-active-duty visitors.",
+      "contact": {
+        "installation": "Fort Carson, Colorado Springs, CO"
+      },
+      "phones": [],
+      "urls": ["https://carson.armymwr.com"],
+      "verify_before_production": ["ACS direct line — check carson.armymwr.com or MilitaryOneSource"],
+      "source_hints": ["carson.armymwr.com"]
+    },
+    {
+      "provider_id": "US/CO/front_range/springs-rescue-mission",
+      "name": "Springs Rescue Mission",
+      "org_type": "nonprofit",
+      "coverage_counties": ["El Paso"],
+      "cities": ["Colorado Springs"],
+      "services": [
+        "emergency_shelter", "housing_support",
+        "resource_referral", "substance_use",
+        "employment_support"
+      ],
+      "va_visibility": "medium",
+      "notes": "Emergency shelter and transitional housing in Colorado Springs. Serves veterans among general unhoused population. Not a VA-affiliated shelter — appropriate for veterans needing immediate emergency shelter while VASH or SSVF is processing.",
+      "contact": {
+        "address": "5 W. Las Vegas St, Colorado Springs, CO 80903"
+      },
+      "phones": ["719-632-1822"],
+      "urls": ["https://www.springsrescuemission.org"],
+      "verify_before_production": ["719-632-1822 — verify current intake line"],
+      "source_hints": ["springsrescuemission.org"]
+    },
+    {
+      "provider_id": "US/CO/front_range/home-base-colorado-front-range",
+      "name": "Home Base Colorado — Front Range",
+      "org_type": "nonprofit",
+      "coverage_counties": ["El Paso", "Pueblo"],
+      "cities": ["Colorado Springs", "Pueblo"],
+      "services": [
+        "housing_support", "homelessness_prevention",
+        "resource_referral", "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "Statewide veteran housing organization with Front Range presence. Partners with VA HUD-VASH and SSVF grantees. First call for veterans facing housing instability in El Paso and Pueblo counties.",
+      "phones": [],
+      "urls": ["https://homebasecolorado.org"],
+      "verify_before_production": ["Home Base CO Front Range direct contact — check homebasecolorado.org"],
+      "source_hints": ["homebasecolorado.org"]
+    },
+    {
+      "provider_id": "US/CO/front_range/tessa-colorado-springs",
+      "name": "TESSA — Colorado Springs",
+      "org_type": "nonprofit",
+      "coverage_counties": ["El Paso", "Teller"],
+      "cities": ["Colorado Springs"],
+      "services": [
+        "dv_shelter", "dv_advocacy", "legal_advocacy",
+        "housing_support", "resource_referral"
+      ],
+      "va_visibility": "medium",
+      "notes": "Domestic violence shelter and advocacy serving El Paso and Teller counties. Relevant for women veterans experiencing DV and for MST track routing. Confidential intake.",
+      "phones": ["719-633-3819"],
+      "urls": ["https://www.tessacs.org"],
+      "verify_before_production": ["719-633-3819 — verify current 24hr crisis line"],
+      "source_hints": ["tessacs.org"]
+    },
+    {
+      "provider_id": "US/CO/front_range/catholic-charities-colorado-springs",
+      "name": "Catholic Charities of Central Colorado",
+      "org_type": "nonprofit",
+      "coverage_counties": ["El Paso", "Teller"],
+      "cities": ["Colorado Springs"],
+      "services": [
+        "emergency_financial_aid", "housing_support",
+        "resource_referral", "immigration_legal"
+      ],
+      "va_visibility": "low",
+      "notes": "Emergency assistance regardless of faith background. Utility shutoff prevention, food, short-term housing support. Serves veterans among general population.",
+      "phones": [],
+      "urls": ["https://www.catholiccharitiescc.org"],
+      "verify_before_production": ["Catholic Charities CC phone — check catholiccharitiescc.org"],
+      "source_hints": ["catholiccharitiescc.org"]
+    }
+  ]
+}
