@@ -1,0 +1,138 @@
+{
+  "region_id": "US/WI",
+  "country": "US",
+  "state": "WI",
+  "region_label": "Wisconsin \u2014 Statewide",
+  "notes": "Statewide Wisconsin shard. Regional shards take precedence for local queries \u2014 this file is the fallback when no regional shard exists for a county. Primary VA facility/facilities: William S. Middleton VA \u2014 Madison, Clement J. Zablocki VA \u2014 Milwaukee, Tomah VA Medical Center (Tomah, Madison, Milwaukee). State VSO: Wisconsin Department of Veterans Affairs. All phone numbers marked VERIFY_BEFORE_PRODUCTION \u2014 national VA lines are always valid. Add regional shards under DATA/US/WI/<region>.json as local data is confirmed.",
+  "providers": [
+    {
+      "provider_id": "US/WI/wi-state-vso",
+      "name": "Wisconsin Department of Veterans Affairs",
+      "org_type": "state_agency",
+      "coverage_counties": [],
+      "cities": [],
+      "services": [
+        "claims_assistance",
+        "benefits_navigation",
+        "resource_referral",
+        "advocacy"
+      ],
+      "va_visibility": "high",
+      "notes": "State veterans service agency. Free accredited claims assistance and benefits navigation statewide. Find county VSO contacts at https://dva.wi.gov.",
+      "phones": [],
+      "urls": [
+        "https://dva.wi.gov"
+      ],
+      "verify_before_production": [
+        "Wisconsin Department of Veterans Affairs statewide phone \u2014 check state website"
+      ],
+      "source_hints": [
+        "https://dva.wi.gov"
+      ]
+    },
+    {
+      "provider_id": "US/WI/wi-vamc-1",
+      "name": "William S. Middleton VA \u2014 Madison",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Madison"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving Wisconsin. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "William S. Middleton VA \u2014 Madison main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/WI/wi-vamc-2",
+      "name": "Clement J. Zablocki VA \u2014 Milwaukee",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Milwaukee"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving Wisconsin. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "Clement J. Zablocki VA \u2014 Milwaukee main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/WI/wi-vamc-3",
+      "name": "Tomah VA Medical Center",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Tomah"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving Wisconsin. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "Tomah VA Medical Center main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/WI/wi-vet-centers",
+      "name": "Wisconsin Vet Centers",
+      "org_type": "vet_center",
+      "coverage_counties": [],
+      "cities": [],
+      "services": [
+        "mental_health_peer_support",
+        "clinical_therapy_referral",
+        "mst_counseling",
+        "resource_referral",
+        "family_support"
+      ],
+      "va_visibility": "high",
+      "notes": "VA-affiliated Vet Centers. No VA enrollment required \u2014 walk-in eligible. Find all locations at va.gov/find-locations (filter: Vet Center).",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov vet center locator"
+      ]
+    }
+  ]
+}

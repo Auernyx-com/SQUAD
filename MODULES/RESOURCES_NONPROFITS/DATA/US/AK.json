@@ -1,0 +1,84 @@
+{
+  "region_id": "US/AK",
+  "country": "US",
+  "state": "AK",
+  "region_label": "Alaska \u2014 Statewide",
+  "notes": "Statewide Alaska shard. Regional shards take precedence for local queries \u2014 this file is the fallback when no regional shard exists for a county. Primary VA facility/facilities: Alaska VA Healthcare System (Anchorage). State VSO: Alaska Division of Veterans Affairs. All phone numbers marked VERIFY_BEFORE_PRODUCTION \u2014 national VA lines are always valid. Add regional shards under DATA/US/AK/<region>.json as local data is confirmed.",
+  "providers": [
+    {
+      "provider_id": "US/AK/ak-state-vso",
+      "name": "Alaska Division of Veterans Affairs",
+      "org_type": "state_agency",
+      "coverage_counties": [],
+      "cities": [],
+      "services": [
+        "claims_assistance",
+        "benefits_navigation",
+        "resource_referral",
+        "advocacy"
+      ],
+      "va_visibility": "high",
+      "notes": "State veterans service agency. Free accredited claims assistance and benefits navigation statewide. Find county VSO contacts at https://veterans.alaska.gov.",
+      "phones": [],
+      "urls": [
+        "https://veterans.alaska.gov"
+      ],
+      "verify_before_production": [
+        "Alaska Division of Veterans Affairs statewide phone \u2014 check state website"
+      ],
+      "source_hints": [
+        "https://veterans.alaska.gov"
+      ]
+    },
+    {
+      "provider_id": "US/AK/ak-vamc-1",
+      "name": "Alaska VA Healthcare System",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Anchorage"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving Alaska. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "Alaska VA Healthcare System main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/AK/ak-vet-centers",
+      "name": "Alaska Vet Centers",
+      "org_type": "vet_center",
+      "coverage_counties": [],
+      "cities": [],
+      "services": [
+        "mental_health_peer_support",
+        "clinical_therapy_referral",
+        "mst_counseling",
+        "resource_referral",
+        "family_support"
+      ],
+      "va_visibility": "high",
+      "notes": "VA-affiliated Vet Centers. No VA enrollment required \u2014 walk-in eligible. Find all locations at va.gov/find-locations (filter: Vet Center).",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov vet center locator"
+      ]
+    }
+  ]
+}

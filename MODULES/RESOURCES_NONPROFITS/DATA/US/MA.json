@@ -1,0 +1,111 @@
+{
+  "region_id": "US/MA",
+  "country": "US",
+  "state": "MA",
+  "region_label": "Massachusetts \u2014 Statewide",
+  "notes": "Statewide Massachusetts shard. Regional shards take precedence for local queries \u2014 this file is the fallback when no regional shard exists for a county. Primary VA facility/facilities: VA Boston Health Care System, Edith Nourse Rogers Memorial VA \u2014 Bedford (Boston, Bedford). State VSO: Massachusetts Department of Veterans Services. All phone numbers marked VERIFY_BEFORE_PRODUCTION \u2014 national VA lines are always valid. Add regional shards under DATA/US/MA/<region>.json as local data is confirmed.",
+  "providers": [
+    {
+      "provider_id": "US/MA/ma-state-vso",
+      "name": "Massachusetts Department of Veterans Services",
+      "org_type": "state_agency",
+      "coverage_counties": [],
+      "cities": [],
+      "services": [
+        "claims_assistance",
+        "benefits_navigation",
+        "resource_referral",
+        "advocacy"
+      ],
+      "va_visibility": "high",
+      "notes": "State veterans service agency. Free accredited claims assistance and benefits navigation statewide. Find county VSO contacts at https://www.mass.gov/orgs/department-of-veterans-services.",
+      "phones": [],
+      "urls": [
+        "https://www.mass.gov/orgs/department-of-veterans-services"
+      ],
+      "verify_before_production": [
+        "Massachusetts Department of Veterans Services statewide phone \u2014 check state website"
+      ],
+      "source_hints": [
+        "https://www.mass.gov/orgs/department-of-veterans-services"
+      ]
+    },
+    {
+      "provider_id": "US/MA/ma-vamc-1",
+      "name": "VA Boston Health Care System",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Boston"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving Massachusetts. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "VA Boston Health Care System main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/MA/ma-vamc-2",
+      "name": "Edith Nourse Rogers Memorial VA \u2014 Bedford",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Bedford"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving Massachusetts. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "Edith Nourse Rogers Memorial VA \u2014 Bedford main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/MA/ma-vet-centers",
+      "name": "Massachusetts Vet Centers",
+      "org_type": "vet_center",
+      "coverage_counties": [],
+      "cities": [],
+      "services": [
+        "mental_health_peer_support",
+        "clinical_therapy_referral",
+        "mst_counseling",
+        "resource_referral",
+        "family_support"
+      ],
+      "va_visibility": "high",
+      "notes": "VA-affiliated Vet Centers. No VA enrollment required \u2014 walk-in eligible. Find all locations at va.gov/find-locations (filter: Vet Center).",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov vet center locator"
+      ]
+    }
+  ]
+}

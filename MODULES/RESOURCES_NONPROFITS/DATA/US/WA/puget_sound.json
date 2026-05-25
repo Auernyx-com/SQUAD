@@ -1,0 +1,155 @@
+{
+  "region_id": "US/WA/puget_sound",
+  "country": "US",
+  "state": "WA",
+  "region_label": "Puget Sound — Pierce, King, Kitsap, Thurston Counties",
+  "counties_covered": [
+    "Pierce", "King", "Kitsap", "Thurston", "Mason", "Lewis", "Pacific", "Grays Harbor"
+  ],
+  "notes": "Puget Sound region. American Lake VA (Tacoma) is the primary VAMC for Pierce County veterans including JBLM. Seattle VA serves King and north counties. Major military presence: JBLM (Pierce), Naval Base Kitsap (Kitsap), McChord Field. 20-year retirees from JBLM/McChord are a core population here — TAP and retiree services available on-base. Washington's veteran population is among the highest per-capita nationally. Data current as of 2026 — verify contacts before production deployment.",
+  "providers": [
+    {
+      "provider_id": "US/WA/puget_sound/american-lake-vamc",
+      "name": "VA Puget Sound — American Lake Division",
+      "org_type": "vamc",
+      "coverage_counties": ["Pierce", "Thurston", "Mason", "Lewis", "Kitsap", "Pacific", "Grays Harbor"],
+      "cities": ["Tacoma"],
+      "services": [
+        "primary_care", "mental_health", "specialty_care",
+        "inpatient", "substance_use", "prosthetics",
+        "benefits_navigation", "social_work"
+      ],
+      "va_visibility": "high",
+      "notes": "Primary VAMC for Pierce County including JBLM veterans. Located near Fort Lewis/McChord. Same-day mental health and crisis services. Patient Advocate on-site. The American Lake division specifically handles south Puget Sound and JBLM population.",
+      "contact": {
+        "address": "9600 Veterans Dr SW, Tacoma, WA 98493"
+      },
+      "phones": ["253-582-8440"],
+      "urls": ["https://www.va.gov/puget-sound-health-care/locations/american-lake-division/"],
+      "verify_before_production": ["253-582-8440 — verify current main line"],
+      "source_hints": ["va.gov American Lake division page"]
+    },
+    {
+      "provider_id": "US/WA/puget_sound/tacoma-vet-center",
+      "name": "Tacoma Vet Center",
+      "org_type": "vet_center",
+      "coverage_counties": ["Pierce", "Thurston", "Lewis"],
+      "cities": ["Tacoma"],
+      "services": [
+        "mental_health_peer_support", "clinical_therapy_referral",
+        "mst_counseling", "resource_referral",
+        "family_support", "caregiver_support", "bereavement"
+      ],
+      "va_visibility": "high",
+      "notes": "VA-affiliated Vet Center. No VA enrollment required — walk-in eligible. Readjustment counseling, combat veteran and MST survivor support. Serves active duty, veterans, and their families. Key first-contact for JBLM veterans avoiding the formal VA system.",
+      "contact": {
+        "address": "4916 Center St, Tacoma, WA 98409"
+      },
+      "phones": ["253-565-7038"],
+      "urls": ["https://www.va.gov/tacoma-vet-center/"],
+      "verify_before_production": ["253-565-7038 — verify current main line", "4916 Center St — verify current address"],
+      "source_hints": ["va.gov vet center locator — Tacoma"]
+    },
+    {
+      "provider_id": "US/WA/puget_sound/pierce-county-vso",
+      "name": "Pierce County Veterans Services",
+      "org_type": "county_vso",
+      "coverage_counties": ["Pierce"],
+      "cities": ["Tacoma"],
+      "services": [
+        "claims_assistance", "benefits_navigation",
+        "resource_referral", "advocacy"
+      ],
+      "va_visibility": "high",
+      "notes": "County-funded VSO. Free VA claims assistance and accredited representation for Pierce County veterans. First stop for new claims, appeals, and benefits questions.",
+      "phones": [],
+      "urls": ["https://www.piercecountywa.gov"],
+      "verify_before_production": ["Pierce County VSO direct phone — check piercecountywa.gov/veterans or call county main line"],
+      "source_hints": ["piercecountywa.gov veterans services"]
+    },
+    {
+      "provider_id": "US/WA/puget_sound/king-county-vso",
+      "name": "King County Veterans Program",
+      "org_type": "county_vso",
+      "coverage_counties": ["King"],
+      "cities": ["Seattle"],
+      "services": [
+        "claims_assistance", "benefits_navigation",
+        "housing_support", "resource_referral", "advocacy"
+      ],
+      "va_visibility": "high",
+      "notes": "County-funded VSO. King County has one of the largest veteran populations in WA. Benefits navigation, emergency financial assistance, and housing coordination.",
+      "phones": [],
+      "urls": ["https://kingcounty.gov/veterans"],
+      "verify_before_production": ["King County Veterans Program direct line — check kingcounty.gov/veterans"],
+      "source_hints": ["kingcounty.gov/veterans"]
+    },
+    {
+      "provider_id": "US/WA/puget_sound/wdva-puget-sound",
+      "name": "WDVA — Puget Sound Regional Office",
+      "org_type": "state_agency",
+      "coverage_counties": ["Pierce", "King", "Kitsap", "Thurston"],
+      "cities": ["Tacoma", "Seattle"],
+      "services": [
+        "claims_assistance", "benefits_navigation",
+        "resource_referral", "advocacy"
+      ],
+      "va_visibility": "high",
+      "notes": "Washington Department of Veterans Affairs regional presence. Accredited representatives. Statewide line 1-800-562-2308 routes to the appropriate regional office.",
+      "phones": ["1-800-562-2308"],
+      "urls": ["https://www.dva.wa.gov"],
+      "source_hints": ["dva.wa.gov — statewide line confirmed"]
+    },
+    {
+      "provider_id": "US/WA/puget_sound/jblm-acs",
+      "name": "JBLM Army Community Service (ACS)",
+      "org_type": "military_installation",
+      "coverage_counties": ["Pierce"],
+      "cities": ["Tacoma", "Lakewood"],
+      "services": [
+        "employment_transition", "skillbridge_coordination",
+        "tap_program", "financial_counseling",
+        "family_support", "resource_referral"
+      ],
+      "va_visibility": "high",
+      "notes": "On-base transition resource for JBLM. TAP program and SkillBridge for separating soldiers. Strong transition infrastructure — one of the best-resourced installations in the country. Access coordination required for non-active-duty. Also serves 20-year retirees transitioning out.",
+      "phones": [],
+      "urls": ["https://jblm.armymwr.com"],
+      "verify_before_production": ["JBLM ACS main line — check jblm.armymwr.com"],
+      "source_hints": ["jblm.armymwr.com"]
+    },
+    {
+      "provider_id": "US/WA/puget_sound/dav-puget-sound",
+      "name": "DAV — Puget Sound Area",
+      "org_type": "vso_chapter",
+      "coverage_counties": ["Pierce", "King"],
+      "cities": ["Tacoma", "Seattle"],
+      "services": [
+        "claims_assistance", "benefits_navigation",
+        "transportation", "advocacy"
+      ],
+      "va_visibility": "high",
+      "notes": "DAV chapters active in Pierce and King counties. Free claims assistance and DAV transport program (DAVTS) for medical appointments. Use dav.org chapter locator for nearest chapter.",
+      "phones": [],
+      "urls": ["https://www.dav.org"],
+      "verify_before_production": ["Use dav.org chapter locator — Pierce and King counties"],
+      "source_hints": ["dav.org chapter locator"]
+    },
+    {
+      "provider_id": "US/WA/puget_sound/ssvf-tacoma",
+      "name": "SSVF Grantees — Tacoma / Pierce County",
+      "org_type": "nonprofit",
+      "coverage_counties": ["Pierce"],
+      "cities": ["Tacoma"],
+      "services": [
+        "housing_support", "homelessness_prevention",
+        "resource_referral", "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "SSVF (Supportive Services for Veteran Families) rapid re-housing and homelessness prevention. Pierce County has active SSVF grantees. Route through VA American Lake social work or call National Homeless Veterans line (1-877-4AID-VET) to identify current grantees serving this area.",
+      "phones": ["1-877-424-3838"],
+      "urls": ["https://www.va.gov/homeless/ssvf/"],
+      "source_hints": ["1-877-4AID-VET national routing confirmed"]
+    }
+  ]
+}

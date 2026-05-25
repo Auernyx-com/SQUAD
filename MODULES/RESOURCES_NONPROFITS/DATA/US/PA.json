@@ -1,0 +1,192 @@
+{
+  "region_id": "US/PA",
+  "country": "US",
+  "state": "PA",
+  "region_label": "Pennsylvania \u2014 Statewide",
+  "notes": "Statewide Pennsylvania shard. Regional shards take precedence for local queries \u2014 this file is the fallback when no regional shard exists for a county. Primary VA facility/facilities: Corporal Michael J. Crescenz VA \u2014 Philadelphia, VA Pittsburgh, Coatesville VA Medical Center, Erie VA Medical Center, Lebanon VA Medical Center (Philadelphia, Lebanon, Erie, Coatesville, Pittsburgh). State VSO: Pennsylvania Department of Military and Veterans Affairs. All phone numbers marked VERIFY_BEFORE_PRODUCTION \u2014 national VA lines are always valid. Add regional shards under DATA/US/PA/<region>.json as local data is confirmed.",
+  "providers": [
+    {
+      "provider_id": "US/PA/pa-state-vso",
+      "name": "Pennsylvania Department of Military and Veterans Affairs",
+      "org_type": "state_agency",
+      "coverage_counties": [],
+      "cities": [],
+      "services": [
+        "claims_assistance",
+        "benefits_navigation",
+        "resource_referral",
+        "advocacy"
+      ],
+      "va_visibility": "high",
+      "notes": "State veterans service agency. Free accredited claims assistance and benefits navigation statewide. Find county VSO contacts at https://www.dmva.pa.gov.",
+      "phones": [],
+      "urls": [
+        "https://www.dmva.pa.gov"
+      ],
+      "verify_before_production": [
+        "Pennsylvania Department of Military and Veterans Affairs statewide phone \u2014 check state website"
+      ],
+      "source_hints": [
+        "https://www.dmva.pa.gov"
+      ]
+    },
+    {
+      "provider_id": "US/PA/pa-vamc-1",
+      "name": "Corporal Michael J. Crescenz VA \u2014 Philadelphia",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Philadelphia"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving Pennsylvania. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "Corporal Michael J. Crescenz VA \u2014 Philadelphia main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/PA/pa-vamc-2",
+      "name": "VA Pittsburgh",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Pittsburgh"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving Pennsylvania. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "VA Pittsburgh main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/PA/pa-vamc-3",
+      "name": "Coatesville VA Medical Center",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Coatesville"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving Pennsylvania. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "Coatesville VA Medical Center main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/PA/pa-vamc-4",
+      "name": "Erie VA Medical Center",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Erie"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving Pennsylvania. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "Erie VA Medical Center main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/PA/pa-vamc-5",
+      "name": "Lebanon VA Medical Center",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Lebanon"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving Pennsylvania. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "Lebanon VA Medical Center main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/PA/pa-vet-centers",
+      "name": "Pennsylvania Vet Centers",
+      "org_type": "vet_center",
+      "coverage_counties": [],
+      "cities": [],
+      "services": [
+        "mental_health_peer_support",
+        "clinical_therapy_referral",
+        "mst_counseling",
+        "resource_referral",
+        "family_support"
+      ],
+      "va_visibility": "high",
+      "notes": "VA-affiliated Vet Centers. No VA enrollment required \u2014 walk-in eligible. Find all locations at va.gov/find-locations (filter: Vet Center).",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov vet center locator"
+      ]
+    }
+  ]
+}

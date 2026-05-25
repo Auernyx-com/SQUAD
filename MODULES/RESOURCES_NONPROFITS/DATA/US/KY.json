@@ -1,0 +1,111 @@
+{
+  "region_id": "US/KY",
+  "country": "US",
+  "state": "KY",
+  "region_label": "Kentucky \u2014 Statewide",
+  "notes": "Statewide Kentucky shard. Regional shards take precedence for local queries \u2014 this file is the fallback when no regional shard exists for a county. Primary VA facility/facilities: Lexington VA Health Care System, Robley Rex VA \u2014 Louisville (Lexington, Louisville). State VSO: Kentucky Department of Veterans Affairs. All phone numbers marked VERIFY_BEFORE_PRODUCTION \u2014 national VA lines are always valid. Add regional shards under DATA/US/KY/<region>.json as local data is confirmed.",
+  "providers": [
+    {
+      "provider_id": "US/KY/ky-state-vso",
+      "name": "Kentucky Department of Veterans Affairs",
+      "org_type": "state_agency",
+      "coverage_counties": [],
+      "cities": [],
+      "services": [
+        "claims_assistance",
+        "benefits_navigation",
+        "resource_referral",
+        "advocacy"
+      ],
+      "va_visibility": "high",
+      "notes": "State veterans service agency. Free accredited claims assistance and benefits navigation statewide. Find county VSO contacts at https://veterans.ky.gov.",
+      "phones": [],
+      "urls": [
+        "https://veterans.ky.gov"
+      ],
+      "verify_before_production": [
+        "Kentucky Department of Veterans Affairs statewide phone \u2014 check state website"
+      ],
+      "source_hints": [
+        "https://veterans.ky.gov"
+      ]
+    },
+    {
+      "provider_id": "US/KY/ky-vamc-1",
+      "name": "Lexington VA Health Care System",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Lexington"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving Kentucky. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "Lexington VA Health Care System main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/KY/ky-vamc-2",
+      "name": "Robley Rex VA \u2014 Louisville",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Louisville"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving Kentucky. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "Robley Rex VA \u2014 Louisville main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/KY/ky-vet-centers",
+      "name": "Kentucky Vet Centers",
+      "org_type": "vet_center",
+      "coverage_counties": [],
+      "cities": [],
+      "services": [
+        "mental_health_peer_support",
+        "clinical_therapy_referral",
+        "mst_counseling",
+        "resource_referral",
+        "family_support"
+      ],
+      "va_visibility": "high",
+      "notes": "VA-affiliated Vet Centers. No VA enrollment required \u2014 walk-in eligible. Find all locations at va.gov/find-locations (filter: Vet Center).",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov vet center locator"
+      ]
+    }
+  ]
+}

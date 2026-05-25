@@ -1,0 +1,165 @@
+{
+  "region_id": "US/MI",
+  "country": "US",
+  "state": "MI",
+  "region_label": "Michigan \u2014 Statewide",
+  "notes": "Statewide Michigan shard. Regional shards take precedence for local queries \u2014 this file is the fallback when no regional shard exists for a county. Primary VA facility/facilities: John D. Dingell VA \u2014 Detroit, Battle Creek VA, VA Ann Arbor, Oscar G. Johnson VA \u2014 Iron Mountain (Ann Arbor, Iron Mountain, Battle Creek, Detroit). State VSO: Michigan Veterans Affairs Agency. All phone numbers marked VERIFY_BEFORE_PRODUCTION \u2014 national VA lines are always valid. Add regional shards under DATA/US/MI/<region>.json as local data is confirmed.",
+  "providers": [
+    {
+      "provider_id": "US/MI/mi-state-vso",
+      "name": "Michigan Veterans Affairs Agency",
+      "org_type": "state_agency",
+      "coverage_counties": [],
+      "cities": [],
+      "services": [
+        "claims_assistance",
+        "benefits_navigation",
+        "resource_referral",
+        "advocacy"
+      ],
+      "va_visibility": "high",
+      "notes": "State veterans service agency. Free accredited claims assistance and benefits navigation statewide. Find county VSO contacts at https://www.michigan.gov/mvaa.",
+      "phones": [],
+      "urls": [
+        "https://www.michigan.gov/mvaa"
+      ],
+      "verify_before_production": [
+        "Michigan Veterans Affairs Agency statewide phone \u2014 check state website"
+      ],
+      "source_hints": [
+        "https://www.michigan.gov/mvaa"
+      ]
+    },
+    {
+      "provider_id": "US/MI/mi-vamc-1",
+      "name": "John D. Dingell VA \u2014 Detroit",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Detroit"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving Michigan. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "John D. Dingell VA \u2014 Detroit main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/MI/mi-vamc-2",
+      "name": "Battle Creek VA",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Battle Creek"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving Michigan. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "Battle Creek VA main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/MI/mi-vamc-3",
+      "name": "VA Ann Arbor",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Ann Arbor"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving Michigan. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "VA Ann Arbor main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/MI/mi-vamc-4",
+      "name": "Oscar G. Johnson VA \u2014 Iron Mountain",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Iron Mountain"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving Michigan. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "Oscar G. Johnson VA \u2014 Iron Mountain main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/MI/mi-vet-centers",
+      "name": "Michigan Vet Centers",
+      "org_type": "vet_center",
+      "coverage_counties": [],
+      "cities": [],
+      "services": [
+        "mental_health_peer_support",
+        "clinical_therapy_referral",
+        "mst_counseling",
+        "resource_referral",
+        "family_support"
+      ],
+      "va_visibility": "high",
+      "notes": "VA-affiliated Vet Centers. No VA enrollment required \u2014 walk-in eligible. Find all locations at va.gov/find-locations (filter: Vet Center).",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov vet center locator"
+      ]
+    }
+  ]
+}

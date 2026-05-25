@@ -1,0 +1,165 @@
+{
+  "region_id": "US/WV",
+  "country": "US",
+  "state": "WV",
+  "region_label": "West Virginia \u2014 Statewide",
+  "notes": "Statewide West Virginia shard. Regional shards take precedence for local queries \u2014 this file is the fallback when no regional shard exists for a county. Primary VA facility/facilities: Huntington VA Medical Center, Beckley VA Medical Center, Louis A. Johnson VA \u2014 Clarksburg, Martinsburg VA Medical Center (Beckley, Martinsburg, Clarksburg, Huntington). State VSO: West Virginia Division of Veterans Assistance. All phone numbers marked VERIFY_BEFORE_PRODUCTION \u2014 national VA lines are always valid. Add regional shards under DATA/US/WV/<region>.json as local data is confirmed.",
+  "providers": [
+    {
+      "provider_id": "US/WV/wv-state-vso",
+      "name": "West Virginia Division of Veterans Assistance",
+      "org_type": "state_agency",
+      "coverage_counties": [],
+      "cities": [],
+      "services": [
+        "claims_assistance",
+        "benefits_navigation",
+        "resource_referral",
+        "advocacy"
+      ],
+      "va_visibility": "high",
+      "notes": "State veterans service agency. Free accredited claims assistance and benefits navigation statewide. Find county VSO contacts at https://veterans.wv.gov.",
+      "phones": [],
+      "urls": [
+        "https://veterans.wv.gov"
+      ],
+      "verify_before_production": [
+        "West Virginia Division of Veterans Assistance statewide phone \u2014 check state website"
+      ],
+      "source_hints": [
+        "https://veterans.wv.gov"
+      ]
+    },
+    {
+      "provider_id": "US/WV/wv-vamc-1",
+      "name": "Huntington VA Medical Center",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Huntington"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving West Virginia. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "Huntington VA Medical Center main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/WV/wv-vamc-2",
+      "name": "Beckley VA Medical Center",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Beckley"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving West Virginia. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "Beckley VA Medical Center main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/WV/wv-vamc-3",
+      "name": "Louis A. Johnson VA \u2014 Clarksburg",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Clarksburg"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving West Virginia. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "Louis A. Johnson VA \u2014 Clarksburg main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/WV/wv-vamc-4",
+      "name": "Martinsburg VA Medical Center",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Martinsburg"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving West Virginia. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "Martinsburg VA Medical Center main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/WV/wv-vet-centers",
+      "name": "West Virginia Vet Centers",
+      "org_type": "vet_center",
+      "coverage_counties": [],
+      "cities": [],
+      "services": [
+        "mental_health_peer_support",
+        "clinical_therapy_referral",
+        "mst_counseling",
+        "resource_referral",
+        "family_support"
+      ],
+      "va_visibility": "high",
+      "notes": "VA-affiliated Vet Centers. No VA enrollment required \u2014 walk-in eligible. Find all locations at va.gov/find-locations (filter: Vet Center).",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov vet center locator"
+      ]
+    }
+  ]
+}

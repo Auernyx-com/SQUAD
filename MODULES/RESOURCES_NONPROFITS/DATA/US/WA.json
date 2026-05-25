@@ -1,0 +1,93 @@
+{
+  "region_id": "US/WA",
+  "country": "US",
+  "state": "WA",
+  "region_label": "Washington State — Statewide",
+  "notes": "Statewide Washington providers. Regional shards (puget_sound, spokane, etc.) take precedence for local queries. Primary VA system: VA Puget Sound Health Care System (Seattle + American Lake/Tacoma divisions). Significant active-duty and veteran population from JBLM, Bremerton Naval Base, McChord, Whidbey Island NAS. Washington State Department of Veterans Affairs (WDVA) at 1-800-562-2308.",
+  "providers": [
+    {
+      "provider_id": "US/WA/wdva-statewide",
+      "name": "Washington Department of Veterans Affairs (WDVA)",
+      "org_type": "state_agency",
+      "coverage_counties": [],
+      "cities": ["Olympia"],
+      "services": [
+        "claims_assistance", "benefits_navigation",
+        "resource_referral", "advocacy",
+        "education_support", "housing_support"
+      ],
+      "va_visibility": "high",
+      "notes": "State agency. Statewide claims assistance and benefits navigation. County VSO network across WA. Find your county VSO at dva.wa.gov.",
+      "phones": ["1-800-562-2308"],
+      "urls": ["https://www.dva.wa.gov"],
+      "source_hints": ["dva.wa.gov — statewide line"]
+    },
+    {
+      "provider_id": "US/WA/va-puget-sound-statewide",
+      "name": "VA Puget Sound Health Care System",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": ["Seattle", "Tacoma"],
+      "services": [
+        "primary_care", "mental_health", "specialty_care",
+        "inpatient", "benefits_navigation", "social_work"
+      ],
+      "va_visibility": "high",
+      "notes": "Two-division system. Seattle Division at 1660 S Columbian Way serves King/Snohomish/north counties. American Lake Division at 9600 Veterans Dr SW, Tacoma serves Pierce/Kitsap/south counties including JBLM veterans. Route to puget_sound shard for specific division detail.",
+      "phones": ["206-762-1010"],
+      "urls": ["https://www.va.gov/puget-sound-health-care/"],
+      "verify_before_production": ["206-762-1010 — verify current main line"],
+      "source_hints": ["va.gov Puget Sound Health Care System"]
+    },
+    {
+      "provider_id": "US/WA/va-spokane-statewide",
+      "name": "Mann-Grandstaff VA Medical Center — Spokane",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": ["Spokane"],
+      "services": [
+        "primary_care", "mental_health", "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "Primary VAMC for Eastern Washington. Serves veterans east of the Cascades — Spokane, Yakima, Tri-Cities, and surrounding rural areas.",
+      "phones": [],
+      "urls": ["https://www.va.gov/mann-grandstaff-spokane-health-care/"],
+      "verify_before_production": ["Mann-Grandstaff main line — check va.gov facility page"],
+      "source_hints": ["va.gov Mann-Grandstaff Spokane"]
+    },
+    {
+      "provider_id": "US/WA/washington-vet-centers",
+      "name": "Washington State Vet Centers",
+      "org_type": "vet_center",
+      "coverage_counties": [],
+      "cities": ["Seattle", "Tacoma", "Spokane", "Yakima", "Bellingham", "Kennewick"],
+      "services": [
+        "mental_health_peer_support", "clinical_therapy_referral",
+        "mst_counseling", "resource_referral", "family_support"
+      ],
+      "va_visibility": "high",
+      "notes": "Multiple Vet Centers across WA. No VA enrollment required. Walk-in eligible. Use va.gov/find-locations to find the nearest one.",
+      "phones": [],
+      "urls": ["https://www.va.gov/find-locations"],
+      "source_hints": ["va.gov vet center locator — Washington State"]
+    },
+    {
+      "provider_id": "US/WA/jblm-transition",
+      "name": "Joint Base Lewis-McChord (JBLM) Transition Services",
+      "org_type": "military_installation",
+      "coverage_counties": ["Pierce"],
+      "cities": ["Tacoma", "Lakewood"],
+      "services": [
+        "employment_transition", "skillbridge_coordination",
+        "tap_program", "financial_counseling", "family_support"
+      ],
+      "va_visibility": "high",
+      "notes": "TAP (Transition Assistance Program) and SkillBridge for separating soldiers and airmen. One of the largest military installations in the US — robust on-base transition infrastructure. Also serves retiring 20-year veterans.",
+      "phones": [],
+      "urls": ["https://jblm.armymwr.com"],
+      "verify_before_production": ["JBLM ACS transition services direct line"],
+      "source_hints": ["jblm.armymwr.com"]
+    }
+  ]
+}

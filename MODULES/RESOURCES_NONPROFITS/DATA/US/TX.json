@@ -1,0 +1,246 @@
+{
+  "region_id": "US/TX",
+  "country": "US",
+  "state": "TX",
+  "region_label": "Texas \u2014 Statewide",
+  "notes": "Statewide Texas shard. Regional shards take precedence for local queries \u2014 this file is the fallback when no regional shard exists for a county. Primary VA facility/facilities: Michael E. DeBakey VA \u2014 Houston, VA North Texas \u2014 Dallas, South Texas VA \u2014 San Antonio, Central Texas VA \u2014 Temple, Amarillo VA Health Care System, West Texas VA \u2014 Big Spring, El Paso VA Health Care System (Amarillo, Temple, Big Spring, Houston, El Paso, San Antonio, Dallas). State VSO: Texas Veterans Commission. All phone numbers marked VERIFY_BEFORE_PRODUCTION \u2014 national VA lines are always valid. Add regional shards under DATA/US/TX/<region>.json as local data is confirmed.",
+  "providers": [
+    {
+      "provider_id": "US/TX/tx-state-vso",
+      "name": "Texas Veterans Commission",
+      "org_type": "state_agency",
+      "coverage_counties": [],
+      "cities": [],
+      "services": [
+        "claims_assistance",
+        "benefits_navigation",
+        "resource_referral",
+        "advocacy"
+      ],
+      "va_visibility": "high",
+      "notes": "State veterans service agency. Free accredited claims assistance and benefits navigation statewide. Find county VSO contacts at https://www.tvc.texas.gov.",
+      "phones": [],
+      "urls": [
+        "https://www.tvc.texas.gov"
+      ],
+      "verify_before_production": [
+        "Texas Veterans Commission statewide phone \u2014 check state website"
+      ],
+      "source_hints": [
+        "https://www.tvc.texas.gov"
+      ]
+    },
+    {
+      "provider_id": "US/TX/tx-vamc-1",
+      "name": "Michael E. DeBakey VA \u2014 Houston",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Houston"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving Texas. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "Michael E. DeBakey VA \u2014 Houston main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/TX/tx-vamc-2",
+      "name": "VA North Texas \u2014 Dallas",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Dallas"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving Texas. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "VA North Texas \u2014 Dallas main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/TX/tx-vamc-3",
+      "name": "South Texas VA \u2014 San Antonio",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "San Antonio"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving Texas. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "South Texas VA \u2014 San Antonio main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/TX/tx-vamc-4",
+      "name": "Central Texas VA \u2014 Temple",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Temple"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving Texas. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "Central Texas VA \u2014 Temple main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/TX/tx-vamc-5",
+      "name": "Amarillo VA Health Care System",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Amarillo"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving Texas. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "Amarillo VA Health Care System main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/TX/tx-vamc-6",
+      "name": "West Texas VA \u2014 Big Spring",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Big Spring"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving Texas. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "West Texas VA \u2014 Big Spring main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/TX/tx-vamc-7",
+      "name": "El Paso VA Health Care System",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "El Paso"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving Texas. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "El Paso VA Health Care System main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/TX/tx-vet-centers",
+      "name": "Texas Vet Centers",
+      "org_type": "vet_center",
+      "coverage_counties": [],
+      "cities": [],
+      "services": [
+        "mental_health_peer_support",
+        "clinical_therapy_referral",
+        "mst_counseling",
+        "resource_referral",
+        "family_support"
+      ],
+      "va_visibility": "high",
+      "notes": "VA-affiliated Vet Centers. No VA enrollment required \u2014 walk-in eligible. Find all locations at va.gov/find-locations (filter: Vet Center).",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov vet center locator"
+      ]
+    }
+  ]
+}

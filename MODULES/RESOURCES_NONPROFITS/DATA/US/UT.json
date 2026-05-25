@@ -1,0 +1,84 @@
+{
+  "region_id": "US/UT",
+  "country": "US",
+  "state": "UT",
+  "region_label": "Utah \u2014 Statewide",
+  "notes": "Statewide Utah shard. Regional shards take precedence for local queries \u2014 this file is the fallback when no regional shard exists for a county. Primary VA facility/facilities: VA Salt Lake City Health Care System (Salt Lake City). State VSO: Utah Department of Veterans and Military Affairs. All phone numbers marked VERIFY_BEFORE_PRODUCTION \u2014 national VA lines are always valid. Add regional shards under DATA/US/UT/<region>.json as local data is confirmed.",
+  "providers": [
+    {
+      "provider_id": "US/UT/ut-state-vso",
+      "name": "Utah Department of Veterans and Military Affairs",
+      "org_type": "state_agency",
+      "coverage_counties": [],
+      "cities": [],
+      "services": [
+        "claims_assistance",
+        "benefits_navigation",
+        "resource_referral",
+        "advocacy"
+      ],
+      "va_visibility": "high",
+      "notes": "State veterans service agency. Free accredited claims assistance and benefits navigation statewide. Find county VSO contacts at https://veterans.utah.gov.",
+      "phones": [],
+      "urls": [
+        "https://veterans.utah.gov"
+      ],
+      "verify_before_production": [
+        "Utah Department of Veterans and Military Affairs statewide phone \u2014 check state website"
+      ],
+      "source_hints": [
+        "https://veterans.utah.gov"
+      ]
+    },
+    {
+      "provider_id": "US/UT/ut-vamc-1",
+      "name": "VA Salt Lake City Health Care System",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Salt Lake City"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving Utah. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "VA Salt Lake City Health Care System main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/UT/ut-vet-centers",
+      "name": "Utah Vet Centers",
+      "org_type": "vet_center",
+      "coverage_counties": [],
+      "cities": [],
+      "services": [
+        "mental_health_peer_support",
+        "clinical_therapy_referral",
+        "mst_counseling",
+        "resource_referral",
+        "family_support"
+      ],
+      "va_visibility": "high",
+      "notes": "VA-affiliated Vet Centers. No VA enrollment required \u2014 walk-in eligible. Find all locations at va.gov/find-locations (filter: Vet Center).",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov vet center locator"
+      ]
+    }
+  ]
+}

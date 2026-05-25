@@ -1,14 +1,69 @@
 {
   "country": "US",
+  "note": "Statewide shards auto-generated 2026-05-25. Regional shards take precedence over statewide for county-specific queries. Add regional shards under DATA/US/<STATE>/<region>.json and register them in the state's 'regions' array.",
   "states": {
+    "AK": { "statewide": "DATA/US/AK.json", "regions": [] },
+    "AL": { "statewide": "DATA/US/AL.json", "regions": [] },
+    "AR": { "statewide": "DATA/US/AR.json", "regions": [] },
+    "AZ": { "statewide": "DATA/US/AZ.json", "regions": [] },
+    "CA": { "statewide": "DATA/US/CA.json", "regions": [] },
     "CO": {
+      "statewide": "DATA/US/CO.json",
       "regions": [
         "DATA/US/CO/western_slope.json",
         "DATA/US/CO/front_range.json",
         "DATA/US/CO/denver_metro.json"
       ]
     },
-    "UT": { "regions": [] },
-    "WY": { "regions": [] }
+    "CT": { "statewide": "DATA/US/CT.json", "regions": [] },
+    "DC": { "statewide": "DATA/US/DC.json", "regions": [] },
+    "DE": { "statewide": "DATA/US/DE.json", "regions": [] },
+    "FL": { "statewide": "DATA/US/FL.json", "regions": [] },
+    "GA": { "statewide": "DATA/US/GA.json", "regions": [] },
+    "HI": { "statewide": "DATA/US/HI.json", "regions": [] },
+    "IA": { "statewide": "DATA/US/IA.json", "regions": [] },
+    "ID": { "statewide": "DATA/US/ID.json", "regions": [] },
+    "IL": { "statewide": "DATA/US/IL.json", "regions": [] },
+    "IN": { "statewide": "DATA/US/IN.json", "regions": [] },
+    "KS": { "statewide": "DATA/US/KS.json", "regions": [] },
+    "KY": { "statewide": "DATA/US/KY.json", "regions": [] },
+    "LA": { "statewide": "DATA/US/LA.json", "regions": [] },
+    "MA": { "statewide": "DATA/US/MA.json", "regions": [] },
+    "MD": { "statewide": "DATA/US/MD.json", "regions": [] },
+    "ME": { "statewide": "DATA/US/ME.json", "regions": [] },
+    "MI": { "statewide": "DATA/US/MI.json", "regions": [] },
+    "MN": { "statewide": "DATA/US/MN.json", "regions": [] },
+    "MO": { "statewide": "DATA/US/MO.json", "regions": [] },
+    "MS": { "statewide": "DATA/US/MS.json", "regions": [] },
+    "MT": { "statewide": "DATA/US/MT.json", "regions": [] },
+    "NC": { "statewide": "DATA/US/NC.json", "regions": [] },
+    "ND": { "statewide": "DATA/US/ND.json", "regions": [] },
+    "NE": { "statewide": "DATA/US/NE.json", "regions": [] },
+    "NH": { "statewide": "DATA/US/NH.json", "regions": [] },
+    "NJ": { "statewide": "DATA/US/NJ.json", "regions": [] },
+    "NM": { "statewide": "DATA/US/NM.json", "regions": [] },
+    "NV": { "statewide": "DATA/US/NV.json", "regions": [] },
+    "NY": { "statewide": "DATA/US/NY.json", "regions": [] },
+    "OH": { "statewide": "DATA/US/OH.json", "regions": [] },
+    "OK": { "statewide": "DATA/US/OK.json", "regions": [] },
+    "OR": { "statewide": "DATA/US/OR.json", "regions": [] },
+    "PA": { "statewide": "DATA/US/PA.json", "regions": [] },
+    "RI": { "statewide": "DATA/US/RI.json", "regions": [] },
+    "SC": { "statewide": "DATA/US/SC.json", "regions": [] },
+    "SD": { "statewide": "DATA/US/SD.json", "regions": [] },
+    "TN": { "statewide": "DATA/US/TN.json", "regions": [] },
+    "TX": { "statewide": "DATA/US/TX.json", "regions": [] },
+    "UT": { "statewide": "DATA/US/UT.json", "regions": [] },
+    "VA": { "statewide": "DATA/US/VA.json", "regions": [] },
+    "VT": { "statewide": "DATA/US/VT.json", "regions": [] },
+    "WA": {
+      "statewide": "DATA/US/WA.json",
+      "regions": [
+        "DATA/US/WA/puget_sound.json"
+      ]
+    },
+    "WI": { "statewide": "DATA/US/WI.json", "regions": [] },
+    "WV": { "statewide": "DATA/US/WV.json", "regions": [] },
+    "WY": { "statewide": "DATA/US/WY.json", "regions": [] }
   }
 }

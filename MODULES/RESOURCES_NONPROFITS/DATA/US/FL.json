@@ -1,0 +1,219 @@
+{
+  "region_id": "US/FL",
+  "country": "US",
+  "state": "FL",
+  "region_label": "Florida \u2014 Statewide",
+  "notes": "Statewide Florida shard. Regional shards take precedence for local queries \u2014 this file is the fallback when no regional shard exists for a county. Primary VA facility/facilities: Bay Pines VA Healthcare System, James A. Haley VA \u2014 Tampa, West Palm Beach VA, Miami VA Healthcare System, Malcom Randall VA \u2014 Gainesville, Orlando VA Health Care System (West Palm Beach, Gainesville, Bay Pines, Miami, Tampa, Orlando). State VSO: Florida Department of Veterans Affairs. All phone numbers marked VERIFY_BEFORE_PRODUCTION \u2014 national VA lines are always valid. Add regional shards under DATA/US/FL/<region>.json as local data is confirmed.",
+  "providers": [
+    {
+      "provider_id": "US/FL/fl-state-vso",
+      "name": "Florida Department of Veterans Affairs",
+      "org_type": "state_agency",
+      "coverage_counties": [],
+      "cities": [],
+      "services": [
+        "claims_assistance",
+        "benefits_navigation",
+        "resource_referral",
+        "advocacy"
+      ],
+      "va_visibility": "high",
+      "notes": "State veterans service agency. Free accredited claims assistance and benefits navigation statewide. Find county VSO contacts at https://www.floridavets.org.",
+      "phones": [],
+      "urls": [
+        "https://www.floridavets.org"
+      ],
+      "verify_before_production": [
+        "Florida Department of Veterans Affairs statewide phone \u2014 check state website"
+      ],
+      "source_hints": [
+        "https://www.floridavets.org"
+      ]
+    },
+    {
+      "provider_id": "US/FL/fl-vamc-1",
+      "name": "Bay Pines VA Healthcare System",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Bay Pines"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving Florida. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "Bay Pines VA Healthcare System main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/FL/fl-vamc-2",
+      "name": "James A. Haley VA \u2014 Tampa",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Tampa"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving Florida. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "James A. Haley VA \u2014 Tampa main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/FL/fl-vamc-3",
+      "name": "West Palm Beach VA",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "West Palm Beach"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving Florida. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "West Palm Beach VA main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/FL/fl-vamc-4",
+      "name": "Miami VA Healthcare System",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Miami"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving Florida. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "Miami VA Healthcare System main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/FL/fl-vamc-5",
+      "name": "Malcom Randall VA \u2014 Gainesville",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Gainesville"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving Florida. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "Malcom Randall VA \u2014 Gainesville main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/FL/fl-vamc-6",
+      "name": "Orlando VA Health Care System",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Orlando"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving Florida. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "Orlando VA Health Care System main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/FL/fl-vet-centers",
+      "name": "Florida Vet Centers",
+      "org_type": "vet_center",
+      "coverage_counties": [],
+      "cities": [],
+      "services": [
+        "mental_health_peer_support",
+        "clinical_therapy_referral",
+        "mst_counseling",
+        "resource_referral",
+        "family_support"
+      ],
+      "va_visibility": "high",
+      "notes": "VA-affiliated Vet Centers. No VA enrollment required \u2014 walk-in eligible. Find all locations at va.gov/find-locations (filter: Vet Center).",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov vet center locator"
+      ]
+    }
+  ]
+}

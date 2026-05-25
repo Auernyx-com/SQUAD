@@ -1,0 +1,84 @@
+{
+  "region_id": "US/WY",
+  "country": "US",
+  "state": "WY",
+  "region_label": "Wyoming \u2014 Statewide",
+  "notes": "Statewide Wyoming shard. Regional shards take precedence for local queries \u2014 this file is the fallback when no regional shard exists for a county. Primary VA facility/facilities: Cheyenne VA Medical Center (Cheyenne). State VSO: Wyoming Veterans Commission. All phone numbers marked VERIFY_BEFORE_PRODUCTION \u2014 national VA lines are always valid. Add regional shards under DATA/US/WY/<region>.json as local data is confirmed.",
+  "providers": [
+    {
+      "provider_id": "US/WY/wy-state-vso",
+      "name": "Wyoming Veterans Commission",
+      "org_type": "state_agency",
+      "coverage_counties": [],
+      "cities": [],
+      "services": [
+        "claims_assistance",
+        "benefits_navigation",
+        "resource_referral",
+        "advocacy"
+      ],
+      "va_visibility": "high",
+      "notes": "State veterans service agency. Free accredited claims assistance and benefits navigation statewide. Find county VSO contacts at https://wyomingveterans.com.",
+      "phones": [],
+      "urls": [
+        "https://wyomingveterans.com"
+      ],
+      "verify_before_production": [
+        "Wyoming Veterans Commission statewide phone \u2014 check state website"
+      ],
+      "source_hints": [
+        "https://wyomingveterans.com"
+      ]
+    },
+    {
+      "provider_id": "US/WY/wy-vamc-1",
+      "name": "Cheyenne VA Medical Center",
+      "org_type": "vamc",
+      "coverage_counties": [],
+      "cities": [
+        "Cheyenne"
+      ],
+      "services": [
+        "primary_care",
+        "mental_health",
+        "specialty_care",
+        "benefits_navigation"
+      ],
+      "va_visibility": "high",
+      "notes": "VA Medical Center serving Wyoming. VA enrollment required for most services. Find full details at va.gov/find-locations.",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "verify_before_production": [
+        "Cheyenne VA Medical Center main line and address \u2014 check va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov facility locator"
+      ]
+    },
+    {
+      "provider_id": "US/WY/wy-vet-centers",
+      "name": "Wyoming Vet Centers",
+      "org_type": "vet_center",
+      "coverage_counties": [],
+      "cities": [],
+      "services": [
+        "mental_health_peer_support",
+        "clinical_therapy_referral",
+        "mst_counseling",
+        "resource_referral",
+        "family_support"
+      ],
+      "va_visibility": "high",
+      "notes": "VA-affiliated Vet Centers. No VA enrollment required \u2014 walk-in eligible. Find all locations at va.gov/find-locations (filter: Vet Center).",
+      "phones": [],
+      "urls": [
+        "https://www.va.gov/find-locations"
+      ],
+      "source_hints": [
+        "va.gov vet center locator"
+      ]
+    }
+  ]
+}
