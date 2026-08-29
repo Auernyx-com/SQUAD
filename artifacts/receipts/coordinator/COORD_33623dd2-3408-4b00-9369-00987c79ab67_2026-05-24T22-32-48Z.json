@@ -1,0 +1,58 @@
+{
+  "schema": "squad-bat.coordinator-result.v1",
+  "case_id": "33623dd2-3408-4b00-9369-00987c79ab67",
+  "timestamp": "2026-05-24T22:32:48Z",
+  "founding_law_sha256": "dc0fcb428e24948c5471798bf3c0b77cafade1c68e1aecb39aa13eef264f2f87",
+  "coordinator_status": "WITHIN_TOLERANCE",
+  "crisis_response": {
+    "flagged": false
+  },
+  "edge_cases": [],
+  "division_results": [
+    {
+      "division_id": "legal-division",
+      "domain": "LEGAL",
+      "status": "COMPLETED",
+      "confidence": 100,
+      "result_summary": "Civilian Legal Aid \u2014 Free Resources Available",
+      "next_action": "Start at lawhelp.org \u2014 enter your state to find free legal aid in your area. For immediate help: call 211.",
+      "next_actions": [
+        "Legal Aid housing attorneys \u2014 find at lawhelp.org or 211.org \u2014 eviction, lease disputes, code violations",
+        "HUD-approved housing counselors \u2014 1-800-569-4287 \u2014 foreclosure prevention, tenant rights",
+        "VA Legal Services \u2014 va.gov/housing-assistance \u2014 foreclosure avoidance for VA loan holders"
+      ],
+      "immediate_contacts": [],
+      "flags": [
+        "civilian_legal_track",
+        "housing_legal_issue"
+      ],
+      "duration_ms": 2
+    }
+  ],
+  "synthesis": {
+    "primary_path": "Civilian Legal Aid \u2014 Free Resources Available",
+    "confidence": 100,
+    "confidence_label": "High \u2014 routing based on complete intake data",
+    "next_actions": [
+      "Legal Aid housing attorneys \u2014 find at lawhelp.org or 211.org \u2014 eviction, lease disputes, code violations",
+      "HUD-approved housing counselors \u2014 1-800-569-4287 \u2014 foreclosure prevention, tenant rights",
+      "VA Legal Services \u2014 va.gov/housing-assistance \u2014 foreclosure avoidance for VA loan holders"
+    ],
+    "immediate_contacts": [
+      "VA main line \u2014 1-800-827-1000",
+      "VA National Call Center for Homeless Veterans \u2014 1-877-4AID-VET (1-877-424-3838) \u2014 24/7",
+      "Veterans Crisis Line \u2014 988, press 1"
+    ],
+    "domain_summaries": {
+      "LEGAL": "Civilian Legal Aid \u2014 Free Resources Available"
+    },
+    "if_blocked": [
+      "Contact your local Veterans Service Organization (VSO)",
+      "Call VA main line: 1-800-827-1000"
+    ],
+    "quorum_met": true,
+    "edge_cases": []
+  },
+  "gaps": [],
+  "receipt_ref": ""
+}
