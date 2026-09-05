@@ -170,10 +170,32 @@ def rotate_genesis_record(repo_root: Path, *, confirm: bool = False) -> Dict[str
     """Explicitly rewrite the genesis record to match current governance inputs.
 
     This is a deliberate, audited operation intended for intentional governance updates.
+
+    Refuses while an active tamper-classified judgment exists (see
+    _restoration_required) — rotation recomputes the trusted baseline from
+    whatever governance files exist RIGHT NOW, so calling it while a
+    governance_hash_mismatch judgment is unresolved would silently accept
+    the still-unverified (possibly still-tampered) state as the new genesis
+    truth, with nothing but a --confirm flag standing in for actual proof.
+    That's the exact bypass clear_judgment() was hardened against: this
+    closes the same hole reachable through a different function. Resolve the
+    judgment via clear_judgment() with a verified restoration_proof first.
     """
 
     if not confirm:
         raise ValueError("rotate_genesis_record requires confirm=True")
+
+    existing_judgment = read_judgment(repo_root)
+    if existing_judgment and existing_judgment.get("active") is True and _restoration_required(existing_judgment):
+        append_audit(
+            repo_root,
+            {"kind": "genesis.rotate_refused", "data": {"reason": "active_tamper_judgment_unresolved"}},
+        )
+        raise RuntimeError(
+            "rotate_genesis_record refused: an active tamper-classified judgment "
+            "(e.g. governance_hash_mismatch) is unresolved. Resolve it via "
+            "clear_judgment() with a verified restoration_proof before rotating genesis."
+        )
 
     p = genesis_path(repo_root)
     old = read_genesis_record(repo_root) or {}
