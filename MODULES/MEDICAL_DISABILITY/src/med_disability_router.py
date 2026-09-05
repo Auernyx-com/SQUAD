@@ -176,3 +176,17 @@ def route_to_dict(payload: Dict[str, Any]) -> Dict[str, Any]:
         "questions": r.questions,
         "audit": r.audit,
     }
+
+
+# The Pathfinder coordinator (AGENTS/CORE/PATHFINDER/pf_coordinator_v1.py)
+# dynamically loads each Division's entry module and calls mod.run(intake) —
+# every other wired Division (housing, legal, transportation, women_veterans,
+# toxic_exposure) exposes exactly that name. This module only ever exposed
+# route()/route_to_dict(), so even with config/divisions.json pointed at this
+# file, invoke_division()'s `hasattr(mod, "run")` check would still fail and
+# the coordinator would report this Division SKIPPED — "no run() entrypoint"
+# — for every intake touching MEDICAL, CLAIMS, or MENTAL_HEALTH. Verified
+# directly: this was the actual reason medical-disability-division's entry
+# was still empty in divisions.json alongside two other complete, working
+# routers.
+run = route

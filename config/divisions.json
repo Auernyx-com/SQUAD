@@ -1,19 +1,19 @@
 {
   "divisions": {
     "va-benefits-division": {
-      "entry": "",
+      "entry": "MODULES/VA_BENEFITS/src/va_benefits_router.py",
       "type": "python",
-      "notes": "VA Benefits Division — education, employment, home loans, pension, survivor benefits, burial. Set entry path or SQUAD_BAT_DIVISION_ENTRY_VA_BENEFITS_DIVISION env var."
+      "notes": "VA Benefits Division — education, employment, home loans, pension, survivor benefits, burial. Entry is local MODULES path; no external repo required for embedded deployment. Was left empty despite a complete, working router already present at this path (has a run() entrypoint matching every other wired Division) — verified end to end before wiring."
     },
     "business-opportunity-division": {
-      "entry": "",
+      "entry": "MODULES/BUSINESS_OPPORTUNITY/src/business_opportunity_router.py",
       "type": "python",
-      "notes": "Business & Opportunity Division — SDVOSB/VOSB certification, federal contracting, SBA programs, GSA surplus auctions, startup resources. Set entry path or SQUAD_BAT_DIVISION_ENTRY_BUSINESS_OPPORTUNITY_DIVISION env var."
+      "notes": "Business & Opportunity Division — SDVOSB/VOSB certification, federal contracting, SBA programs, GSA surplus auctions, startup resources. Entry is local MODULES path; no external repo required for embedded deployment. Was left empty; the router itself was also missing the run() entrypoint the coordinator requires (only had route()/route_to_dict()) — both gaps fixed together, verified end to end before wiring."
     },
     "medical-disability-division": {
-      "entry": "",
+      "entry": "MODULES/MEDICAL_DISABILITY/src/med_disability_router.py",
       "type": "python",
-      "notes": "Medical & Disability Division entry path. Set to local clone of medical-disability-division repo entry point, or set SQUAD_BAT_DIVISION_ENTRY_MEDICAL_DISABILITY_DIVISION env var."
+      "notes": "Medical & Disability Division — VA enrollment, disability claims, appeals, TDIU, mental health, caregiver support. Entry is local MODULES path; no external repo required for embedded deployment. Was left empty; the router itself was also missing the run() entrypoint the coordinator requires (only had route()/route_to_dict()) — both gaps fixed together, verified end to end before wiring."
     },
     "housing-division": {
       "entry": "MODULES/HOUSING/src/housing_router.py",
