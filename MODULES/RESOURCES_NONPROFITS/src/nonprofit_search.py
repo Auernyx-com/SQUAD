@@ -100,11 +100,30 @@ def _extract_providers(payload: Any, *, source: str) -> List[Dict[str, Any]]:
     raise ValueError(f"{source}: expected list or object")
 
 
-def _sanitize_and_validate_record(record: Dict[str, Any], rules: ScopeRules, *, source: str) -> Dict[str, Any]:
+def _sanitize_and_validate_record(record: Dict[str, Any], rules: ScopeRules, *, source: str) -> Optional[Dict[str, Any]]:
     # Reject blocked key names anywhere in the record (not just top-level).
     for k in _walk_keys(record):
         if k.strip().lower() in rules.blocked_field_keys:
             raise ValueError(f"{source}: blocked field key present: {k!r}")
+
+    # Exclude (not reject) records carrying an unresolved verify_before_production
+    # marker -- contacts.py's own written policy is explicit: "Any number not
+    # positively verified is marked VERIFY_BEFORE_PRODUCTION and must not be
+    # surfaced to a veteran." That marker exists in real curated data (189
+    # occurrences across the real shards as of 2026-09-05, 7 of them on
+    # records with a populated phone number -- including a DV crisis line),
+    # but "verify_before_production" was never in allowed_output_fields, so
+    # it was being silently DROPPED by the cleaned-field allowlist below
+    # while the still-unverified phone number it was flagging sailed through
+    # untouched. This is a soft, ongoing data-curation state (organizations
+    # move, numbers change) rather than a malformed file, so unlike a
+    # blocked-field-key violation this does NOT raise and abort the whole
+    # load -- it just excludes this one record, the same way an org that
+    # closed would simply not appear, so one pending phone-number check
+    # doesn't take the rest of a state's registry down with it.
+    unverified = record.get("verify_before_production")
+    if isinstance(unverified, list) and any(isinstance(x, str) and x.strip() for x in unverified):
+        return None
 
     # Validate services are controlled vocab.
     services = record.get("services")
@@ -162,7 +181,9 @@ def load_registry(paths: List[str]) -> List[Dict[str, Any]]:
         providers = _extract_providers(payload, source=str(shard_path))
 
         for i, rec in enumerate(providers):
-            out.append(_sanitize_and_validate_record(rec, rules, source=f"{shard_path}#providers[{i}]"))
+            cleaned = _sanitize_and_validate_record(rec, rules, source=f"{shard_path}#providers[{i}]")
+            if cleaned is not None:
+                out.append(cleaned)
 
     return out
 
