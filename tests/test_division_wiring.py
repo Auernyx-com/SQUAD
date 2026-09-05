@@ -35,6 +35,8 @@ import sys
 import unittest
 from pathlib import Path
 
+import _test_receipts_isolation  # noqa: F401,E402 — sets SQUAD_BAT_RECEIPTS_DIR before any coordinator run
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "AGENTS" / "CORE" / "PATHFINDER"))
 

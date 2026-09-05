@@ -713,7 +713,15 @@ def synthesize(
 # ---------------------------------------------------------------------------
 
 def write_receipt(result: dict[str, Any]) -> Path:
-    receipts_dir = REPO_ROOT / "artifacts" / "receipts" / "coordinator"
+    # Overridable the same way config/divisions.json's own notes already
+    # document env-var overrides (SQUAD_BAT_DIVISION_ENTRY_*): every
+    # coordinator run — test or real — writes a receipt here, and
+    # artifacts/receipts/coordinator/ is not gitignored (older receipts are
+    # already tracked in this repo, committed intentionally). Without this,
+    # every test run leaves real files in the shared production path that a
+    # careless `git add -A` could commit as noise. Tests set
+    # SQUAD_BAT_RECEIPTS_DIR to a temp directory instead.
+    receipts_dir = Path(os.environ.get("SQUAD_BAT_RECEIPTS_DIR") or (REPO_ROOT / "artifacts" / "receipts" / "coordinator"))
     receipts_dir.mkdir(parents=True, exist_ok=True)
     receipt_path = (
         receipts_dir /
@@ -788,7 +796,17 @@ def run_coordinator(intake: dict[str, Any]) -> dict[str, Any]:
     }
 
     receipt_path = write_receipt(result)
-    result["receipt_ref"] = str(receipt_path.relative_to(REPO_ROOT))
+    # receipt_path is normally under REPO_ROOT, but write_receipt() now
+    # honors SQUAD_BAT_RECEIPTS_DIR (added alongside this change, for test
+    # isolation), which can point anywhere. relative_to() raises ValueError
+    # for a path that isn't actually a subpath — caught directly by running
+    # a real coordinator call with that env var set. Fall back to the
+    # absolute path in that case rather than let a receipt-path bookkeeping
+    # detail crash the whole coordinator run.
+    try:
+        result["receipt_ref"] = str(receipt_path.relative_to(REPO_ROOT))
+    except ValueError:
+        result["receipt_ref"] = str(receipt_path)
 
     return result
 
