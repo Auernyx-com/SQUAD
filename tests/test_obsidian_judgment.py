@@ -131,5 +131,92 @@ class ClearJudgmentRequiresRestorationProofTest(unittest.TestCase):
         self.assertTrue(cleared)
 
 
+class RotateGenesisRecordCannotBypassClearJudgmentTest(unittest.TestCase):
+    """
+    Follow-on finding: rotate_genesis_record() rewrites the trusted genesis
+    baseline to match whatever governance files exist RIGHT NOW. With no
+    gate, it let a tamper-classified judgment be silently laundered away --
+    an attacker could tamper a governance file, then call
+    rotate_genesis_record(confirm=True) instead of clear_judgment(), and the
+    system would accept the still-tampered state as the new legitimate
+    baseline with zero proof. verify_provenance() would then report ok=True
+    while judgment.v1.json sat orphaned with active=True.
+
+    Confirmed against the pre-fix code with a direct probe: after activating
+    a governance_hash_mismatch judgment, clear_judgment() correctly refused
+    with no proof, but rotate_genesis_record(confirm=True) succeeded anyway
+    and verify_provenance() came back ok=True immediately after.
+    """
+
+    def test_rotate_refuses_while_a_tamper_judgment_is_active(self):
+        repo_root = _tmp_repo()
+        oj.ensure_genesis_record(repo_root, write_enabled=True)
+
+        gov_dir = repo_root / "SYSTEM" / "CONFIG"
+        gov_dir.mkdir(parents=True, exist_ok=True)
+        (gov_dir / "squad.config.json").write_text('{"tampered": true}')
+
+        status = oj.verify_provenance(repo_root)
+        self.assertEqual(status.code, "governance_hash_mismatch")
+        oj.activate_judgment(repo_root, failure=status)
+
+        with self.assertRaises(RuntimeError):
+            oj.rotate_genesis_record(repo_root, confirm=True)
+
+        # The tamper must still be reported -- rotation must not have
+        # silently accepted it as the new baseline.
+        self.assertEqual(oj.verify_provenance(repo_root).code, "governance_hash_mismatch")
+        self.assertTrue(oj.is_judgment_active(repo_root))
+
+    def test_rotate_still_works_with_no_active_judgment(self):
+        repo_root = _tmp_repo()
+        oj.ensure_genesis_record(repo_root, write_enabled=True)
+
+        result = oj.rotate_genesis_record(repo_root, confirm=True)
+
+        self.assertTrue(result["rotated"])
+
+    def test_rotate_works_again_after_a_properly_proven_clear(self):
+        repo_root = _tmp_repo()
+        oj.ensure_genesis_record(repo_root, write_enabled=True)
+
+        gov_dir = repo_root / "SYSTEM" / "CONFIG"
+        gov_dir.mkdir(parents=True, exist_ok=True)
+        (gov_dir / "squad.config.json").write_text('{"legit_change": true}')
+
+        status = oj.verify_provenance(repo_root)
+        oj.activate_judgment(repo_root, failure=status)
+
+        proof_file = repo_root / "restored.txt"
+        proof_file.write_text("proof of restoration")
+        sha = hashlib.sha256(proof_file.read_bytes()).hexdigest()
+
+        jp = oj.judgment_path(repo_root)
+        record = json.loads(jp.read_text())
+        record["decision"] = {
+            "restoration_required": True,
+            "restoration_proof": {"ref": "restored.txt", "sha256": sha},
+        }
+        jp.write_text(json.dumps(record))
+
+        self.assertTrue(oj.clear_judgment(repo_root))
+
+        result = oj.rotate_genesis_record(repo_root, confirm=True)
+        self.assertTrue(result["rotated"])
+
+    def test_rotate_is_unaffected_by_a_non_tamper_judgment(self):
+        # A judgment that isn't tamper-classified (e.g. genesis_missing)
+        # must not block rotation -- only governance_hash_mismatch /
+        # restoration_required judgments do.
+        repo_root = _tmp_repo()
+        oj.ensure_genesis_record(repo_root, write_enabled=True)
+        failure = oj.ProvenanceStatus(ok=False, code="genesis_missing", reason="no genesis record")
+        oj.activate_judgment(repo_root, failure)
+
+        result = oj.rotate_genesis_record(repo_root, confirm=True)
+
+        self.assertTrue(result["rotated"])
+
+
 if __name__ == "__main__":
     unittest.main()
