@@ -48,8 +48,21 @@ def gate_intake(payload: Dict[str, Any]) -> IntakeGateResult:
 
     p = payload or {}
 
-    state = _norm_upper_state(p.get("state") or p.get("location", {}).get("state"))
-    county = _norm(p.get("county") or p.get("location", {}).get("county"))
+    # `.get("location", {})` only falls back to {} when the key is ABSENT --
+    # a payload with "location": null (a plausible shape from an intake form
+    # that serializes an unfilled object as JSON null) has the key present
+    # with value None, so .get("location", {}) returns None and the next
+    # .get("state") crashes with AttributeError. A non-dict value (e.g. a
+    # stray string) crashes the same way. This module's entire purpose is
+    # asking a clarifying question instead of failing, so it must not crash
+    # on exactly the kind of incomplete/malformed input it exists to handle.
+    # Confirmed against the pre-fix code: {"location": None, ...} and
+    # {"location": "somewhere", ...} both raised AttributeError instead of
+    # returning NEEDS_INPUT asking for state/county. Matches the isinstance
+    # guard already used for `constraints` below.
+    location = p.get("location") if isinstance(p.get("location"), dict) else {}
+    state = _norm_upper_state(p.get("state") or location.get("state"))
+    county = _norm(p.get("county") or location.get("county"))
 
     needs_raw = _ensure_list(p.get("need") or p.get("needs") or p.get("need_branch") or p.get("need_branches"))
     needs: List[str] = []
@@ -60,9 +73,14 @@ def gate_intake(payload: Dict[str, Any]) -> IntakeGateResult:
     if len(needs) > 2:
         needs = needs[:2]
 
-    housing_status = _norm_lower(p.get("housing_status") or (p.get("status") or {}).get("housing"))
-    claim_stage = _norm_lower(p.get("claim_stage") or (p.get("status") or {}).get("claim"))
-    employment_status = _norm_lower(p.get("employment_status") or (p.get("status") or {}).get("employment"))
+    # Same non-dict-value gap as `location` above: `(p.get("status") or {})`
+    # protects against None/falsy but a truthy non-dict value (a stray
+    # string) still crashes on the following .get(). Confirmed against the
+    # pre-fix code: {"status": "weird_string", ...} raised AttributeError.
+    status_block = p.get("status") if isinstance(p.get("status"), dict) else {}
+    housing_status = _norm_lower(p.get("housing_status") or status_block.get("housing"))
+    claim_stage = _norm_lower(p.get("claim_stage") or status_block.get("claim"))
+    employment_status = _norm_lower(p.get("employment_status") or status_block.get("employment"))
 
     contact_pref = _norm_lower(p.get("contact_preference") or p.get("contact_pref"))
 
