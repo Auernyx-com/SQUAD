@@ -39,7 +39,7 @@ from contacts import (  # type: ignore
     VETERANS_CRISIS_LINE as _VETERANS_CRISIS_LINE,
     VA_OIG               as _VA_OIG,
     HUD_HOUSING_COUNSELORS as _HUD_HOUSING_COUNSELORS,
-    BRANCH_EMERGENCY     as _BRANCH_EMERGENCY,
+    get_branch_emergency as _get_branch_emergency,
 )
 
 
@@ -310,8 +310,7 @@ def route_housing(profile: VetHousingProfile) -> dict:
 
     # ── BRANCH EMERGENCY RESOURCES ────────────────────────────────────────────
     if status in ("unhoused", "unstable") or is_chronic:
-        branch_key = (profile.branch or "").lower().replace(" ", "_").replace("-", "_")
-        branch_resources = _BRANCH_EMERGENCY.get(branch_key, [])
+        branch_resources = _get_branch_emergency(profile.branch)
         if branch_resources:
             result["flags"].append("branch_emergency_resources_available")
             result["notes"].append("BRANCH-SPECIFIC EMERGENCY RESOURCES — available now, separate from VA:")

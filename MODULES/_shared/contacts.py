@@ -104,6 +104,49 @@ BRANCH_EMERGENCY: Dict[str, List[str]] = {
 }
 
 # ---------------------------------------------------------------------------
+# Branch aliases — maps real intake option values to BRANCH_EMERGENCY keys.
+#
+# The live questionnaire (wyerd-squad/tool/index.html) sends branch as
+# 'marines', 'army_ng', 'air_ng', etc. — not the BRANCH_EMERGENCY dict keys
+# above ('marine_corps', 'army_national_guard', 'air_national_guard'). Without
+# this alias table, get_branch_emergency() silently returned [] for every
+# Marine Corps and Guard veteran even though the resources were coded and
+# present in the dict — verified against the questionnaire's real option
+# values on 2026-09-05.
+#
+# KNOWN GAP: the questionnaire also offers 'army_reserve', 'navy_reserve',
+# 'af_reserve', 'usmc_reserve', and 'uscg_reserve', and BRANCH_EMERGENCY has
+# no distinct entries for any Reserve component (only the two National Guard
+# branches exist above). Until reserve-specific entries are verified and
+# added, those five values are intentionally left unmapped rather than
+# guessed at — they fall through to no branch-specific resources, same as
+# any other unrecognized branch value. Do not silently alias them to the
+# active-duty org entries without verifying reservist eligibility first.
+# ---------------------------------------------------------------------------
+
+BRANCH_ALIASES: Dict[str, str] = {
+    "marines": "marine_corps",
+    "usmc": "marine_corps",
+    "army_ng": "army_national_guard",
+    "air_ng": "air_national_guard",
+}
+
+
+def get_branch_emergency(branch: str) -> List[str]:
+    """
+    Normalize a raw branch value (as sent by intake) and return its
+    BRANCH_EMERGENCY resource list, or [] if none exists.
+
+    Single source of truth for this lookup — Division routers should call
+    this instead of indexing BRANCH_EMERGENCY directly, so an alias fix here
+    reaches every caller.
+    """
+    key = (branch or "").lower().replace(" ", "_").replace("-", "_")
+    key = BRANCH_ALIASES.get(key, key)
+    return BRANCH_EMERGENCY.get(key, [])
+
+
+# ---------------------------------------------------------------------------
 # VERIFY_BEFORE_PRODUCTION — do not surface to veterans until confirmed
 # ---------------------------------------------------------------------------
 
