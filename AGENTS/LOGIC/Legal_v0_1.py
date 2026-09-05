@@ -49,7 +49,7 @@ from contacts import (  # type: ignore
     SERVICEMEMBER_LEGAL_CENTER as _SERVICEMEMBER_LEGAL_CENTER,
     SAFE_HELPLINE        as _SAFE_HELPLINE,
     HUD_HOUSING_COUNSELORS     as _HUD_HOUSING_COUNSELORS,
-    BRANCH_EMERGENCY     as _BRANCH_EMERGENCY,
+    get_branch_emergency as _get_branch_emergency,
 )
 
 # Backward-compat aliases used inline below
@@ -447,8 +447,7 @@ def route_legal(profile: VetLegalProfile) -> dict:
                 )
 
         # Branch-specific emergency resources — surfaced immediately for multi-domain crisis
-        branch_key = (profile.branch or "").lower().replace(" ", "_").replace("-", "_")
-        branch_resources = _BRANCH_EMERGENCY.get(branch_key, [])
+        branch_resources = _get_branch_emergency(profile.branch)
         if branch_resources:
             result["flags"].append("branch_emergency_resources_available")
             result["notes"].append(
@@ -526,8 +525,7 @@ def route_legal(profile: VetLegalProfile) -> dict:
             )
 
         # Branch-specific resources if not already surfaced
-        branch_key = (profile.branch or "").lower().replace(" ", "_").replace("-", "_")
-        branch_resources = _BRANCH_EMERGENCY.get(branch_key, [])
+        branch_resources = _get_branch_emergency(profile.branch)
         if branch_resources and "branch_emergency_resources_available" not in result["flags"]:
             result["flags"].append("branch_emergency_resources_available")
             result["notes"].append("BRANCH-SPECIFIC EMERGENCY RESOURCES — available now, separate from VA:")
