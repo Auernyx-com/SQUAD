@@ -242,24 +242,33 @@ def route_med_disability(profile: VetMedProfile) -> dict:
         # Appeals track
         if "appeal" in profile.need_branches or profile.recent_denial:
             if profile.has_new_evidence:
-                result["primary_path"] = "Supplemental Claim (new evidence)"
+                result["primary_path"] = result["primary_path"] or "Supplemental Claim (new evidence)"
                 result["key_forms"].append("VA Form 20-0995 (Supplemental Claim)")
-                result["next_action"] = (
+                result["next_action"] = result["next_action"] or (
                     "Submit new evidence (nexus letter, buddy statement, new diagnosis) "
                     "with VA Form 20-0995. No time limit."
                 )
             else:
-                result["primary_path"] = "Higher-Level Review (HLR) — same evidence, senior reviewer"
+                result["primary_path"] = result["primary_path"] or "Higher-Level Review (HLR) — same evidence, senior reviewer"
                 result["key_forms"].append("VA Form 20-0996 (Higher-Level Review)")
-                result["next_action"] = (
+                result["next_action"] = result["next_action"] or (
                     "Request HLR within 1 year of denial with VA Form 20-0996. "
                     "No new evidence required — a senior reviewer re-examines the file."
                 )
-            result["secondary_options"] = [
+            # extend, never overwrite -- a veteran can simultaneously need
+            # healthcare enrollment (Track 1) or an initial claim (Track 2)
+            # AND an appeal; wiping their secondary_options here silently
+            # dropped that earlier guidance (verified against the pre-fix
+            # code: healthcare_enrollment + appeal together lost every
+            # enrollment-related secondary_option and next_action, even
+            # though "not_enrolled" stayed in flags and VA Form 10-10EZ
+            # stayed orphaned in key_forms with nothing telling the veteran
+            # what to do with it).
+            result["secondary_options"].extend([
                 "Board of Veterans Appeals (BVA) — direct review, evidence, or hearing lanes",
                 "Accredited VA attorney or claims agent (fee only on back pay if you win)",
                 "Veterans Service Organization (VSO) — free representation at BVA",
-            ]
+            ])
             result["flags"].append("appeals_track")
             result["notes"].append(
                 "You have one year from your decision letter to request HLR or appeal to BVA. "
@@ -268,15 +277,15 @@ def route_med_disability(profile: VetMedProfile) -> dict:
 
         # Increase track
         elif "increase_claim" in profile.need_branches:
-            result["primary_path"] = "Rating Increase — Supplemental Claim or direct increase request"
-            result["secondary_options"] = [
+            result["primary_path"] = result["primary_path"] or "Rating Increase — Supplemental Claim or direct increase request"
+            result["secondary_options"].extend([
                 "VSO review of your current rating decision",
                 "Private C&P exam (nexus letter strengthens increase)",
                 "Buddy statements documenting worsening condition",
-            ]
+            ])
             result["key_forms"].append("VA Form 20-0995 or VA Form 21-526EZ (for new conditions)")
             result["flags"].append("increase_track")
-            result["next_action"] = (
+            result["next_action"] = result["next_action"] or (
                 "Contact a VSO to review your existing rating. "
                 "If condition has worsened, file VA Form 21-526EZ for that condition or "
                 "a Supplemental Claim with new medical evidence."
