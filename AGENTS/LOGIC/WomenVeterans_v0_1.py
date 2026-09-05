@@ -84,12 +84,48 @@ def route_women_veterans(profile: WomenVetProfile) -> dict:
         "Direct line, trained specifically for women veterans."
     )
 
+    # ── TRACK 6 (evaluated early): HOUSING & HOMELESSNESS ─────────────────────
+    # Runs BEFORE the healthcare-enrollment nudge below on purpose: a veteran
+    # who is currently homeless needs "call the homeless hotline now" as her
+    # next_action, not "call to enroll in VA healthcare" — a genuine crisis
+    # must win the shared next_action/primary_path fields regardless of code
+    # order. (Previously Track 1 ran first and set both fields unconditionally,
+    # so an unenrolled + currently-homeless veteran silently got the
+    # enrollment nudge as next_action instead of the homeless hotline —
+    # verified against the pre-fix code before this reorder.)
+    if "housing" in needs or profile.housing_situation in ("homeless", "at_risk"):
+        result["flags"].append("housing_track")
+        result["primary_path"] = result["primary_path"] or "Women Veterans Housing"
+
+        result["secondary_options"].extend([
+            "HUD-VASH — VA-supported housing voucher program. Women veterans are eligible. "
+            "Single women with children receive priority consideration at many CoCs. "
+            "Contact your VA social worker or call 1-877-4AID-VET (1-877-424-3838).",
+            "SSVF (Supportive Services for Veteran Families) — "
+            "specifically designed for veteran families including single mothers. "
+            "Rapid rehousing and prevention funds. Find grantees at va.gov/homeless/ssvf",
+            "Women veteran-specific shelters — VA has expanded women-only shelter capacity. "
+            "Call 1-877-424-3838 (VA homeless hotline) and specifically ask for women-only options.",
+            "Childcare support in transitional housing — if you have children, ask specifically "
+            "about programs that accommodate families. Many VA transitional housing programs do.",
+        ])
+        result["key_resources"].extend([
+            "VA Homeless Veterans Hotline — 1-877-424-3838",
+            "SSVF Grantee Finder — va.gov/homeless/ssvf",
+        ])
+        if profile.housing_situation == "homeless":
+            result["flags"].append("homeless_urgent")
+            result["next_action"] = result["next_action"] or (
+                "Call VA Homeless Veterans Hotline NOW: 1-877-424-3838. "
+                "Ask specifically for women veteran services and whether women-only shelter is available."
+            )
+
     # ── TRACK 1: WOMEN'S HEALTH CARE ──────────────────────────────────────────
     if "healthcare" in needs or not profile.enrolled_va_healthcare:
         result["flags"].append("womens_healthcare_track")
 
         if not profile.enrolled_va_healthcare:
-            result["primary_path"] = "VA Women's Health Care — Enroll First"
+            result["primary_path"] = result["primary_path"] or "VA Women's Health Care — Enroll First"
             result["secondary_options"].append(
                 "VA enrollment for women veterans: va.gov/health-care/apply — "
                 "same eligibility rules as all veterans. "
@@ -97,7 +133,7 @@ def route_women_veterans(profile: WomenVetProfile) -> dict:
                 "VA has designated Women's Health PCPs at most facilities."
             )
             result["key_forms"].append("VA Form 10-10EZ (VA Health Care Application)")
-            result["next_action"] = (
+            result["next_action"] = result["next_action"] or (
                 "Call the Women Veterans Call Center (1-855-829-6636) to start enrollment — "
                 "they can walk you through the process and connect you to your facility's WVPM."
             )
@@ -235,34 +271,6 @@ def route_women_veterans(profile: WomenVetProfile) -> dict:
             result["next_action"] = (
                 "Request an appointment with a VA Women's Health Primary Care Provider. "
                 "Call 1-855-829-6636 (Women Veterans Call Center) if you need help getting scheduled."
-            )
-
-    # ── TRACK 6: HOUSING & HOMELESSNESS ───────────────────────────────────────
-    if "housing" in needs or profile.housing_situation in ("homeless", "at_risk"):
-        result["flags"].append("housing_track")
-        result["primary_path"] = result["primary_path"] or "Women Veterans Housing"
-
-        result["secondary_options"].extend([
-            "HUD-VASH — VA-supported housing voucher program. Women veterans are eligible. "
-            "Single women with children receive priority consideration at many CoCs. "
-            "Contact your VA social worker or call 1-877-4AID-VET (1-877-424-3838).",
-            "SSVF (Supportive Services for Veteran Families) — "
-            "specifically designed for veteran families including single mothers. "
-            "Rapid rehousing and prevention funds. Find grantees at va.gov/homeless/ssvf",
-            "Women veteran-specific shelters — VA has expanded women-only shelter capacity. "
-            "Call 1-877-424-3838 (VA homeless hotline) and specifically ask for women-only options.",
-            "Childcare support in transitional housing — if you have children, ask specifically "
-            "about programs that accommodate families. Many VA transitional housing programs do.",
-        ])
-        result["key_resources"].extend([
-            "VA Homeless Veterans Hotline — 1-877-424-3838",
-            "SSVF Grantee Finder — va.gov/homeless/ssvf",
-        ])
-        if profile.housing_situation == "homeless":
-            result["flags"].append("homeless_urgent")
-            result["next_action"] = result["next_action"] or (
-                "Call VA Homeless Veterans Hotline NOW: 1-877-424-3838. "
-                "Ask specifically for women veteran services and whether women-only shelter is available."
             )
 
     # ── TRACK 7: CHILDCARE ACCESS ─────────────────────────────────────────────
