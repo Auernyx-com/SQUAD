@@ -44,9 +44,28 @@ def _get_signals(payload: Dict[str, Any]) -> Dict[str, bool]:
     return out
 
 
+# Apostrophe/quote variants that iOS, Android, and most word processors
+# auto-substitute for a plain "'" by default (smart/curly quotes, and a
+# couple of look-alikes people paste from other apps). Without normalizing
+# these, "I'm going to kill myself" (straight apostrophe, matched) and
+# "I’m going to kill myself" (curly apostrophe — what a phone keyboard
+# actually produces when someone types a straight one) were NOT equivalent:
+# the phrase list only had straight-apostrophe and no-apostrophe variants of
+# each phrase, so a genuine self-harm statement typed completely normally on
+# a phone silently fell through to status="OK". Confirmed with a direct
+# probe against the pre-fix code before this change.
+_APOSTROPHE_VARIANTS = ["’", "‘", "`", "´"]
+
+
+def _normalize_apostrophes(text: str) -> str:
+    for variant in _APOSTROPHE_VARIANTS:
+        text = text.replace(variant, "'")
+    return text
+
+
 def _contains_any(haystack: str, needles: List[str]) -> bool:
-    h = haystack.lower()
-    return any(n in h for n in needles)
+    h = _normalize_apostrophes(haystack.lower())
+    return any(_normalize_apostrophes(n) in h for n in needles)
 
 
 def _detect_crisis(text: str, signals: Dict[str, bool]) -> Optional[str]:
