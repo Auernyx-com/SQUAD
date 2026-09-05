@@ -11,6 +11,10 @@ class ScopeRules:
     allowed_output_fields: List[str]
     allowed_service_tags: Set[str]
     blocked_field_keys: Set[str]
+    # tag -> full set of tags in its branch (parent + every child), for every tag
+    # that participates in a crisis-widened branch (see GOVERNANCE's
+    # crisis_widened_branches). A tag not in this dict does not widen.
+    crisis_widened_branches: Dict[str, Set[str]]
 
 
 def _module_root() -> Path:
@@ -61,10 +65,23 @@ def _load_scope_rules() -> ScopeRules:
     if not allowed_service_tags:
         raise ValueError("Scope rules missing allowed_service_tags")
 
+    # crisis_widened_branches: {"mental_health": ["mental_health", "mst_counseling", ...]}
+    # Build a lookup from EVERY tag in a branch (parent and each child) to the
+    # full branch set, so a query on any member widens to the whole branch.
+    raw_branches = (scope.get("service_taxonomy") or {}).get("crisis_widened_branches") or {}
+    crisis_widened_branches: Dict[str, Set[str]] = {}
+    for key, members in raw_branches.items():
+        if key.startswith("_") or not isinstance(members, list):
+            continue
+        branch_set = {str(m).strip().lower() for m in members if isinstance(m, str) and m.strip()}
+        for tag in branch_set:
+            crisis_widened_branches[tag] = branch_set
+
     return ScopeRules(
         allowed_output_fields=allowed_output_fields,
         allowed_service_tags=allowed_service_tags,
         blocked_field_keys=blocked_field_keys,
+        crisis_widened_branches=crisis_widened_branches,
     )
 
 
@@ -179,12 +196,25 @@ def search(
     va_visibility: Optional[str] = None,
     text: Optional[str] = None,
     limit: int = 25,
+    crisis_or_self_harm: bool = False,
 ) -> List[Dict[str, Any]]:
     """Filter-only search over sanitized nonprofit records.
 
     - No ranking
     - No scores
     - Stable name sort only
+
+    crisis_or_self_harm: set True when the main intake has flagged a health/
+    welfare or self-harm concern. When set, a `service` filter that falls in a
+    GOVERNANCE-defined crisis-widened branch (currently: mental_health and its
+    children — mental_health_peer_support, clinical_therapy_referral,
+    mst_counseling, bereavement, substance_use) matches EVERY tag in that
+    branch instead of only the exact tag requested. A crisis search must never
+    come back narrower than a routine one — a veteran searching for
+    "mst_counseling" while a self-harm flag is active should also see the
+    general VAMC tagged only "mental_health", not just Vet Centers that
+    itemized the specific sub-type. Every other filter (county, city, org_type,
+    va_visibility, text) is unaffected — only the service-tag match widens.
     """
 
     if not isinstance(records, list):
@@ -195,6 +225,13 @@ def search(
 
     # Enforce service taxonomy by normalizing to lowercase; load_registry already validated.
     service_norm = service.strip().lower() if isinstance(service, str) and service.strip() else None
+
+    # Crisis widening: expand a single-tag match into its whole branch.
+    service_match_tags: Optional[Set[str]] = {service_norm} if service_norm else None
+    if crisis_or_self_harm and service_norm:
+        branch = _load_scope_rules().crisis_widened_branches.get(service_norm)
+        if branch:
+            service_match_tags = branch
 
     text_norm = _normalize_str(text) if isinstance(text, str) and text.strip() else None
 
@@ -208,8 +245,10 @@ def search(
             continue
         if city and not _list_ci_contains(rec.get("cities"), city):
             continue
-        if service_norm and service_norm not in [str(x).strip().lower() for x in (rec.get("services") or []) if isinstance(x, str)]:
-            continue
+        if service_match_tags:
+            rec_tags = {str(x).strip().lower() for x in (rec.get("services") or []) if isinstance(x, str)}
+            if not (rec_tags & service_match_tags):
+                continue
         if org_type and not _ci_eq(rec.get("org_type"), org_type):
             continue
         if va_visibility and not _ci_eq(rec.get("va_visibility"), va_visibility):
