@@ -44,6 +44,18 @@ param(
   [switch]$LogHash,
 
   # Export a case to ZIP for handoff
+  #
+  # This did NOT have the same guard -CaseId has three parameters above it,
+  # even though it's used exactly the same way: Join-Path $SquadRoot
+  # ('CASES\ACTIVE\' + $ExportCase), then Compress-Archive reads whatever
+  # that resolves to. Confirmed directly before adding this: a plain
+  # [string]$ExportCase with no ValidatePattern accepted
+  # "../../../../tmp/evil" outright, while the equivalent -CaseId parameter
+  # (which already has this exact attribute) rejects it at parameter-bind
+  # time, before the script body ever runs. Without this, -ExportCase could
+  # be used to zip up the contents of an arbitrary readable directory
+  # outside CASES\ACTIVE into a file under OUTPUTS\EXPORTS.
+  [ValidatePattern('^[A-Z0-9_]+$')]
   [string]$ExportCase,
 
   # Run Auernyx Pathfinder (PF-Core) on a Contract v1 input envelope
