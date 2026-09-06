@@ -24,8 +24,21 @@ def main(argv: list[str]) -> int:
     )
     parser.add_argument(
         "--skip-regex",
-        default=r"\\\\(\\.venv|\\.git|node_modules|OUTPUTS)\\\\",
-        help="Regex for paths to skip (default skips .venv/.git/node_modules/OUTPUTS)",
+        # Matches either path separator ([\\/]), not just Windows' backslash --
+        # the original default (\\\\(...)\\\\) only ever matched a literal
+        # double-backslash sequence, so on any Unix-style path (this repo's
+        # own CI runs on ubuntu-latest) it silently matched nothing at all.
+        # Confirmed directly: re.compile(r"\\\\(\\.venv|...)\\\\").search()
+        # returned no match against any /.venv/ or /.git/ style path.
+        # Currently latent (no stray .py files sit in OUTPUTS/ today), but a
+        # default that only works on the platform it happens not to be
+        # tested on isn't a real default. Also adds SYSTEM/META/QUARANTINE,
+        # per DOCS/GOVERNANCE.md's quarantine invariant ("validators and
+        # runners must exclude it from normal processing") -- this script
+        # didn't, so quarantined evidence could have broken a compile sweep
+        # meant to check real source, not preserved tamper evidence.
+        default=r"[\\/](\.venv|\.git|node_modules|OUTPUTS|QUARANTINE)[\\/]",
+        help="Regex for paths to skip (default skips .venv/.git/node_modules/OUTPUTS/QUARANTINE, either path separator style)",
     )
 
     args = parser.parse_args(argv)
