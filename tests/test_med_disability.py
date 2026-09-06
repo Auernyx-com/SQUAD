@@ -166,5 +166,78 @@ class RecentDenialReachesAppealGuidanceEvenWithoutARatingTest(unittest.TestCase)
         self.assertNotIn("appeals_track", result["flags"])
 
 
+class PreviouslyDeniedVeteranGetsAppealAsPrimaryPathTest(unittest.TestCase):
+    """Independent-audit finding (2026-09-06), round 2: Track 2 (enrolled,
+    no rating -- file initial claim) runs BEFORE Track 3 (appeals) and sets
+    primary_path/next_action with a plain, unconditional `=`. Track 3's own
+    assignment is correctly guarded (`result[...] or (...)`) specifically so
+    it never clobbers whatever ran first -- but that guard is exactly what
+    silently defeats it here: Track 2 already claimed both fields
+    unconditionally, so Track 3's guard always short-circuits to Track 2's
+    value. The comment already in Track 2/3 claims Track 2's guidance is
+    "preserved... this only adds the appeal-specific guidance on top" --
+    that's true for secondary_options/key_forms/flags (extend/append, never
+    replaced) but false for primary_path/next_action specifically, which is
+    exactly the headline text a veteran sees first.
+
+    Confirmed against the pre-fix code with a direct probe: a denied
+    veteran with new evidence (VetMedProfile(va_status="enrolled_no_rating",
+    recent_denial=True, has_new_evidence=True)) got primary_path="Initial
+    Disability Claim — VA Form 21-526EZ" and a next_action about filing a
+    brand-new claim -- the Supplemental Claim guidance (VA Form 20-0995, no
+    time limit) never became the headline action; it was only mentioned in
+    notes[1], after the wrong action was already told to them first.
+
+    Fixed by not letting Track 2 claim primary_path/next_action when
+    recent_denial is true, so Track 3's guarded assignment can do what its
+    own comment already said it does. Track 2's secondary_options/
+    key_forms/flags/notes are untouched by this fix -- they were never the
+    bug, and VSO help / DD-214 are still relevant to an appeal too.
+    """
+
+    def test_denied_veteran_with_new_evidence_gets_supplemental_claim_as_primary(self):
+        profile = VetMedProfile(
+            va_status="enrolled_no_rating",
+            discharge="honorable",
+            disability_rating=None,
+            recent_denial=True,
+            has_new_evidence=True,
+        )
+        result = route_med_disability(profile)
+
+        self.assertEqual(result["primary_path"], "Supplemental Claim (new evidence)")
+        self.assertIn("VA Form 20-0995", result["next_action"])
+        self.assertIn("appeals_track", result["flags"])
+        # Track 2's other contributions must still be present -- this fix
+        # is scoped to primary_path/next_action only.
+        self.assertIn("unrated_claim_candidate", result["flags"])
+        self.assertIn("VA Form 21-526EZ (Disability Compensation)", result["key_forms"])
+
+    def test_denied_veteran_without_new_evidence_gets_hlr_as_primary(self):
+        profile = VetMedProfile(
+            va_status="enrolled_no_rating",
+            discharge="honorable",
+            disability_rating=None,
+            recent_denial=True,
+            has_new_evidence=False,
+        )
+        result = route_med_disability(profile)
+
+        self.assertEqual(result["primary_path"], "Higher-Level Review (HLR) — same evidence, senior reviewer")
+        self.assertIn("VA Form 20-0996", result["next_action"])
+
+    def test_not_denied_veteran_still_gets_initial_claim_as_primary_no_regression(self):
+        profile = VetMedProfile(
+            va_status="enrolled_no_rating",
+            discharge="honorable",
+            disability_rating=None,
+            recent_denial=False,
+        )
+        result = route_med_disability(profile)
+
+        self.assertEqual(result["primary_path"], "Initial Disability Claim — VA Form 21-526EZ")
+        self.assertIn("va.gov/disability/file-disability-claim", result["next_action"])
+
+
 if __name__ == "__main__":
     unittest.main()
