@@ -88,8 +88,20 @@ class PathfinderHandshake:
             r"\bread my (records|mri|x-?ray|labs?|results?)\b",
             r"\b(am i|are we)\s+eligible\b",
             r"\beligibilit(y|ies)\b",
-            r"\bwhat (rating|percent|%)\b",
-            r"\b\d{1,3}\s*%\b",
+            r"\bwhat (rating|percent)\b",
+            # A literal "%" is a non-word character, so a trailing \b right
+            # after it can only match when a word character immediately
+            # follows with no space (e.g. "80%rating") -- never true for
+            # ordinary text like "what %", "80%", or "80% rating" (all end
+            # the match on a non-word-to-non-word or non-word-to-end
+            # transition, which is not a boundary). Confirmed directly:
+            # re.search(r"\bwhat (rating|percent|%)\b", "is 70% enough for
+            # TDIU?") and re.search(r"\b\d{1,3}\s*%\b", "is 70% enough")
+            # both return None. That silently let real rating-prediction
+            # questions ("Is 70% enough for TDIU?") through this refusal
+            # gate. Fixed by not requiring a boundary after the "%" itself.
+            r"\bwhat\s*%",
+            r"\b\d{1,3}\s*%",
             r"\bchance of\b|\blikely to (win|get approved)\b|\bwill i get\b",
             r"\bservice\s*connect(ed|ion)\b.*\b(chance|likely|probability)\b",
         ]
