@@ -145,10 +145,18 @@ def interactive_intake() -> dict:
     if payload["va_status"] == "100_percent_PT":
         payload["permanent_total"] = True
 
-    # Location
-    loc = input("\nState and county (e.g. 'Mesa County, CO') or press Enter to skip: ").strip()
-    if loc:
-        payload["location"] = loc
+    # Location -- separate state/county, matching every other Division's
+    # CLI convention. Previously asked for a single combined "location"
+    # string (e.g. "Mesa County, CO"), but nothing in route_med_disability()
+    # ever read that field (confirmed by grep), and the local-resource
+    # lookup added to this router reads state/county directly -- a combined
+    # string here would have silently gone nowhere.
+    state = input("\nState (e.g. CO), or press Enter to skip: ").strip()
+    if state:
+        payload["state"] = state.upper()
+    county = input("County (optional): ").strip()
+    if county:
+        payload["county"] = county
 
     return payload
 
