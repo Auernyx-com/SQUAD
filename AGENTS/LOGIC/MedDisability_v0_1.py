@@ -212,7 +212,28 @@ def route_med_disability(profile: VetMedProfile) -> dict:
 
     # ── TRACK 2: ENROLLED, NO RATING — FILE INITIAL CLAIM ────────────────────
     elif profile.va_status == "enrolled_no_rating" or "initial_claim" in profile.need_branches:
-        result["primary_path"] = "Initial Disability Claim — VA Form 21-526EZ"
+        # Independent-audit finding (2026-09-06), round 2: this track runs
+        # BEFORE Track 3 (appeals) below and used to claim primary_path/
+        # next_action unconditionally. Track 3's own assignment is correctly
+        # guarded (`result[...] or (...)`) specifically so it never clobbers
+        # whatever ran first -- but that's exactly what silently defeated it
+        # here: this track already claimed both fields unconditionally, so
+        # Track 3's guard always short-circuited to THIS track's value. The
+        # comment on Track 3 below already claimed this track's guidance is
+        # "preserved... this only adds the appeal-specific guidance on top"
+        # -- true for secondary_options/key_forms/flags, false for
+        # primary_path/next_action, which is the headline text a veteran
+        # sees first. Confirmed with a probe: a denied veteran with new
+        # evidence still got "file an initial claim" as primary_path, with
+        # the Supplemental Claim guidance (no time limit) only ever
+        # mentioned in notes[], after the wrong action was already given.
+        # Fixed by not claiming primary_path/next_action here when
+        # recent_denial is true, letting Track 3 claim them instead --
+        # secondary_options/key_forms/flags/notes below are untouched by
+        # this fix; they were never the bug, and VSO help / DD-214 matter
+        # for an appeal too.
+        if not profile.recent_denial:
+            result["primary_path"] = "Initial Disability Claim — VA Form 21-526EZ"
         result["secondary_options"] = [
             "Free VSO assistance (DAV, VFW, American Legion — accredited claim agents)",
             "VA Regional Office in-person appointment",
@@ -225,10 +246,11 @@ def route_med_disability(profile: VetMedProfile) -> dict:
             "DD-214 (Certificate of Release)",
             "Service treatment records (STRs)",
         ])
-        result["next_action"] = (
-            "File at va.gov/disability/file-disability-claim or visit your nearest VA Regional Office. "
-            "Contact a VSO first — they are free and dramatically improve approval rates."
-        )
+        if not profile.recent_denial:
+            result["next_action"] = (
+                "File at va.gov/disability/file-disability-claim or visit your nearest VA Regional Office. "
+                "Contact a VSO first — they are free and dramatically improve approval rates."
+            )
         result["notes"].append(
             "Filing date matters — your effective date is the date VA receives your claim. "
             "File as soon as possible, even with incomplete evidence. You can add evidence later."
