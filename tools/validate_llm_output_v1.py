@@ -11,9 +11,64 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+# MODULES/_shared/contacts.py is the single source of truth for every
+# pre-verified national/branch phone number used anywhere in SQUAD BAT.
+# VAL-007 uses it as an allowlist: these numbers are safe to appear in an
+# LLM plan regardless of what a specific case's input contains, the same
+# way VAL-006 always accepts 988 as a valid crisis redirect. If the import
+# fails for any reason, fall back to an empty allowlist rather than
+# crashing the validator -- VAL-007 still works via input-tracing alone.
+_SHARED_DIR = str(Path(__file__).resolve().parent.parent / "MODULES" / "_shared")
+if _SHARED_DIR not in sys.path:
+    sys.path.insert(0, _SHARED_DIR)
+try:
+    import contacts as _contacts  # type: ignore
+except ImportError:
+    _contacts = None
+
+
+def _normalize_phone_digits(raw: str) -> str:
+    """Digits only, with a leading US country code '1' stripped."""
+    digits = re.sub(r"\D", "", raw)
+    if len(digits) == 11 and digits.startswith("1"):
+        digits = digits[1:]
+    return digits
+
+
+def _collect_verified_national_numbers() -> List[str]:
+    if _contacts is None:
+        return []
+    numbers: List[str] = []
+    for name in dir(_contacts):
+        if name.startswith("_"):
+            continue
+        value = getattr(_contacts, name)
+        if isinstance(value, str):
+            numbers.append(value)
+        elif isinstance(value, dict):
+            for v in value.values():
+                if isinstance(v, list):
+                    numbers.extend(str(x) for x in v)
+        elif isinstance(value, list):
+            numbers.extend(str(x) for x in value)
+    return numbers
+
+
+# Phone numbers only (10 digits, optional leading 1 / formatting). Deliberately
+# does not attempt vanity numbers with letters (e.g. "1-877-4AID-VET") -- those
+# are static strings already covered by the allowlist substring check below,
+# not something an LLM would plausibly hallucinate digit-for-letter.
+_PHONE_CANDIDATE_RE = re.compile(r"\b1?[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b")
+
+_VERIFIED_NATIONAL_DIGITS = {
+    _normalize_phone_digits(n) for n in _collect_verified_national_numbers()
+}
+_VERIFIED_NATIONAL_DIGITS.discard("")
 
 
 @dataclass
@@ -51,8 +106,9 @@ class GuardrailValidator:
         self._check_confidence_level(output)
         self._check_privacy_warnings(output)
         self._check_escalation_triggers(output)
+        self._check_claims_trace_to_inputs(output)
         self._check_truth_discipline(output)
-        
+
         return self.results
     
     def _add_result(self, check_id: str, passed: bool, severity: str, message: str):
@@ -250,6 +306,69 @@ class GuardrailValidator:
             else:
                 self._add_result("VAL-006", True, "info", "Fraud warning present")
     
+    def _check_claims_trace_to_inputs(self, output: Dict[str, Any]):
+        """VAL-007: All claims trace to inputs or marked verify-required.
+
+        Scoped to phone-number claims only (KISS). A phone number in the
+        output plan is acceptable if it: (a) is a static, pre-verified
+        number from MODULES/_shared/contacts.py, (b) also appears
+        somewhere in the `input` envelope the model was given -- meaning
+        it was handed the fact, not inventing it -- or (c) the output is
+        marked confidence=VERIFY_REQUIRED, which is the schema's own way
+        of saying "don't treat this as settled." Anything else is exactly
+        the hallucinated-phone-number risk KNOWN_GAPS.md already names as
+        the system's most significant safety gap, so it's flagged here.
+
+        This does not verify dates, dollar amounts, or program names --
+        those would need real claim extraction, not a mechanical check,
+        and are left as a documented limitation rather than guessed at.
+        """
+        output_envelope = output.get("output", {})
+        confidence = output_envelope.get("confidence")
+
+        claim_source = {k: v for k, v in output_envelope.items() if k != "stage"}
+        output_text = json.dumps(claim_source, ensure_ascii=False)
+
+        found_numbers = {m.group(0) for m in _PHONE_CANDIDATE_RE.finditer(output_text)}
+        if not found_numbers:
+            self._add_result("VAL-007", True, "info", "No phone-number claims to trace")
+            return
+
+        input_text = json.dumps(output.get("input", {}), ensure_ascii=False)
+        input_digits = {
+            _normalize_phone_digits(m.group(0))
+            for m in _PHONE_CANDIDATE_RE.finditer(input_text)
+        }
+
+        untraced = []
+        for raw in sorted(found_numbers):
+            normalized = _normalize_phone_digits(raw)
+            if len(normalized) != 10:
+                continue
+            if normalized in _VERIFIED_NATIONAL_DIGITS:
+                continue
+            if normalized in input_digits:
+                continue
+            untraced.append(raw)
+
+        if not untraced:
+            self._add_result(
+                "VAL-007", True, "info",
+                "All phone-number claims trace to inputs or verified contacts"
+            )
+        elif confidence == "VERIFY_REQUIRED":
+            self._add_result(
+                "VAL-007", True, "info",
+                f"{len(untraced)} phone number(s) do not trace to inputs, but "
+                f"confidence is VERIFY_REQUIRED: {', '.join(untraced)}"
+            )
+        else:
+            self._add_result(
+                "VAL-007", False, "warning",
+                f"Phone number(s) in output do not trace to input or verified "
+                f"contacts, and confidence is not VERIFY_REQUIRED: {', '.join(untraced)}"
+            )
+
     def _check_truth_discipline(self, output: Dict[str, Any]):
         """Check that claims are supported or caveated."""
         input_envelope = output.get("input", {})
