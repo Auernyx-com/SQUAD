@@ -308,5 +308,90 @@ class RotateGenesisRecordCannotBypassClearJudgmentTest(unittest.TestCase):
         self.assertTrue(result["rotated"])
 
 
+class RestorationProofCoversAllTamperCodesTest(unittest.TestCase):
+    """Round 3 (2026-09-06), independent-audit finding: _restoration_required()
+    only special-cased the literal string "governance_hash_mismatch" -- the
+    other three real verify_provenance() failure codes on an EXISTING genesis
+    record (genesis_hash_mismatch, project_id_mismatch, genesis_parse_error)
+    all returned False, meaning clear_judgment() and rotate_genesis_record()
+    required zero proof for them. genesis_hash_mismatch in particular means
+    the genesis record itself -- the trust anchor -- was tampered with, at
+    least as severe as governance_hash_mismatch.
+
+    Confirmed directly with a probe before this fix: tamper a real governance
+    file (-> governance_hash_mismatch), then forge a self-consistent genesis
+    record with project_id changed and record_hash recomputed to match (a
+    realistic attacker step -- the hash function is public source in this
+    same file) (-> project_id_mismatch). clear_judgment() succeeded with
+    ZERO proof, and rotate_genesis_record() then laundered the still-tampered
+    clerk file into a new "clean" baseline; verify_provenance() reported
+    ok=True afterward with the malicious content still on disk.
+
+    genesis_missing is correctly NOT included here -- an uninitialized repo
+    is not tamper, per the existing tests above.
+    """
+
+    def _forge_project_id_mismatch(self, repo_root: Path) -> None:
+        genesis = json.loads(oj.genesis_path(repo_root).read_text())
+        genesis["project_id"] = "NOT-SQUAD"
+        genesis["record_hash"] = oj._compute_genesis_record_hash({**genesis, "record_hash": None})
+        oj.genesis_path(repo_root).write_text(json.dumps(genesis, indent=2))
+
+    def test_project_id_mismatch_requires_restoration_proof_to_clear(self):
+        repo_root = _tmp_repo()
+        oj.ensure_genesis_record(repo_root, write_enabled=True)
+        clerk = repo_root / "Invoke-SquadAdminClerk.ps1"
+        clerk.write_text("original clerk content\n")
+        oj.rotate_genesis_record(repo_root, confirm=True)
+
+        clerk.write_text("TAMPERED CONTENT")
+        self._forge_project_id_mismatch(repo_root)
+
+        status = oj.verify_provenance(repo_root)
+        self.assertEqual(status.code, "project_id_mismatch")
+        judgment = oj.activate_judgment(repo_root, status)
+
+        self.assertTrue(
+            oj._restoration_required(judgment),
+            "project_id_mismatch must be treated as tamper -- it means the "
+            "trust anchor itself was forged, same severity class as "
+            "governance_hash_mismatch.",
+        )
+
+        cleared = oj.clear_judgment(repo_root)
+
+        self.assertFalse(cleared, "clear_judgment() cleared a forged-genesis judgment with ZERO proof")
+        self.assertTrue(oj.is_judgment_active(repo_root))
+        self.assertEqual(clerk.read_text(), "TAMPERED CONTENT")
+
+    def test_project_id_mismatch_cannot_be_laundered_via_rotate_genesis_record(self):
+        repo_root = _tmp_repo()
+        oj.ensure_genesis_record(repo_root, write_enabled=True)
+        clerk = repo_root / "Invoke-SquadAdminClerk.ps1"
+        clerk.write_text("original clerk content\n")
+        oj.rotate_genesis_record(repo_root, confirm=True)
+
+        clerk.write_text("TAMPERED CONTENT")
+        self._forge_project_id_mismatch(repo_root)
+
+        status = oj.verify_provenance(repo_root)
+        oj.activate_judgment(repo_root, status)
+
+        with self.assertRaises(RuntimeError):
+            oj.rotate_genesis_record(repo_root, confirm=True)
+
+        # The tamper must still be visible after the refused rotation --
+        # not laundered into a new "clean" baseline.
+        self.assertFalse(oj.verify_provenance(repo_root).ok)
+        self.assertEqual(clerk.read_text(), "TAMPERED CONTENT")
+
+    def test_genesis_missing_still_correctly_exempt(self):
+        # Must not regress: an uninitialized repo is not tamper.
+        repo_root = _tmp_repo()
+        failure = oj.ProvenanceStatus(ok=False, code="genesis_missing", reason="no genesis record")
+        judgment = oj.activate_judgment(repo_root, failure)
+        self.assertFalse(oj._restoration_required(judgment))
+
+
 if __name__ == "__main__":
     unittest.main()
