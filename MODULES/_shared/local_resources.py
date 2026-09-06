@@ -263,3 +263,55 @@ def find_local_resources(
         # Fail safe, always -- a bad shard file or unexpected input must
         # never break a Division's own routing for the rest of its guidance.
         return []
+
+
+def _normalize_phone_for_downstream_matching(raw: str) -> str:
+    r"""
+    pf_coordinator_v1.py's invoke_division() promotes a Division's
+    key_resources/notes lines into the coordinator-level
+    "immediate_contacts" field ONLY when a line matches its own phone
+    regex: r'(1-\d{3}-\d{3}-\d{4}|1-\d{3}-\d{4}|1-877-4AID-VET|
+    \d{3}-\d{3}-\d{4}|988)' -- dash-separated digits only, no parens or
+    spaces. Confirmed directly that the real shard data is inconsistent:
+    western_slope.json uses "(970) 245-4156" (does not match), while
+    front_range.json uses "719-553-1000" (matches) for the same kind of
+    entry. Without normalizing here, a real local phone number would
+    silently fail to reach the one field the coordinator's own synthesis
+    actually surfaces at the top level -- staying buried and effectively
+    invisible depending on which region's formatting convention happened
+    to write it, not on whether the data itself was good.
+    """
+    digits = "".join(ch for ch in raw if ch.isdigit())
+    if len(digits) == 10:
+        return f"{digits[0:3]}-{digits[3:6]}-{digits[6:10]}"
+    if len(digits) == 11 and digits[0] == "1":
+        return f"{digits[0]}-{digits[1:4]}-{digits[4:7]}-{digits[7:11]}"
+    return raw  # Not a recognizable US number shape -- leave it as given.
+
+
+def format_local_resource_line(resource: Dict[str, Any]) -> str:
+    """
+    One shared formatting function for every Division router to use, so a
+    veteran sees the same "Local (verified): ..." shape everywhere instead
+    of 8 slightly different hand-rolled formats. Labeled explicitly per
+    the agreed design: local, verified data must be visibly distinguished
+    from whatever hardcoded national-line text a router adds elsewhere.
+
+    Never raises -- a malformed resource dict degrades to a minimal line
+    rather than breaking the caller's whole result.
+    """
+    try:
+        name = str(resource.get("name") or "Local organization").strip()
+        phones = resource.get("phones") or []
+        urls = resource.get("urls") or []
+
+        if phones and isinstance(phones, list):
+            contact = _normalize_phone_for_downstream_matching(str(phones[0]))
+        elif urls and isinstance(urls, list):
+            contact = str(urls[0])
+        else:
+            contact = "contact info not yet verified -- see notes"
+
+        return f"Local (verified): {name} — {contact}"
+    except Exception:
+        return "Local (verified): a local resource was found but could not be formatted."

@@ -41,6 +41,11 @@ def print_result(result: dict) -> None:
         for f in result["key_forms"]:
             print(f"    • {f}")
 
+    if result.get("key_resources"):
+        print("\n  LOCAL RESOURCES:")
+        for r in result["key_resources"]:
+            print(f"    • {r}")
+
     if result["secondary_options"]:
         print("\n  SECONDARY OPTIONS:")
         for opt in result["secondary_options"]:

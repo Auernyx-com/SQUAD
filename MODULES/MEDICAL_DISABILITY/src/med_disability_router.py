@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import sys
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
 # Allow import from AGENTS/LOGIC without install
@@ -18,7 +18,12 @@ _LOGIC_PATH = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'AGENTS'
 if _LOGIC_PATH not in sys.path:
     sys.path.insert(0, _LOGIC_PATH)
 
+_SHARED_PATH = os.path.join(os.path.dirname(__file__), '..', '..', '_shared')
+if _SHARED_PATH not in sys.path:
+    sys.path.insert(0, _SHARED_PATH)
+
 from MedDisability_v0_1 import VetMedProfile, route_med_disability  # type: ignore
+from local_resources import find_local_resources, format_local_resource_line  # type: ignore
 
 
 REQUIRED_FIELDS = {"va_status", "discharge"}
@@ -38,6 +43,16 @@ class MedDisabilityResult:
     notes: List[str]
     questions: List[str]           # populated when NEEDS_INPUT
     audit: Dict[str, Any]
+    # Added for local-resource lookup wiring -- see the identical comment
+    # in va_benefits_router.py's VaBenefitsResult for the full reasoning:
+    # secondary_options gets truncated to [:3] by
+    # pf_coordinator_v1.py's invoke_division() when building next_actions,
+    # and every real intake already has 3+ items there before any local
+    # match -- confirmed directly that a real Mesa County match never
+    # reached the coordinator's actual output as a result. key_resources
+    # is not truncated. Defaulted so no existing construction here needs
+    # to change.
+    key_resources: List[str] = field(default_factory=list)
 
 
 def _validate(payload: Dict[str, Any]) -> List[str]:
@@ -102,6 +117,29 @@ def _build_profile(payload: Dict[str, Any]) -> VetMedProfile:
     )
 
 
+def _local_resource_tags(flags: List[str]) -> List[str]:
+    """Service tags to search for, driven by the flags route_med_disability()
+    already computed."""
+    tags = ["claims_assistance", "benefits_navigation"]
+
+    if any(f in flags for f in ("mst_flagged", "ptsd_flagged", "tbi_flagged")):
+        tags.append("mental_health")
+
+    if "pcafc_candidate" in flags:
+        tags.append("caregiver_support")
+
+    return tags
+
+
+def _is_crisis(flags: List[str]) -> bool:
+    # mst_flagged/ptsd_flagged/tbi_flagged are exactly the "health and
+    # welfare or self-harm concern" case the crisis-widened mental_health
+    # branch (GOVERNANCE/auernyx.nonprofit.scope.json's
+    # crisis_widened_branches) was built for -- the clearest, most directly
+    # applicable use of that widening across all 8 Divisions.
+    return any(f in flags for f in ("mst_flagged", "ptsd_flagged", "tbi_flagged"))
+
+
 def route(payload: Dict[str, Any]) -> MedDisabilityResult:
     """
     Main module entry point.
@@ -143,13 +181,31 @@ def route(payload: Dict[str, Any]) -> MedDisabilityResult:
     profile = _build_profile(payload)
     routing = route_med_disability(profile)
 
+    # VetMedProfile has a single "location" field, but nothing in
+    # route_med_disability() actually reads it (confirmed by grep -- no
+    # Track references profile.location at all), and the real bridge never
+    # sends a flat "location" string anyway (it sends separate "state"/
+    # "county" keys) -- so that field has always been a no-op, not
+    # something to route local-resource lookups through. Reading
+    # state/county straight off payload instead, matching how every other
+    # Division's own local-resource wiring already does it.
+    result_flags = routing.get("flags", [])
+    local = find_local_resources(
+        state=payload.get("state", ""),
+        county=payload.get("county", ""),
+        service_tags=_local_resource_tags(result_flags),
+        crisis_or_self_harm=_is_crisis(result_flags),
+    )
+    key_resources = [format_local_resource_line(r) for r in local]
+
     return MedDisabilityResult(
         status="OK",
         primary_path=routing.get("primary_path"),
         secondary_options=routing.get("secondary_options", []),
-        flags=routing.get("flags", []),
+        flags=result_flags,
         next_action=routing.get("next_action"),
         key_forms=routing.get("key_forms", []),
+        key_resources=key_resources,
         notes=routing.get("notes", []),
         questions=[],
         audit={
@@ -172,6 +228,7 @@ def route_to_dict(payload: Dict[str, Any]) -> Dict[str, Any]:
         "flags": r.flags,
         "next_action": r.next_action,
         "key_forms": r.key_forms,
+        "key_resources": r.key_resources,
         "notes": r.notes,
         "questions": r.questions,
         "audit": r.audit,

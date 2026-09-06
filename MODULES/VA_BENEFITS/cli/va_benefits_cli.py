@@ -27,6 +27,7 @@ def result_to_dict(result) -> dict:
         "flags": result.flags,
         "next_action": result.next_action,
         "key_forms": result.key_forms,
+        "key_resources": result.key_resources,
         "notes": result.notes,
         "questions": result.questions,
         "audit": result.audit,
@@ -66,6 +67,11 @@ def print_result(result) -> None:
         print('\n  KEY FORMS:')
         for f in result.key_forms:
             print(f'    • {f}')
+
+    if result.key_resources:
+        print('\n  LOCAL RESOURCES:')
+        for r in result.key_resources:
+            print(f'    • {r}')
 
     if result.secondary_options:
         print('\n  ADDITIONAL OPTIONS:')

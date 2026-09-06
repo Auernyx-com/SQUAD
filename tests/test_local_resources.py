@@ -26,9 +26,59 @@ sys.path.insert(0, str(REPO_ROOT / "MODULES" / "_shared"))
 
 from local_resources import (  # noqa: E402
     _normalize_county,
+    _normalize_phone_for_downstream_matching,
     _resolve_county,
     find_local_resources,
+    format_local_resource_line,
 )
+
+# The exact regex pf_coordinator_v1.py's invoke_division() uses to decide
+# whether a key_resources/notes line gets promoted to the coordinator-level
+# "immediate_contacts" field -- kept in sync manually since it isn't
+# exported. If that regex ever changes, this test file's own assertions
+# are the thing that should catch a silent mismatch, not a real veteran.
+import re
+_COORDINATOR_PHONE_PATTERN = re.compile(
+    r"(1-\d{3}-\d{3}-\d{4}|1-\d{3}-\d{4}|1-877-4AID-VET|\d{3}-\d{3}-\d{4}|988)"
+)
+
+
+class PhoneNormalizationTest(unittest.TestCase):
+    """Found directly while wiring the Division routers: the real shard
+    data is inconsistent about phone formatting -- western_slope.json uses
+    "(970) 245-4156" (parens+space), front_range.json uses "719-553-1000"
+    (dashes) -- and pf_coordinator_v1.py's own phone-detection regex only
+    matches the dash form. Without normalizing, a real local phone number
+    would silently fail to reach "immediate_contacts", the one field the
+    coordinator's synthesis actually surfaces at the top level, depending
+    on which region happened to write it, not on whether the data was good.
+    """
+
+    def test_parens_and_space_format_normalizes_to_dashes(self):
+        self.assertEqual(_normalize_phone_for_downstream_matching("(970) 245-4156"), "970-245-4156")
+
+    def test_already_dashed_format_is_unchanged(self):
+        self.assertEqual(_normalize_phone_for_downstream_matching("970-245-4156"), "970-245-4156")
+
+    def test_leading_country_code_is_preserved(self):
+        self.assertEqual(_normalize_phone_for_downstream_matching("1 (844) 263-2778"), "1-844-263-2778")
+
+    def test_dotted_format_normalizes_to_dashes(self):
+        self.assertEqual(_normalize_phone_for_downstream_matching("970.245.4156"), "970-245-4156")
+
+    def test_unrecognizable_shape_is_left_as_given(self):
+        self.assertEqual(_normalize_phone_for_downstream_matching("call the front desk"), "call the front desk")
+
+    def test_normalized_output_actually_matches_the_coordinator_regex(self):
+        for raw in ("(970) 245-4156", "970.245.4156", "1 (844) 263-2778"):
+            normalized = _normalize_phone_for_downstream_matching(raw)
+            with self.subTest(raw=raw, normalized=normalized):
+                self.assertTrue(_COORDINATOR_PHONE_PATTERN.search(normalized))
+
+    def test_format_local_resource_line_uses_the_normalized_phone(self):
+        line = format_local_resource_line({"name": "Example Org", "phones": ["(970) 245-4156"]})
+        self.assertIn("970-245-4156", line)
+        self.assertTrue(_COORDINATOR_PHONE_PATTERN.search(line))
 
 
 class NormalizeCountyTest(unittest.TestCase):

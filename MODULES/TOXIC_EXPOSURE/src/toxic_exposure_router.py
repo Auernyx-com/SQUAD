@@ -14,7 +14,20 @@ _LOGIC_PATH = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'AGENTS'
 if _LOGIC_PATH not in sys.path:
     sys.path.insert(0, _LOGIC_PATH)
 
+_SHARED_PATH = os.path.join(os.path.dirname(__file__), '..', '..', '_shared')
+if _SHARED_PATH not in sys.path:
+    sys.path.insert(0, _SHARED_PATH)
+
 from ToxicExposure_v0_1 import ToxicExposureProfile, route_toxic_exposure  # type: ignore
+from local_resources import find_local_resources, format_local_resource_line  # type: ignore
+
+# No dedicated "toxic exposure" tag exists in the controlled vocabulary --
+# this Division's real-world need is filing/refiling a claim (PACT Act,
+# Agent Orange, Gulf War, etc.), which is exactly what claims_assistance
+# and benefits_navigation cover. "specialty_care" added for the medical
+# follow-up (registry exam, condition-specific care) every track
+# recommends alongside the claim itself.
+_LOCAL_RESOURCE_TAGS = ["claims_assistance", "benefits_navigation", "specialty_care"]
 
 
 VALID_EXPOSURE_TYPES = {
@@ -151,13 +164,21 @@ def run(payload: Dict[str, Any]) -> ToxicExposureResult:
             audit={**audit, "exception": str(exc)},
         )
 
+    key_resources = list(routing.get("key_resources", []))
+    local = find_local_resources(
+        state=profile.state,
+        county=profile.county,
+        service_tags=_LOCAL_RESOURCE_TAGS,
+    )
+    key_resources.extend(format_local_resource_line(r) for r in local)
+
     return ToxicExposureResult(
         status="OK",
         primary_path=routing.get("primary_path"),
         secondary_options=routing.get("secondary_options", []),
         flags=routing.get("flags", []),
         next_action=routing.get("next_action"),
-        key_resources=routing.get("key_resources", []),
+        key_resources=key_resources,
         key_forms=routing.get("key_forms", []),
         notes=routing.get("notes", []),
         presumptive_conditions=routing.get("presumptive_conditions", []),

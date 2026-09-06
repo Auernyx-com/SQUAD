@@ -14,7 +14,12 @@ _LOGIC_PATH = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'AGENTS'
 if _LOGIC_PATH not in sys.path:
     sys.path.insert(0, _LOGIC_PATH)
 
+_SHARED_PATH = os.path.join(os.path.dirname(__file__), '..', '..', '_shared')
+if _SHARED_PATH not in sys.path:
+    sys.path.insert(0, _SHARED_PATH)
+
 from Transportation_v0_1 import VetTransportProfile, route_transportation  # type: ignore
+from local_resources import find_local_resources, format_local_resource_line  # type: ignore
 
 
 VALID_TRANSPORT_NEEDS = {"va_appointment", "adaptive_vehicle", "rural", "daily_transit", "crisis", "relocation"}
@@ -88,6 +93,30 @@ def _build_profile(payload: Dict[str, Any]) -> VetTransportProfile:
     )
 
 
+def _local_resource_tags(flags: List[str]) -> List[str]:
+    """Service tags to search for, driven by the flags route_transportation()
+    already computed. "transportation" is an exact match in the controlled
+    vocabulary -- unlike most Divisions, no approximation needed here."""
+    tags = ["transportation"]
+
+    if "crisis_transport_track" in flags:
+        # Confirmed by reading Track 6 directly: crisis_transport_track
+        # points straight at the Veterans Crisis Line (988/838255) -- this
+        # is genuinely a self-harm/crisis situation, not just "urgent," so
+        # it earns the same crisis-widened mental_health search every other
+        # Division's crisis path uses, not a made-up transport-specific tag.
+        tags.append("mental_health")
+
+    if "adaptive_vehicle_track" in flags:
+        tags.append("prosthetics")
+
+    return tags
+
+
+def _is_crisis(flags: List[str]) -> bool:
+    return "crisis_transport_track" in flags
+
+
 def run(payload: Dict[str, Any]) -> TransportationResult:
     """
     Module entrypoint. No required fields — every veteran gets a path.
@@ -130,13 +159,23 @@ def run(payload: Dict[str, Any]) -> TransportationResult:
             audit={**audit, "exception": str(exc)},
         )
 
+    result_flags = routing.get("flags", [])
+    key_resources = list(routing.get("key_resources", []))
+    local = find_local_resources(
+        state=profile.state,
+        county=profile.county,
+        service_tags=_local_resource_tags(result_flags),
+        crisis_or_self_harm=_is_crisis(result_flags),
+    )
+    key_resources.extend(format_local_resource_line(r) for r in local)
+
     return TransportationResult(
         status="OK",
         primary_path=routing.get("primary_path"),
         secondary_options=routing.get("secondary_options", []),
-        flags=routing.get("flags", []),
+        flags=result_flags,
         next_action=routing.get("next_action"),
-        key_resources=routing.get("key_resources", []),
+        key_resources=key_resources,
         key_forms=routing.get("key_forms", []),
         notes=routing.get("notes", []),
         questions=[],
