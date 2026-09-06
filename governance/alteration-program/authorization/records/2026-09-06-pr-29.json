@@ -1,0 +1,9 @@
+{
+  "governance_record": "2026-09-06-pr-29",
+  "authorization_logic": "Ghostwolf101 authorized via allowlist for PR #29: fix: PathfinderHandshake's percent-sign out-of-scope regex never matched",
+  "signature": "Ghostwolf101-2026-09-06-pr29",
+  "authorizedBy": "Ghostwolf101",
+  "authorizedAt": "2026-09-06",
+  "reason": "PR #29: fix: PathfinderHandshake's percent-sign out-of-scope regex never matched",
+  "pullRequest": 29
+}
