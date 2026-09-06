@@ -39,7 +39,7 @@ SQUAD/
 │   ├── TOXIC_EXPOSURE/         ← Agent Orange, PFAS, Camp Lejeune, Gulf War
 │   ├── CRISIS_REDIRECT/        ← Crisis Line routing (always additive)
 │   ├── INTAKE_DO_NOT_GUESS/    ← Guardrail: intake boundaries
-│   ├── OBSIDIAN_JUDGMENT/      ← Edge case handling
+│   ├── OBSIDIAN_JUDGMENT/      ← Provenance + governance-hash tamper detection
 │   └── RESOURCES_NONPROFITS/   ← Resource database (see below)
 │
 ├── MODULES/RESOURCES_NONPROFITS/
