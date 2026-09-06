@@ -1,0 +1,75 @@
+name: ci-tests
+
+# Runs the actual test suite and QA validators on every PR and every push
+# to main. Adapted from auernyx-agent-mk2's ci-tests.yml (added there after
+# an investor-readiness review found a 186-test suite with zero CI
+# enforcement — tests that exist but never run are barely better than no
+# tests). SQUAD had the identical gap: 114 tests and 8 tools/qa/ validator
+# scripts, and no .github/workflows directory existed in this repo AT ALL
+# before this PR, so none of it ever ran automatically. This is also how
+# the ~6.5-month governance-hash drift (see check_obsidian_judgment below)
+# went uncaught: nothing but a human manually running a script would ever
+# have noticed.
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [ main ]
+
+concurrency:
+  group: ci-tests-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install QA dependencies
+        run: pip install -r tools/qa/requirements.txt
+
+      - name: Run test suite
+        run: python3 -m unittest discover -s tests -v
+
+      - name: Validate module registries
+        run: python3 tools/qa/validate_module_registries.py
+
+      - name: Validate Pathfinder contracts
+        run: python3 tools/qa/validate_pathfinder_contracts.py
+
+      - name: Validate CRA fixtures
+        run: python3 tools/qa/validate_cra_fixtures.py
+
+      - name: JSON sweep (every tracked .json file parses)
+        run: python3 tools/qa/json_sweep.py
+
+      - name: Python compile sweep
+        run: python3 tools/qa/python_compile_sweep.py
+
+      - name: Verify SQUAD repo baseline
+        run: python3 tools/qa/verify_squad_repo.py
+
+      - name: Check Obsidian Judgment provenance
+        run: python3 tools/qa/check_obsidian_judgment.py
+
+      # NOT required/blocking, deliberately: as of this workflow's creation,
+      # 189 of 266 real nonprofit-registry provider records are pending
+      # human phone-number/address re-verification (see PR #23) -- a real,
+      # disclosed, ongoing data-curation backlog, not a code regression.
+      # Making this job fail on every unrelated future PR until someone
+      # manually verifies 189 phone numbers would just train everyone to
+      # ignore a permanently-red check. Its findings stay visible in the
+      # log; the job's exit code doesn't block the PR. Flip this to a hard
+      # requirement once the backlog is actually cleared.
+      - name: Validate nonprofit registry (informational -- known backlog, not blocking)
+        continue-on-error: true
+        run: python3 tools/qa/validate_nonprofit_registry.py
