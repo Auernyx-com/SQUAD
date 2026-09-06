@@ -211,6 +211,21 @@ def _map_va_status(va_history_raw: Optional[str], disability_rating_raw: Optiona
     return _VA_HISTORY_MAP.get(va_history_raw, "not_enrolled")
 
 
+# recent_denial -- found missing while auditing MedDisability_v0_1.py's Track
+# 3 (Has Rating -- Increase / Appeals). va_history == "denied" correctly maps
+# to va_status "enrolled_no_rating" above (a denied veteran doesn't have a
+# confirmed rating -- that mapping is honest and stays as is), but Track 3 --
+# and the critical "you have ONE YEAR from your decision letter" appeal-
+# deadline warning inside it -- was gated on va_status alone, so it could
+# only ever fire for someone who already has a rating. A previously-denied
+# veteran got Track 2's "file an initial claim" guidance instead, with no
+# appeal-deadline warning at all. recent_denial is a zero-ambiguity, exact
+# match to the questionnaire's own va_history option ("denied") -- not an
+# approximation like most of the mappings in this file.
+def _is_recent_denial(va_history_raw: Optional[str]) -> bool:
+    return va_history_raw == "denied"
+
+
 # ---------------------------------------------------------------------------
 # housing_status
 # ---------------------------------------------------------------------------
@@ -383,6 +398,7 @@ def build_coordinator_intake(
         "housing_status": _map_housing_status(q.get("housing_status")),
         "income_monthly": _map_income(q.get("income")),
         "va_status": _map_va_status(q.get("va_history"), q.get("disability_rating")),
+        "recent_denial": _is_recent_denial(q.get("va_history")),
         "service_status": q.get("service_status") or "not_sure",
         # Also set at the top level for the coordinator's own inline
         # confidence/edge-case checks, which read state/county/urgency

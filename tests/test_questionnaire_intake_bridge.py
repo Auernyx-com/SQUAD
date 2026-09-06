@@ -153,6 +153,43 @@ class VaStatusMappingTest(unittest.TestCase):
         self.assertEqual(bridge._map_va_status(None, None), "not_enrolled")
 
 
+class RecentDenialMappingTest(unittest.TestCase):
+    def test_denied_is_true(self):
+        self.assertTrue(bridge._is_recent_denial("denied"))
+
+    def test_everything_else_is_false(self):
+        for v in ("never", "contacted_only", "healthcare_only", "claim_active", "receiving_comp", None):
+            with self.subTest(v=v):
+                self.assertFalse(bridge._is_recent_denial(v))
+
+    def test_denied_reaches_the_real_appeals_track_end_to_end(self):
+        # (the fix) va_history == "denied" maps to va_status
+        # "enrolled_no_rating" -- correct, since a denied veteran has no
+        # confirmed rating -- but MedDisability_v0_1.py's Track 3 (and its
+        # 1-year appeal-deadline warning) was gated on va_status alone, so
+        # it could never fire for a denied veteran without this flag.
+        intake = bridge.build_coordinator_intake(
+            {"discharge": "honorable", "need": ["claims"], "va_history": "denied"},
+            case_id="CASE_TEST_RECENT_DENIAL",
+        )
+        self.assertTrue(intake["recent_denial"])
+        self.assertEqual(intake["va_status"], "enrolled_no_rating")
+        result = coordinator.run_coordinator(intake)
+        med_result = next(r for r in result["division_results"] if r["domain"] == "CLAIMS")
+        self.assertEqual(med_result["status"], "COMPLETED")
+        self.assertIn("appeals_track", med_result["flags"])
+
+    def test_never_enrolled_does_not_falsely_trigger_appeals_track(self):
+        intake = bridge.build_coordinator_intake(
+            {"discharge": "honorable", "need": ["claims"], "va_history": "never"},
+            case_id="CASE_TEST_NOT_DENIED",
+        )
+        self.assertFalse(intake["recent_denial"])
+        result = coordinator.run_coordinator(intake)
+        med_result = next(r for r in result["division_results"] if r["domain"] == "CLAIMS")
+        self.assertNotIn("appeals_track", med_result["flags"])
+
+
 class NeedToDomainMappingTest(unittest.TestCase):
     def test_maps_each_need_to_its_domain(self):
         domains = bridge._map_needs_to_domains(["housing", "claims", "benefits"])

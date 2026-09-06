@@ -236,7 +236,19 @@ def route_med_disability(profile: VetMedProfile) -> dict:
         # No early return — mental health track still runs below if flags set
 
     # ── TRACK 3: HAS RATING — INCREASE / APPEALS ─────────────────────────────
-    if profile.va_status in ("has_rating", "100_percent_PT"):
+    # recent_denial is an explicit OR here, not folded into va_status: a
+    # veteran whose va_history is "denied" maps to va_status
+    # "enrolled_no_rating" (they don't have a confirmed rating), which is
+    # honest and correct -- but it meant this track, and the critical
+    # "you have ONE YEAR from your decision letter" appeal-deadline warning
+    # inside it, could only ever fire for someone who already has a rating.
+    # A previously-denied veteran got Track 2's "file an initial claim"
+    # guidance instead, with no mention of the appeal deadline at all.
+    # Additive, not a replacement: Track 2 still runs for the same veteran
+    # (va_status == "enrolled_no_rating") and its guidance is preserved
+    # under this file's guarded result[...] = result[...] or (...)
+    # convention -- this only adds the appeal-specific guidance on top.
+    if profile.va_status in ("has_rating", "100_percent_PT") or profile.recent_denial:
         rating = profile.disability_rating or 0
 
         # Appeals track
