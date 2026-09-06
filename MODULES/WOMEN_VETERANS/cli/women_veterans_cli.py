@@ -131,6 +131,9 @@ def interactive_intake() -> dict:
     state = input('State (e.g. CO): ').strip()
     if state:
         payload['state'] = state.upper()
+    county = input('County (optional): ').strip()
+    if county:
+        payload['county'] = county
 
     return payload
 
