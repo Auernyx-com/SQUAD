@@ -199,8 +199,18 @@ function Assert-ObsidianProvenanceOk {
     foreach ($line in $out) { Write-Host $line }
 
     # Attempt to print a single-line structured receipt for humans/automation.
+    #
+    # Independent-audit finding (2026-09-06), round 3: `-join "\n"` does NOT
+    # join with a newline -- PowerShell's only string-escape character is
+    # the backtick, so "\n" in a double-quoted string is the two literal
+    # characters backslash+n, not a line break. Confirmed directly: joining
+    # multi-line indented JSON (json.dumps(..., indent=2) from
+    # check_obsidian_judgment.py) with literal "\n" text between lines
+    # (outside any string literal) produces invalid JSON --
+    # ConvertFrom-Json correctly failed to parse it. Fixed with a real
+    # newline (backtick-n, PowerShell's actual newline escape).
     try {
-      $raw = ($out | ForEach-Object { [string]$_ }) -join "\n"
+      $raw = ($out | ForEach-Object { [string]$_ }) -join "`n"
       $parsed = $raw | ConvertFrom-Json
 
       $refusalCode = [string]$parsed.code
@@ -728,11 +738,16 @@ if ($PathfinderInput) {
     throw ('Pathfinder input not found: {0}' -f $resolvedInput)
   }
 
-  $pythonCmd = (Get-Command python -ErrorAction SilentlyContinue)
-  if (-not $pythonCmd) {
-    Write-ClerkLog $logDir 'Pathfinder run failed: python not found on PATH' 'ERROR'
-    throw 'Pathfinder run failed: python not found on PATH. Install Python or add it to PATH.'
-  }
+  # Independent-audit finding (2026-09-06), round 3: this used to check
+  # only `Get-Command python` and hardcode the literal string 'python' in
+  # $cmd below, unlike CRA run mode and Assert-ObsidianProvenanceOk, both
+  # of which prefer .venv\Scripts\python.exe via Get-PythonExeForRuns.
+  # pf_core_runner_v1.py requires jsonschema (raises RuntimeError if
+  # missing) -- in an environment where only the project's .venv has
+  # jsonschema installed (this README's own examples always invoke
+  # .venv\Scripts\python.exe), -PathfinderInput runs would fail while
+  # -CRARun succeeded, purely from this inconsistency.
+  $pythonExe = Get-PythonExeForRuns -Root $SquadRoot
 
   $runner = Join-Path $SquadRoot 'AGENTS\CORE\PATHFINDER\pf_core_runner_v1.py'
   if (-not (Test-Path -LiteralPath $runner)) {
@@ -749,7 +764,7 @@ if ($PathfinderInput) {
   Copy-Item -LiteralPath $resolvedInput -Destination $inCopyPath -Force
 
   $cmd = @(
-    'python',
+    $pythonExe,
     $runner,
     $inCopyPath,
     '--out',
