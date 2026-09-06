@@ -1,0 +1,9 @@
+{
+  "governance_record": "2026-09-06-pr-31",
+  "authorization_logic": "Ghostwolf101 authorized via allowlist for PR #31: fix: --case-id path traversal in pathfinder_cra/run_cra_v1.py",
+  "signature": "Ghostwolf101-2026-09-06-pr31",
+  "authorizedBy": "Ghostwolf101",
+  "authorizedAt": "2026-09-06",
+  "reason": "PR #31: fix: --case-id path traversal in pathfinder_cra/run_cra_v1.py",
+  "pullRequest": 31
+}
