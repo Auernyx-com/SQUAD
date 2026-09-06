@@ -81,7 +81,20 @@ def _detect_crisis(text: str, signals: Dict[str, bool]) -> Optional[str]:
     if not text:
         return None
 
-    # High-signal phrases. Keep small and conservative.
+    # Independent-audit finding (2026-09-06), same gap found and fixed in
+    # pathfinder-worker's identical JS port of this list: the original list
+    # only matched "kill myself"/"die" preceded by a handful of exact
+    # prefixes, and had no entries at all for extremely common real-world
+    # ideation phrasing ("don't want to live anymore", "no point in going
+    # on", "overdose", "took a bunch of pills", etc). Verified directly:
+    # every phrase below returned None against the pre-fix list. Broadened
+    # to the substrings that matter, deliberately still NOT chasing generic
+    # phrases like "can't do this anymore" -- those false-positive
+    # constantly on ordinary frustration with paperwork/appeals in this
+    # specific domain, and crisis detection here has a real false-positive
+    # cost too (a banner people learn to tune out), not just a
+    # false-negative one. Keep both surfaces (this file and
+    # pathfinder-worker's worker.js) in sync when either list changes.
     if _contains_any(
         text,
         [
@@ -89,18 +102,52 @@ def _detect_crisis(text: str, signals: Dict[str, bool]) -> Optional[str]:
             "i'm going to kill myself",
             "im going to kill myself",
             "i will kill myself",
+            "kill myself",
+            "killing myself",
             "i want to die",
             "i'm going to die",
             "im going to die",
+            "wish i was dead",
+            "wish i were dead",
             "suicide",
+            "suicidal",
             "end my life",
+            "ending my life",
+            "end it all",
             "hurt myself",
             "self harm",
+            "self-harm",
+            "better off dead",
+            "better off without me",
+            "better without me",
+            "no point in living",
+            "no point living",
+            "no reason to live",
+            "no reason to keep living",
+            "no point in going on",
+            "no point going on",
+            "don't want to live anymore",
+            "dont want to live anymore",
+            "don't want to be here anymore",
+            "dont want to be here anymore",
+            "disappear for good",
+            "overdose",
+            "took a bunch of pills",
+            "took all my pills",
+            "jump off a bridge",
+            "jump off the bridge",
         ],
     ):
         return "Text indicates potential self-harm or suicide intent."
 
-    if _contains_any(text, ["i have a gun", "i have a weapon", "i'm going to hurt", "im going to hurt"]):
+    # Broadened from exact "i have a gun"-style phrases to bare weapon
+    # nouns -- the combined check below still requires an explicit
+    # violence-target word in the same text, so "I have a gun safe I need
+    # to register" (no violence word) still correctly does not trigger.
+    if _contains_any(
+        text,
+        ["i have a gun", "i have a weapon", "i'm going to hurt", "im going to hurt", "gun", "weapon", "rifle", "pistol", "firearm"],
+    ):
         # Still conservative: only trigger if combined with self-harm/violence language.
         if _contains_any(text, ["myself", "them", "someone", "anyone", "kill", "shoot", "stab"]):
             return "Text indicates potential immediate violence risk."
