@@ -1,0 +1,9 @@
+{
+  "governance_record": "2026-09-06-pr-37",
+  "authorization_logic": "Ghostwolf101 authorized via allowlist for PR #37: fix: previously-denied veterans never saw the 1-year appeal deadline",
+  "signature": "Ghostwolf101-2026-09-06-pr37",
+  "authorizedBy": "Ghostwolf101",
+  "authorizedAt": "2026-09-06",
+  "reason": "PR #37: fix: previously-denied veterans never saw the 1-year appeal deadline",
+  "pullRequest": 37
+}
