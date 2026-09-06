@@ -274,6 +274,79 @@ def _needs_flag_crisis(raw_list: Any) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# need_branches -- VaBenefits_v0_1.py and BusinessOpportunity_v0_1.py each
+# gate their own Tracks on a *sub*-need vocabulary (education/voc_rehab/
+# employment/transition/home_loan/adaptive_housing/pension/life_insurance/
+# survivor_benefits/burial for VA Benefits; certification/contracting/
+# financing/surplus_access/mentorship/training/state_programs for Business)
+# that this bridge never forwarded at all -- found while auditing
+# va_benefits_router.py, which reads need_branches directly off the intake
+# with no translation from anything the questionnaire actually sends.
+#
+# Confirmed directly: every one of VaBenefits' 6 Tracks gates on
+# `"x" in profile.need_branches`, most with no other fallback, so with
+# need_branches always [] on real intake, only the FALLBACK path ("VA
+# Benefits Review -- contact a VSO") could ever fire, regardless of what a
+# veteran actually needed -- GI Bill, home loan, pension, survivor benefits,
+# burial. (Two sub-blocks already partially work via a separate fallback on
+# disability_rating, which the bridge does forward: VR&E at rating>=10, SAH/
+# SHA grants at rating>=50 -- those were never fully dead.)
+#
+# The questionnaire's own "need" vocabulary (housing/medical/claims/
+# benefits/toxic_exposure/employment/business/legal/crisis) has exactly ONE
+# value in common with VaBenefits' need_branches vocabulary: "employment"
+# (questionnaire's own label: "Employment / Training -- Jobs, retraining,
+# SkillBridge, transition assistance" -- matches Track 2 exactly). Forwarding
+# that one real overlap, honestly, rather than guessing at the rest.
+#
+# None of BusinessOpportunity's need_branches vocabulary overlaps with the
+# questionnaire's "business" option at all, so nothing can be honestly
+# forwarded there -- but its Track 1 (SDVOSB/VOSB certification, the
+# division's core value) runs unconditionally regardless of need_branches,
+# so that division was never fully dead either.
+#
+# Known, documented gap (not fixable here -- a frontend content gap, not a
+# data-mapping one, same as the transportation/women-veterans "need" gap
+# above): the questionnaire has no way to express "I need help with my GI
+# Bill specifically" vs. home loan vs. pension vs. life insurance vs. burial.
+# VaBenefits' Tracks 1 (GI Bill/Yellow Ribbon path specifically, distinct
+# from its already-working VR&E fallback), 3 (home loan path, distinct from
+# its already-working SAH/SHA fallback), 4 (pension), and 6 (burial) remain
+# unreachable from real intake until the questionnaire can express that
+# level of detail.
+_NEED_BRANCHES_OVERLAP: Dict[str, str] = {
+    "employment": "employment",
+}
+
+
+def _map_need_branches(raw_list: Any) -> List[str]:
+    if not isinstance(raw_list, list):
+        return []
+    branches: List[str] = []
+    for need in raw_list:
+        branch = _NEED_BRANCHES_OVERLAP.get(need)
+        if branch and branch not in branches:
+            branches.append(branch)
+    return branches
+
+
+# ---------------------------------------------------------------------------
+# is_survivor_or_dependent -- VaBenefits Track 5 (Survivor & Dependent
+# Benefits: DIC, CHAMPVA, Survivors Pension, Ch.35 DEA, Fry Scholarship) has
+# a real fallback (`"survivor_benefits" in need_branches or
+# profile.is_survivor_or_dependent`), but the bridge never set that flag at
+# all -- it was always the dataclass default (False). The questionnaire's
+# own service_status option "surviving_family" already means exactly this;
+# no translation ambiguity, unlike most of the approximations elsewhere in
+# this file.
+# ---------------------------------------------------------------------------
+
+
+def _is_survivor_or_dependent(service_status_raw: Optional[str]) -> bool:
+    return service_status_raw == "surviving_family"
+
+
+# ---------------------------------------------------------------------------
 # urgency — set both the formal schema's uppercase constraints.urgency AND
 # the coordinator's own separate, lowercase, unnamespaced `urgency` field
 # (pf_coordinator_v1.py's MULTI_DOMAIN_CRISIS edge case checks
@@ -404,6 +477,11 @@ def build_coordinator_intake(
         # legal routing through the real intake flow -- the field just never
         # reached them.
         "va_facility_issues": q.get("va_facility_issues") or "",
+        # need_branches / is_survivor_or_dependent -- see the module-level
+        # comments above _map_need_branches and _is_survivor_or_dependent
+        # for why these exist and exactly what they do and don't unlock.
+        "need_branches": _map_need_branches(need_list),
+        "is_survivor_or_dependent": _is_survivor_or_dependent(q.get("service_status")),
     }
 
     return intake
