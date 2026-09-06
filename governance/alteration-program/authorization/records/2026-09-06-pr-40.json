@@ -1,0 +1,9 @@
+{
+  "governance_record": "2026-09-06-pr-40",
+  "authorization_logic": "Ghostwolf101 authorized via allowlist for PR #40: feat: shared local-resource lookup helper",
+  "signature": "Ghostwolf101-2026-09-06-pr40",
+  "authorizedBy": "Ghostwolf101",
+  "authorizedAt": "2026-09-06",
+  "reason": "PR #40: feat: shared local-resource lookup helper",
+  "pullRequest": 40
+}
