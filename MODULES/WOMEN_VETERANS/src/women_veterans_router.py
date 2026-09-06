@@ -22,7 +22,44 @@ VALID_NEEDS = {
     "housing", "childcare", "peer_support", "benefits_help"
 }
 VALID_DISCHARGE = {"honorable", "general", "other_than_honorable", "dishonorable", "unknown"}
-VALID_HOUSING = {"stable", "at_risk", "homeless", "unknown"}
+
+# Found via a top-down audit: this router validated and read a field named
+# "housing_situation" against {"stable","at_risk","homeless","unknown"} --
+# but questionnaire_intake_bridge_v1.py (the actual real-intake path) has
+# never sent that field name at all. It sends "housing_status", with values
+# unhoused/unstable/at_risk/stable/unknown (see that module's own
+# _map_housing_status) -- every other division's router (housing_router.py
+# included) already reads exactly that field/vocabulary. Confirmed directly:
+# on real bridge-built intake, payload.get("housing_situation", "") is always
+# "" (key never present), so _validate()'s housing check silently no-opped
+# and _build_profile() always fell back to housing_situation="unknown" --
+# regardless of what the veteran actually answered. WomenVeterans_v0_1.py's
+# own Track 6 (Housing/Homeless), specifically reordered ahead of Track 1 in
+# an earlier fix because a housing crisis must take priority, keys directly
+# off profile.housing_situation in ("homeless", "at_risk") -- unreachable
+# from real intake data for as long as this mismatch existed. No existing
+# test caught this because tests/test_women_veterans.py constructs
+# WomenVetProfile directly, bypassing this router (and its field-name bug)
+# entirely.
+VALID_HOUSING_STATUS = {"unhoused", "unstable", "at_risk", "stable", "unknown"}
+
+# Translates the bridge's shared vocabulary into WomenVeterans_v0_1.py's own
+# internal one (which predates the bridge and was never reconciled with it).
+# "unhoused" -> "homeless" is a direct semantic match. "unstable" has no
+# exact equivalent in the internal vocabulary; "at_risk" is the closest
+# available bucket -- same kind of documented approximation the bridge
+# itself already makes for other fields, not a silent guess.
+_HOUSING_STATUS_TO_INTERNAL = {
+    "unhoused": "homeless",
+    "unstable": "at_risk",
+    "at_risk": "at_risk",
+    "stable": "stable",
+    "unknown": "unknown",
+}
+
+
+def _map_housing_status(raw: str) -> str:
+    return _HOUSING_STATUS_TO_INTERNAL.get(raw, "unknown")
 
 
 @dataclass(frozen=True)
@@ -55,9 +92,9 @@ def _validate(payload: Dict[str, Any]) -> List[str]:
     if discharge and discharge not in VALID_DISCHARGE:
         errors.append(f"Invalid discharge '{discharge}'. Valid: {sorted(VALID_DISCHARGE)}")
 
-    housing = payload.get("housing_situation", "")
-    if housing and housing not in VALID_HOUSING:
-        errors.append(f"Invalid housing_situation '{housing}'. Valid: {sorted(VALID_HOUSING)}")
+    housing = payload.get("housing_status", "")
+    if housing and housing not in VALID_HOUSING_STATUS:
+        errors.append(f"Invalid housing_status '{housing}'. Valid: {sorted(VALID_HOUSING_STATUS)}")
 
     rating = payload.get("disability_rating")
     if rating is not None:
@@ -96,7 +133,7 @@ def _build_profile(payload: Dict[str, Any]) -> WomenVetProfile:
         has_mst=_bool("has_mst"),
         has_ptsd=_bool("has_ptsd"),
         has_depression_anxiety=_bool("has_depression_anxiety"),
-        housing_situation=payload.get("housing_situation", "unknown"),
+        housing_situation=_map_housing_status(payload.get("housing_status", "unknown")),
         disability_rating=_int_or_none("disability_rating"),
         discharge=(lambda v: v[0] if isinstance(v, list) else v)(payload.get("discharge", "unknown")),
         state=payload.get("state", ""),
