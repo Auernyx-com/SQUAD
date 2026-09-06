@@ -119,5 +119,52 @@ class MultiNeedDoesNotSilentlyDropEarlierGuidanceTest(unittest.TestCase):
         self.assertIn("VSO review of your current rating decision", result["secondary_options"])
 
 
+class RecentDenialReachesAppealGuidanceEvenWithoutARatingTest(unittest.TestCase):
+    """(the fix) Track 3 -- and the critical 1-year appeal-deadline warning
+    inside it -- was gated on `va_status in ("has_rating", "100_percent_PT")`
+    alone. A veteran whose va_history is "denied" correctly maps to va_status
+    "enrolled_no_rating" (they don't have a confirmed rating) -- but that
+    meant Track 3 could never fire for them at all, so they got Track 2's
+    "file an initial claim" guidance with zero mention of the deadline.
+    """
+
+    def test_denied_with_no_rating_still_gets_the_appeal_deadline_warning(self):
+        profile = VetMedProfile(
+            va_status="enrolled_no_rating",
+            discharge="honorable",
+            disability_rating=None,
+            recent_denial=True,
+        )
+        result = route_med_disability(profile)
+
+        self.assertIn("appeals_track", result["flags"])
+        joined_notes = " ".join(result["notes"])
+        self.assertIn("one year from your decision letter", joined_notes)
+
+    def test_denied_still_keeps_track_2s_initial_claim_guidance_too(self):
+        # Additive, not a replacement -- Track 2 fires on the same
+        # va_status regardless, and its guidance must survive.
+        profile = VetMedProfile(
+            va_status="enrolled_no_rating",
+            discharge="honorable",
+            disability_rating=None,
+            recent_denial=True,
+        )
+        result = route_med_disability(profile)
+
+        self.assertIn("unrated_claim_candidate", result["flags"])
+
+    def test_not_denied_and_no_rating_does_not_trigger_appeals_track(self):
+        profile = VetMedProfile(
+            va_status="enrolled_no_rating",
+            discharge="honorable",
+            disability_rating=None,
+            recent_denial=False,
+        )
+        result = route_med_disability(profile)
+
+        self.assertNotIn("appeals_track", result["flags"])
+
+
 if __name__ == "__main__":
     unittest.main()
