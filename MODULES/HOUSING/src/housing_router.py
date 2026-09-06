@@ -16,7 +16,12 @@ _LOGIC_PATH = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'AGENTS'
 if _LOGIC_PATH not in sys.path:
     sys.path.insert(0, _LOGIC_PATH)
 
+_SHARED_PATH = os.path.join(os.path.dirname(__file__), '..', '..', '_shared')
+if _SHARED_PATH not in sys.path:
+    sys.path.insert(0, _SHARED_PATH)
+
 from Housing_v0_1 import VetHousingProfile, route_housing  # type: ignore
+from local_resources import find_local_resources, format_local_resource_line  # type: ignore
 
 
 VALID_HOUSING_STATUS = {"unhoused", "unstable", "at_risk", "stable", "unknown"}
@@ -114,6 +119,24 @@ def _build_profile(payload: Dict[str, Any]) -> VetHousingProfile:
     )
 
 
+def _local_resource_tags(flags: List[str]) -> List[str]:
+    """Service tags to search for, driven by the flags route_housing()
+    already computed -- reuses signal the Division itself decided was
+    relevant, rather than re-deriving separate logic from the raw profile."""
+    tags = ["housing_support"]
+
+    if any(f in flags for f in ("chronically_homeless", "currently_unhoused", "housing_at_risk", "eviction_imminent")):
+        tags.extend(["homelessness_prevention", "emergency_shelter"])
+
+    if "dv_housing_need" in flags:
+        tags.extend(["dv_shelter", "dv_advocacy"])
+
+    if "housing_legal_protection" in flags:
+        tags.append("legal_referral")
+
+    return tags
+
+
 def run(payload: Dict[str, Any]) -> HousingResult:
     """
     Module entrypoint. No required fields — every veteran gets a path.
@@ -166,13 +189,25 @@ def run(payload: Dict[str, Any]) -> HousingResult:
             audit={**audit, "exception": str(exc)},
         )
 
+    key_resources = list(routing.get("key_resources", []))
+
+    # Additive only: local_resources fails safe and never raises, so a bad
+    # shard file or unresolvable county degrades to "no local resources
+    # found" -- this can never take the routing result above down with it.
+    local = find_local_resources(
+        state=profile.state,
+        county=profile.county,
+        service_tags=_local_resource_tags(routing.get("flags", [])),
+    )
+    key_resources.extend(format_local_resource_line(r) for r in local)
+
     return HousingResult(
         status="OK",
         primary_path=routing.get("primary_path"),
         secondary_options=routing.get("secondary_options", []),
         flags=routing.get("flags", []),
         next_action=routing.get("next_action"),
-        key_resources=routing.get("key_resources", []),
+        key_resources=key_resources,
         key_forms=routing.get("key_forms", []),
         notes=routing.get("notes", []),
         questions=[],

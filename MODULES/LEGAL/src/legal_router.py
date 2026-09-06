@@ -16,7 +16,12 @@ _LOGIC_PATH = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'AGENTS'
 if _LOGIC_PATH not in sys.path:
     sys.path.insert(0, _LOGIC_PATH)
 
+_SHARED_PATH = os.path.join(os.path.dirname(__file__), '..', '..', '_shared')
+if _SHARED_PATH not in sys.path:
+    sys.path.insert(0, _SHARED_PATH)
+
 from Legal_v0_1 import VetLegalProfile, route_legal  # type: ignore
+from local_resources import find_local_resources, format_local_resource_line  # type: ignore
 
 
 VALID_LEGAL_NEEDS = {
@@ -133,6 +138,29 @@ def _build_profile(payload: Dict[str, Any]) -> VetLegalProfile:
     )
 
 
+def _local_resource_tags(flags: List[str]) -> List[str]:
+    """Service tags to search for, driven by the flags route_legal()
+    already computed."""
+    tags = ["legal_referral", "legal_advocacy", "advocacy"]
+
+    if any(f in flags for f in ("mst_track", "mst_discharge_upgrade")):
+        tags.append("mst_counseling")
+
+    if "family_legal_issue" in flags:
+        tags.append("family_support")
+
+    if "dv_criminal_case" in flags:
+        tags.append("dv_advocacy")
+
+    if any(f in flags for f in ("predatory_lending_track", "consumer_legal_issue")):
+        tags.append("financial_counseling")
+
+    if "va_facility_obstruction_track" in flags:
+        tags.append("advocacy")
+
+    return tags
+
+
 def run(payload: Dict[str, Any]) -> LegalResult:
     """
     Module entrypoint. No required fields — every veteran gets a path.
@@ -181,13 +209,21 @@ def run(payload: Dict[str, Any]) -> LegalResult:
             audit={**audit, "exception": str(exc)},
         )
 
+    key_resources = list(routing.get("key_resources", []))
+    local = find_local_resources(
+        state=profile.state,
+        county=profile.county,
+        service_tags=_local_resource_tags(routing.get("flags", [])),
+    )
+    key_resources.extend(format_local_resource_line(r) for r in local)
+
     return LegalResult(
         status="OK",
         primary_path=routing.get("primary_path"),
         secondary_options=routing.get("secondary_options", []),
         flags=routing.get("flags", []),
         next_action=routing.get("next_action"),
-        key_resources=routing.get("key_resources", []),
+        key_resources=key_resources,
         key_forms=routing.get("key_forms", []),
         notes=routing.get("notes", []),
         questions=[],

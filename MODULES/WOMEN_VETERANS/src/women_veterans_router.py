@@ -14,7 +14,12 @@ _LOGIC_PATH = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'AGENTS'
 if _LOGIC_PATH not in sys.path:
     sys.path.insert(0, _LOGIC_PATH)
 
+_SHARED_PATH = os.path.join(os.path.dirname(__file__), '..', '..', '_shared')
+if _SHARED_PATH not in sys.path:
+    sys.path.insert(0, _SHARED_PATH)
+
 from WomenVeterans_v0_1 import WomenVetProfile, route_women_veterans  # type: ignore
+from local_resources import find_local_resources, format_local_resource_line  # type: ignore
 
 
 VALID_NEEDS = {
@@ -172,6 +177,47 @@ def _build_profile(payload: Dict[str, Any]) -> WomenVetProfile:
     )
 
 
+def _local_resource_tags(flags: List[str]) -> List[str]:
+    """Service tags to search for, driven by the flags route_women_veterans()
+    already computed."""
+    tags: List[str] = []
+
+    if any(f in flags for f in ("housing_track", "homeless_urgent")):
+        tags.extend(["housing_support", "homelessness_prevention", "emergency_shelter"])
+
+    if "womens_healthcare_track" in flags or "maternity_track" in flags or "reproductive_health_track" in flags:
+        tags.append("primary_care")
+
+    if "mst_track" in flags:
+        tags.append("mst_counseling")
+
+    if any(f in flags for f in ("mental_health_track", "ptsd_track")):
+        tags.append("mental_health")
+
+    if "childcare_track" in flags:
+        tags.append("family_support")
+
+    if "peer_support_track" in flags:
+        tags.extend(["mental_health_peer_support", "social_connection"])
+
+    if "benefits_help_track" in flags:
+        tags.extend(["benefits_navigation", "claims_assistance"])
+
+    # Every veteran gets at least a general starting point, matching every
+    # other Division's baseline-tag convention.
+    if not tags:
+        tags.append("resource_referral")
+
+    return tags
+
+
+def _is_crisis(flags: List[str]) -> bool:
+    # No dedicated self-harm signal exists on WomenVetProfile -- homeless_urgent
+    # is the closest available "this is urgent" signal this Division has,
+    # matching Housing's own treatment of chronic homelessness as urgent.
+    return "homeless_urgent" in flags
+
+
 def run(payload: Dict[str, Any]) -> WomenVeteransResult:
     audit: Dict[str, Any] = {
         "module": "WOMEN_VETERANS",
@@ -211,13 +257,23 @@ def run(payload: Dict[str, Any]) -> WomenVeteransResult:
             audit={**audit, "exception": str(exc)},
         )
 
+    result_flags = routing.get("flags", [])
+    key_resources = list(routing.get("key_resources", []))
+    local = find_local_resources(
+        state=profile.state,
+        county=profile.county,
+        service_tags=_local_resource_tags(result_flags),
+        crisis_or_self_harm=_is_crisis(result_flags),
+    )
+    key_resources.extend(format_local_resource_line(r) for r in local)
+
     return WomenVeteransResult(
         status="OK",
         primary_path=routing.get("primary_path"),
         secondary_options=routing.get("secondary_options", []),
-        flags=routing.get("flags", []),
+        flags=result_flags,
         next_action=routing.get("next_action"),
-        key_resources=routing.get("key_resources", []),
+        key_resources=key_resources,
         key_forms=routing.get("key_forms", []),
         notes=routing.get("notes", []),
         questions=[],

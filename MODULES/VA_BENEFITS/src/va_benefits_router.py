@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import sys
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
 # Allow import from AGENTS/LOGIC without install
@@ -18,7 +18,12 @@ _LOGIC_PATH = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'AGENTS'
 if _LOGIC_PATH not in sys.path:
     sys.path.insert(0, _LOGIC_PATH)
 
+_SHARED_PATH = os.path.join(os.path.dirname(__file__), '..', '..', '_shared')
+if _SHARED_PATH not in sys.path:
+    sys.path.insert(0, _SHARED_PATH)
+
 from VaBenefits_v0_1 import VaBenefitsProfile, route_va_benefits  # type: ignore
+from local_resources import find_local_resources, format_local_resource_line  # type: ignore
 
 
 REQUIRED_FIELDS = {"discharge"}
@@ -38,6 +43,20 @@ class VaBenefitsResult:
     notes: List[str]
     questions: List[str]           # populated when NEEDS_INPUT
     audit: Dict[str, Any]
+    # Added for local-resource lookup wiring. Found directly: this
+    # Division had no key_resources field at all, so local resources were
+    # going into secondary_options -- but pf_coordinator_v1.py's
+    # invoke_division() truncates secondary_options to [:3] when building
+    # next_actions, and every real intake that reaches this Division
+    # already has 3+ items there before any local match gets appended.
+    # Confirmed directly: a real Mesa County match was present in this
+    # router's own return value but completely absent from the
+    # coordinator's actual output. key_resources is NOT truncated by
+    # invoke_division() (confirmed by reading it), which is why every
+    # other Division routes local resources through it instead. A default
+    # is given so no existing NEEDS_INPUT/FAILED_CLOSED construction here
+    # needs to change.
+    key_resources: List[str] = field(default_factory=list)
 
 
 def _validate(payload: Dict[str, Any]) -> List[str]:
@@ -115,6 +134,29 @@ def _build_profile(payload: Dict[str, Any]) -> VaBenefitsProfile:
     )
 
 
+def _local_resource_tags(flags: List[str]) -> List[str]:
+    """Service tags to search for, driven by the flags route_va_benefits()
+    already computed."""
+    tags = ["benefits_navigation", "claims_assistance"]
+
+    if any(f in flags for f in ("vre_candidate", "ch33_candidate", "ch30_candidate", "dependent_education_programs")):
+        tags.append("education_support")
+
+    if any(f in flags for f in ("transitioning_service_member", "employment_track")):
+        tags.extend(["employment_transition", "employment_support", "tap_program", "skillbridge_coordination"])
+
+    if any(f in flags for f in ("pension_candidate", "pension_check_recommended")):
+        tags.append("financial_counseling")
+
+    if "survivor_dependent_track" in flags:
+        tags.extend(["family_support", "bereavement"])
+
+    if "burial_track" in flags:
+        tags.append("memorial_civic")
+
+    return tags
+
+
 def run(payload: Dict[str, Any]) -> VaBenefitsResult:
     """
     Module entrypoint. Accepts a dict, returns VaBenefitsResult.
@@ -167,6 +209,13 @@ def run(payload: Dict[str, Any]) -> VaBenefitsResult:
             audit={**audit, "exception": str(exc)},
         )
 
+    local = find_local_resources(
+        state=profile.state,
+        county=profile.county,
+        service_tags=_local_resource_tags(routing.get("flags", [])),
+    )
+    key_resources = [format_local_resource_line(r) for r in local]
+
     return VaBenefitsResult(
         status="OK",
         primary_path=routing.get("primary_path"),
@@ -174,6 +223,7 @@ def run(payload: Dict[str, Any]) -> VaBenefitsResult:
         flags=routing.get("flags", []),
         next_action=routing.get("next_action"),
         key_forms=routing.get("key_forms", []),
+        key_resources=key_resources,
         notes=routing.get("notes", []),
         questions=[],
         audit={**audit, "qualification_status": routing.get("qualification", {}).get("status")},
