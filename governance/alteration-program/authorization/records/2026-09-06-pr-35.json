@@ -1,0 +1,9 @@
+{
+  "governance_record": "2026-09-06-pr-35",
+  "authorization_logic": "Ghostwolf101 authorized via allowlist for PR #35: fix: women_veterans_router.py read the wrong housing field name entirely",
+  "signature": "Ghostwolf101-2026-09-06-pr35",
+  "authorizedBy": "Ghostwolf101",
+  "authorizedAt": "2026-09-06",
+  "reason": "PR #35: fix: women_veterans_router.py read the wrong housing field name entirely",
+  "pullRequest": 35
+}
