@@ -573,13 +573,6 @@ def synthesize(
             if c not in all_contacts:
                 all_contacts.append(c)
 
-    # Always include the VA main line and homeless veterans line as floor contacts
-    _floor_contacts = [
-        f"VA main line — {_VA_MAIN_LINE}",
-        f"VA National Call Center for Homeless Veterans — {_VA_HOMELESS_VETERANS} — 24/7",
-        f"Veterans Crisis Line — {_VETERANS_CRISIS_LINE}",
-    ]
-
     # --- Synthesis confidence ---
     # Average of completed division confidences.
     # Edge cases cap the ceiling — unknown territory means the number can't be high.
