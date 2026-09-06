@@ -103,5 +103,70 @@ class CrisisDetectionBaselineTest(unittest.TestCase):
         self.assertIn("988", detail_text)
 
 
+class IndependentAuditPhraseGapTest(unittest.TestCase):
+    """Independent-audit finding (2026-09-06), also found and fixed in
+    pathfinder-worker's identical JS port of this phrase list: the original
+    list only matched "kill myself"/"die" preceded by a small set of exact
+    prefixes, and had zero entries for extremely common real-world ideation
+    phrasing. Confirmed directly against the pre-fix list: every phrase
+    below returned status="OK" with zero resources. Broadened in both
+    surfaces identically, per this module's own design intent that both
+    stay in sync. Deliberately does NOT chase generic phrases like "can't
+    do this anymore" -- see the "still not caught" tests below.
+    """
+
+    def _is_crisis(self, text):
+        result = crisis_redirect({"text": text})
+        return result.status == "CRISIS" and bool(result.resources)
+
+    def test_thinking_about_killing_myself(self):
+        self.assertTrue(self._is_crisis("i have been thinking about killing myself lately"))
+
+    def test_dont_want_to_live_anymore(self):
+        self.assertTrue(self._is_crisis("i don't want to live anymore"))
+
+    def test_dont_want_to_be_here_anymore(self):
+        self.assertTrue(self._is_crisis("i don't want to be here anymore"))
+
+    def test_want_to_end_it_all(self):
+        self.assertTrue(self._is_crisis("i want to end it all"))
+
+    def test_no_point_in_going_on(self):
+        self.assertTrue(self._is_crisis("there's no point in going on"))
+
+    def test_disappear_for_good(self):
+        self.assertTrue(self._is_crisis("sometimes i just want to disappear for good"))
+
+    def test_going_to_overdose(self):
+        self.assertTrue(self._is_crisis("i'm going to overdose tonight"))
+
+    def test_took_a_bunch_of_pills(self):
+        self.assertTrue(self._is_crisis("i took a bunch of pills"))
+
+    def test_jump_off_the_bridge(self):
+        self.assertTrue(self._is_crisis("gonna jump off the bridge tonight"))
+
+    def test_better_without_me_paraphrased(self):
+        self.assertTrue(self._is_crisis("i keep thinking the world would be better without me"))
+
+    def test_bare_weapon_noun_not_just_i_have_a_phrasing(self):
+        self.assertTrue(self._is_crisis("i've got my dad's pistol and i'm ready to use it on myself"))
+
+    def test_gun_mention_alone_still_does_not_trigger(self):
+        # Broadening the weapon-noun list must not break this existing
+        # guarantee -- a bare weapon mention with no violence-target word
+        # must still be OK, not CRISIS.
+        self.assertFalse(self._is_crisis("I have a gun safe I need to register"))
+
+    def test_deliberately_not_caught_generic_cant_do_this_anymore(self):
+        # Too generic in this domain -- false-positives constantly on
+        # ordinary appeals/paperwork frustration. Documented exclusion,
+        # not an oversight.
+        self.assertFalse(self._is_crisis("i'm done, i can't keep doing this"))
+
+    def test_deliberately_not_caught_weapon_with_no_violence_target_word(self):
+        self.assertFalse(self._is_crisis("loaded my father's rifle, this is it for me"))
+
+
 if __name__ == "__main__":
     unittest.main()
