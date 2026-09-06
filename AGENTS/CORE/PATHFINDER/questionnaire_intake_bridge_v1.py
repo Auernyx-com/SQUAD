@@ -390,6 +390,20 @@ def build_coordinator_intake(
         "state": state,
         "county": county,
         "urgency": _map_urgency_flat(q.get("urgency")),
+        # va_facility_issues -- pure passthrough, no mapping needed. Found
+        # missing entirely (not even in this module's own "known limitations"
+        # list) while auditing pf_coordinator_v1.py's edge cases: its
+        # VA_FACILITY_OBSTRUCTION check and MODULES/LEGAL/src/legal_router.py
+        # both read intake["va_facility_issues"] directly as a raw single-
+        # select string and both already expect exactly the questionnaire's
+        # own values ("no"/"complaints"/"obstruction"/"distrust") -- no
+        # translation required, unlike every other field in this bridge.
+        # Without this line, a veteran answering "my local VA is retaliating
+        # against me" in the questionnaire could never trigger the coordinator's
+        # own real, already-built VA_FACILITY_OBSTRUCTION edge case or Track 10
+        # legal routing through the real intake flow -- the field just never
+        # reached them.
+        "va_facility_issues": q.get("va_facility_issues") or "",
     }
 
     return intake

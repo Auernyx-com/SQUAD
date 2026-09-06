@@ -285,6 +285,44 @@ class BuildCoordinatorIntakeEndToEndTest(unittest.TestCase):
         result = coordinator.run_coordinator(intake)
         self.assertTrue(result["receipt_ref"])
 
+    def test_va_facility_issues_passes_through_and_reaches_the_real_edge_case(self):
+        # (the fix) va_facility_issues was never forwarded by this bridge at
+        # all -- not mapped, not mentioned even in this module's own "known
+        # limitations" list. pf_coordinator_v1.py's real, already-built
+        # VA_FACILITY_OBSTRUCTION edge case (and MODULES/LEGAL/src/
+        # legal_router.py's own obstruction check) both read
+        # intake["va_facility_issues"] directly and already expect exactly
+        # the questionnaire's own values -- no translation needed, just a
+        # missing line. Confirmed via git stash before writing this fix:
+        # the same input produced only ["NO_LOCATION"] pre-fix, with
+        # "va_facility_issues" absent from the built intake dict entirely.
+        questionnaire_intake = {
+            "service_status": "veteran",
+            "discharge": "honorable",
+            "need": ["legal"],
+            "va_facility_issues": "obstruction",
+        }
+        intake = bridge.build_coordinator_intake(questionnaire_intake, case_id="CASE_TEST_VA_FACILITY")
+        self.assertEqual(intake["va_facility_issues"], "obstruction")
+        result = coordinator.run_coordinator(intake)
+        self.assertIn("VA_FACILITY_OBSTRUCTION", [e["id"] for e in result["edge_cases"]])
+
+    def test_va_facility_issues_no_does_not_trigger_the_edge_case(self):
+        questionnaire_intake = {
+            "service_status": "veteran",
+            "discharge": "honorable",
+            "need": ["legal"],
+            "va_facility_issues": "no",
+        }
+        intake = bridge.build_coordinator_intake(questionnaire_intake, case_id="CASE_TEST_VA_FACILITY_NO")
+        self.assertEqual(intake["va_facility_issues"], "no")
+        result = coordinator.run_coordinator(intake)
+        self.assertNotIn("VA_FACILITY_OBSTRUCTION", [e["id"] for e in result["edge_cases"]])
+
+    def test_va_facility_issues_missing_defaults_to_empty_string_not_crash(self):
+        intake = bridge.build_coordinator_intake({}, case_id="CASE_TEST_VA_FACILITY_MISSING")
+        self.assertEqual(intake["va_facility_issues"], "")
+
 
 if __name__ == "__main__":
     unittest.main()
