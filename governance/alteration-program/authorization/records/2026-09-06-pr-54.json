@@ -1,0 +1,9 @@
+{
+  "governance_record": "2026-09-06-pr-54",
+  "authorization_logic": "Ghostwolf101 authorized via allowlist for PR #54: fix: CRA never read claim_status, denied veterans got no appeal-deadline flag (high)",
+  "signature": "Ghostwolf101-2026-09-06-pr54",
+  "authorizedBy": "Ghostwolf101",
+  "authorizedAt": "2026-09-06",
+  "reason": "PR #54: fix: CRA never read claim_status, denied veterans got no appeal-deadline flag (high)",
+  "pullRequest": 54
+}
