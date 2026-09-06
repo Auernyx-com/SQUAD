@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import re
 import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -78,6 +79,29 @@ def _require_text_path(raw: str) -> Path:
     if resolved.suffix.lower() not in _ALLOWED_TEXT_SUFFIXES:
         raise SystemExit(f"Expected a text/markdown/json file path (.txt, .md, .json), got: {raw!r}")
     return resolved
+
+
+_CASE_ID_RE = re.compile(r"^[A-Z0-9](?:[A-Z0-9_-]*[A-Z0-9])?$")
+
+
+def _require_safe_case_id(raw: str) -> str:
+    """Validate --case-id before it is used to build a filesystem path.
+
+    --case-id was the one argparse-argument-to-file-operation flow this
+    module's own "path sanitizers" section didn't cover. Confirmed directly:
+    _case_dir_from_case_id(repo_root, "../../../../TMP/EVIL") resolves to a
+    path completely outside the repo (e.g. "/home/TMP/EVIL"), and run()/main()
+    then read and WRITE (mkdir + write_text) at that location -- the exact
+    class of bug --input/--out/--handshake-file already have a gate for.
+    Restrict to the same safe charset a case id should already be limited to.
+    """
+    value = raw.strip().upper()
+    if not value or not _CASE_ID_RE.match(value):
+        raise SystemExit(
+            f"Invalid --case-id {raw!r}: expected letters, digits, hyphens, or "
+            "underscores only (no path separators or '..')."
+        )
+    return value
 
 
 def _load_handshake_module(repo_root: Path):
@@ -470,7 +494,8 @@ def main() -> int:
     if args.case_dir:
         case_dir = Path(args.case_dir).expanduser().resolve()
     elif args.case_id:
-        case_dir = _case_dir_from_case_id(paths.repo_root, str(args.case_id).strip().upper()).resolve()
+        safe_case_id = _require_safe_case_id(str(args.case_id))
+        case_dir = _case_dir_from_case_id(paths.repo_root, safe_case_id).resolve()
 
     if args.input:
         input_path = _require_json_path(args.input)
