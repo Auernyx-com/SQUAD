@@ -1,0 +1,9 @@
+{
+  "governance_record": "2026-09-06-pr-39",
+  "authorization_logic": "Ghostwolf101 authorized via allowlist for PR #39: fix: PR #35's housing_status fix broke women_veterans_cli.py's own field",
+  "signature": "Ghostwolf101-2026-09-06-pr39",
+  "authorizedBy": "Ghostwolf101",
+  "authorizedAt": "2026-09-06",
+  "reason": "PR #39: fix: PR #35's housing_status fix broke women_veterans_cli.py's own field",
+  "pullRequest": 39
+}
