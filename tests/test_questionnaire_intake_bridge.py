@@ -407,5 +407,62 @@ class BuildCoordinatorIntakeEndToEndTest(unittest.TestCase):
         self.assertFalse(intake["is_survivor_or_dependent"])
 
 
+class HasDeniedClaimMappingTest(unittest.TestCase):
+    """Independent-audit finding (2026-09-06), round 2: `legal_needs` is
+    never set by this bridge at all (confirmed: zero references to it
+    anywhere in this file), so a veteran routed to LEGAL only ever got the
+    generic NVLSP/211 fallback -- none of Legal_v0_1.py's tracks that key
+    off `legal_needs` could fire from real intake.
+
+    On closer inspection, several of those tracks (discharge_upgrade,
+    va_appeal, mst, civilian_legal) also accept an alternate, non-
+    `legal_needs` trigger -- but only `has_denied_claim` (unlocking
+    va_appeal's real guidance, including the 1-year appeal-deadline note)
+    has a raw signal this bridge can actually derive: the questionnaire's
+    own `va_history` field already distinguishes "denied" from every other
+    status, and this exact signal already drives `recent_denial` for
+    MedDisability. `has_mst`/`civilian_issue` have NO real signal
+    anywhere in the current wyerd-squad questionnaire to derive from
+    (confirmed: no MST or civilian-legal-issue question exists in
+    tool/index.html's STEPS) -- that's a frontend content gap, not a
+    bridge bug, left undone here rather than invented.
+
+    `legal_needs` itself (as a direct multi-select list) remains
+    unpopulated for the same reason -- no legal-specific follow-up
+    question exists in the real questionnaire to translate.
+    """
+
+    def test_denied_veteran_sets_has_denied_claim(self):
+        intake = bridge.build_coordinator_intake(
+            {"discharge": "honorable", "need": ["legal"], "va_history": "denied"},
+            case_id="CASE_TEST_LEGAL_DENIED",
+        )
+        self.assertTrue(intake["has_denied_claim"])
+
+    def test_not_denied_veteran_does_not_set_has_denied_claim(self):
+        intake = bridge.build_coordinator_intake(
+            {"discharge": "honorable", "need": ["legal"], "va_history": "never"},
+            case_id="CASE_TEST_LEGAL_NOT_DENIED",
+        )
+        self.assertFalse(intake["has_denied_claim"])
+
+    def test_missing_va_history_does_not_set_has_denied_claim(self):
+        intake = bridge.build_coordinator_intake(
+            {"discharge": "honorable", "need": ["legal"]},
+            case_id="CASE_TEST_LEGAL_NO_HISTORY",
+        )
+        self.assertFalse(intake["has_denied_claim"])
+
+    def test_denied_veteran_reaches_the_real_va_appeal_track_end_to_end(self):
+        intake = bridge.build_coordinator_intake(
+            {"discharge": "honorable", "need": ["legal"], "va_history": "denied"},
+            case_id="CASE_TEST_LEGAL_APPEAL_E2E",
+        )
+        result = coordinator.run_coordinator(intake)
+        legal_result = next(r for r in result["division_results"] if r["domain"] == "LEGAL")
+        self.assertIn("appeals_lane_not_selected", legal_result["flags"])
+        self.assertEqual(legal_result["result_summary"], "VA Appeals — Three Lanes Available")
+
+
 if __name__ == "__main__":
     unittest.main()
