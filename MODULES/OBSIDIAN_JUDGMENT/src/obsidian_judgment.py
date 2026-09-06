@@ -449,12 +449,33 @@ def _restoration_required(judgment: Dict[str, Any]) -> bool:
     """Return True when judgment represents author/core governance tamper.
 
     Supports current v1 record shape (failure.code) and future v1 schema shape (decision.restoration_required).
+
+    Independent-audit finding (2026-09-06): this only special-cased the
+    literal string "governance_hash_mismatch". verify_provenance() can also
+    fail with genesis_hash_mismatch, project_id_mismatch, or
+    genesis_parse_error -- all of which fire on an EXISTING genesis record
+    and mean it was tampered with or corrupted (genesis_hash_mismatch
+    specifically means the trust anchor itself doesn't match its own
+    recorded hash), at least as severe as governance_hash_mismatch. Those
+    three previously required zero restoration proof, so clear_judgment()
+    would clear them unconditionally and rotate_genesis_record() would then
+    launder a still-tampered governance file into a new "clean" baseline.
+    Confirmed directly with a probe before this fix: forged a
+    self-consistent genesis record with project_id changed (record_hash
+    recomputed to match -- a realistic attacker step, the hash function is
+    public source in this file) alongside a tampered governance file;
+    clear_judgment() cleared it with no proof at all, and
+    verify_provenance() reported ok=True after rotation with the malicious
+    content still on disk.
+
+    genesis_missing is deliberately still excluded: an uninitialized repo
+    (no genesis record has ever been written) is not tamper.
     """
 
     try:
         failure = judgment.get("failure") or {}
         code = str(failure.get("code") or "")
-        if code == "governance_hash_mismatch":
+        if code and code != "genesis_missing":
             return True
 
         decision = judgment.get("decision") or {}
