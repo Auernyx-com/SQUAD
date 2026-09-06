@@ -314,6 +314,20 @@ def _build_ok_report(input_payload: Dict[str, Any]) -> Dict[str, Any]:
             "Representation status is missing/unknown; accredited representation can reduce process friction.",
         )
 
+    # Independent-audit finding (2026-09-06), round 3, high: `claim_status`
+    # is a required, schema-validated field (not_filed/filed_pending/denied/
+    # appeal_pending/unknown) but was never read anywhere in this function --
+    # a denied veteran with a decision letter, a VSO, and all evidence
+    # present got readiness="procedurally_ready_verification_pending" and a
+    # single generic next step, with zero mention of the appeal deadline.
+    # Fixed additively, independent of the evidence/admin gap checks above:
+    # denied/appeal_pending always surfaces the deadline pattern/step below,
+    # regardless of whether appeal_lane_unknown also fired. Per this
+    # module's own stated design ("process-only gap map; does not assess
+    # eligibility or outcomes"), readiness itself is intentionally NOT
+    # changed by claim_status -- only this informational layer.
+    claim_status = str(input_payload.get("claim_status") or "unknown").lower()
+
     barriers = list(input_payload.get("veteran_reported_barriers") or [])
 
     if gaps:
@@ -334,6 +348,9 @@ def _build_ok_report(input_payload: Dict[str, Any]) -> Dict[str, Any]:
         patterns.append("appeal_lane_choice_has_deadlines")
     if any(g["gap"] == "representation_missing_or_unknown" and g["presence"] != "present" for g in gaps):
         patterns.append("representation_can_reduce_process_friction")
+
+    if claim_status in ("denied", "appeal_pending"):
+        patterns.append("appeal_deadline_may_apply")
 
     # Dedupe while preserving order
     patterns = list(dict.fromkeys(patterns))
@@ -362,6 +379,14 @@ def _build_ok_report(input_payload: Dict[str, Any]) -> Dict[str, Any]:
 
     if any(g["gap"] == "lay_statements_missing_or_unknown" and g["presence"] != "present" for g in gaps):
         add_step("collect_lay_statements", "Focus on timelines/observable impacts; avoid diagnosis labels.")
+
+    if claim_status in ("denied", "appeal_pending"):
+        add_step(
+            "confirm_appeal_deadline",
+            "You generally have 1 year from a VA decision letter to request Higher-Level Review or "
+            "appeal to the Board without losing your effective date; a Supplemental Claim with new "
+            "evidence has no time limit. Confirm the exact date from your decision letter.",
+        )
 
     add_step("build_one_page_timeline", "Write key dates and outcomes; avoid medical details.")
 
