@@ -201,10 +201,20 @@ class GuardrailValidator:
         
         valid_levels = {"HIGH", "MEDIUM", "LOW", "VERIFY_REQUIRED"}
         if confidence not in valid_levels:
+            # Independent-audit finding (2026-09-06): this used severity=
+            # "error", but SYSTEM/CONFIG/llm_guardrails_v1.json declares
+            # VAL-008's fail_action as "warn" (matching this check's OTHER
+            # branch below, which already correctly uses "warning"). Since
+            # main() treats any "error" as an immediate hard failure
+            # regardless of --strict, an invalid confidence value hard-
+            # blocked the whole pipeline instead of just warning as the
+            # config declares -- opposite-direction mismatch from the
+            # already-fixed VAL-006 bug (that one was too lax; this one
+            # was too strict).
             self._add_result(
                 "VAL-008",
                 False,
-                "error",
+                "warning",
                 f"Invalid confidence level: {confidence}, expected one of: {valid_levels}"
             )
             return
