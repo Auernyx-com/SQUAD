@@ -1,0 +1,9 @@
+{
+  "governance_record": "2026-09-06-pr-41",
+  "authorization_logic": "Ghostwolf101 authorized via allowlist for PR #41: feat: wire local-resource lookup into all 8 division routers",
+  "signature": "Ghostwolf101-2026-09-06-pr41",
+  "authorizedBy": "Ghostwolf101",
+  "authorizedAt": "2026-09-06",
+  "reason": "PR #41: feat: wire local-resource lookup into all 8 division routers",
+  "pullRequest": 41
+}
