@@ -172,6 +172,35 @@ def route_toxic_exposure(profile: ToxicExposureProfile) -> dict:
     conditions = [c.lower() for c in profile.conditions]
     era = (profile.era or "").lower()
 
+    # Independent-audit finding (2026-09-06), round 3, high: `discharge` was
+    # never read anywhere in this function -- a dishonorable-discharge
+    # veteran got byte-identical routing to an honorably-discharged one,
+    # including being told to file VA Form 21-526EZ (Disability
+    # Compensation), with zero mention that dishonorable discharge bars
+    # most VA disability compensation (as this codebase's own
+    # MedDisability_v0_1.py/VaBenefits_v0_1.py/BusinessOpportunity_v0_1.py
+    # state explicitly for the same field value). Fixed with additive,
+    # honest disclosure rather than a hard block: this file's own module
+    # docstring states "Gate: Toxic exposure never blocks. Every veteran
+    # gets routed" -- registry enrollment, Camp Lejeune family-member
+    # claims, and presumptive-condition healthcare access don't require
+    # honorable discharge the way standard disability compensation does,
+    # so a MedDisability-style BLOCKED early-return would violate this
+    # router's own stated design law, not fix a bug. The veteran still
+    # gets full routing; they now also get an accurate caveat instead of
+    # a silent, misleading omission.
+    discharge_lower = (profile.discharge or "").lower().strip()
+    if discharge_lower in ("dishonorable", "other_than_honorable"):
+        result["flags"].append("discharge_limits_compensation")
+        result["notes"].append(
+            "Discharge note: a dishonorable or Other Than Honorable discharge limits access to "
+            "standard VA disability compensation (VA Form 21-526EZ) for the conditions below -- it "
+            "does NOT block Airborne Hazards Registry enrollment, Camp Lejeune family-member claims, "
+            "or MST-related care. A discharge upgrade (DRB or BCMR) is the path to unlock full "
+            "compensation eligibility. Talk to a VSO or veterans law clinic about pursuing both "
+            "in parallel."
+        )
+
     # ── ALWAYS: AIRBORNE HAZARDS REGISTRY ────────────────────────────────────
     # Every veteran with any toxic exposure should register — it builds the data record
     result["key_resources"].append(
