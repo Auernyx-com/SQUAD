@@ -22,6 +22,24 @@ digest that must actually match) before a tamper-classified judgment can be
 cleared. Every other judgment type (e.g. genesis_missing) clears exactly as
 before — this only gates the specific failure class that represents
 governance/author-identity tampering.
+
+Round 2 (2026-09-06): that fix closed the "zero verification at all" hole,
+but the verification it added was itself a tautology — ref+sha256 only prove
+that SOME real file matches ITS OWN real hash, which is trivially true of
+any file paired with its own digest. It never checked whether the actual
+tampered governance file had been restored. Confirmed directly with a
+probe: tamper a real governance file, activate judgment, then call
+clear_judgment() with an unrelated file (never touched by the tamper) as
+"restoration_proof" — it succeeded, and verify_provenance() still reported
+governance_hash_mismatch against the same tampered content immediately
+after. The tamper alarm was silenced with the tamper still in place, and
+rotate_genesis_record()'s own docstring says it trusts clear_judgment()
+having required "a verified restoration_proof" before it will rotate — so
+this could go on to launder tampered content into a new trusted baseline.
+Fixed by re-running verify_provenance() after the ref/sha check and
+refusing to clear unless governance state actually matches genesis again,
+right now. ref/sha are kept as a required audit trail of what restoration
+evidence was cited, but no longer stand in for verification.
 """
 from __future__ import annotations
 
@@ -54,19 +72,45 @@ class ClearJudgmentRequiresRestorationProofTest(unittest.TestCase):
         self.assertTrue(oj.is_judgment_active(repo_root))
 
     def test_governance_hash_mismatch_clears_with_a_valid_matching_proof(self):
+        # (round 2 of this fix) The original version of this test used an
+        # arbitrary "restored.txt" file, unrelated to any real governance
+        # file, as restoration_proof -- proving only that the file matched
+        # its own claimed hash, a tautology satisfiable by ANY real file.
+        # Confirmed directly with a probe before this second fix: tamper a
+        # real governance file, activate judgment, then call clear_judgment()
+        # with an unrelated file (never touched by the tamper) as proof --
+        # it succeeded, and verify_provenance() still reported
+        # governance_hash_mismatch against the SAME tampered content
+        # immediately after. The tamper alarm was silenced with the tamper
+        # still in place. This test now actually tampers a real governance
+        # file and actually restores it byte-for-byte before expecting
+        # clear_judgment() to succeed -- the only thing that should be
+        # sufficient proof.
         repo_root = _tmp_repo()
-        failure = oj.ProvenanceStatus(ok=False, code="governance_hash_mismatch", reason="tampered")
-        oj.activate_judgment(repo_root, failure)
+        oj.ensure_genesis_record(repo_root, write_enabled=True)
 
-        proof_file = repo_root / "restored.txt"
-        proof_file.write_text("proof of restoration")
-        sha = hashlib.sha256(proof_file.read_bytes()).hexdigest()
+        clerk = repo_root / "Invoke-SquadAdminClerk.ps1"
+        original = "original clerk content\n"
+        clerk.write_text(original)
+        # Re-baseline genesis now that a real governance file exists with
+        # known content (ensure_genesis_record above ran before this file
+        # existed).
+        oj.rotate_genesis_record(repo_root, confirm=True)
+
+        clerk.write_text("TAMPERED CONTENT")
+        status = oj.verify_provenance(repo_root)
+        self.assertEqual(status.code, "governance_hash_mismatch")
+        oj.activate_judgment(repo_root, status)
+
+        # Actually restore the tampered file to its exact original bytes.
+        clerk.write_text(original)
+        sha = hashlib.sha256(clerk.read_bytes()).hexdigest()
 
         jp = oj.judgment_path(repo_root)
         record = json.loads(jp.read_text())
         record["decision"] = {
             "restoration_required": True,
-            "restoration_proof": {"ref": "restored.txt", "sha256": sha},
+            "restoration_proof": {"ref": "Invoke-SquadAdminClerk.ps1", "sha256": sha},
         }
         jp.write_text(json.dumps(record))
 
@@ -74,6 +118,42 @@ class ClearJudgmentRequiresRestorationProofTest(unittest.TestCase):
 
         self.assertTrue(cleared)
         self.assertFalse(oj.is_judgment_active(repo_root))
+
+    def test_governance_hash_mismatch_refused_when_proof_is_unrelated_to_the_actual_tamper(self):
+        # The exact bypass this second hardening pass closes: ref+sha256
+        # that are internally consistent (a real file matching its own real
+        # hash) but have nothing to do with the file that was actually
+        # tampered. Must be refused even though the old check alone would
+        # have accepted it.
+        repo_root = _tmp_repo()
+        oj.ensure_genesis_record(repo_root, write_enabled=True)
+
+        clerk = repo_root / "Invoke-SquadAdminClerk.ps1"
+        clerk.write_text("original clerk content\n")
+        oj.rotate_genesis_record(repo_root, confirm=True)
+
+        clerk.write_text("TAMPERED CONTENT")
+        status = oj.verify_provenance(repo_root)
+        oj.activate_judgment(repo_root, status)
+
+        unrelated = repo_root / "unrelated_file.txt"
+        unrelated.write_text("nothing to do with the tampered file")
+        unrelated_sha = hashlib.sha256(unrelated.read_bytes()).hexdigest()
+
+        jp = oj.judgment_path(repo_root)
+        record = json.loads(jp.read_text())
+        record["decision"] = {
+            "restoration_required": True,
+            "restoration_proof": {"ref": "unrelated_file.txt", "sha256": unrelated_sha},
+        }
+        jp.write_text(json.dumps(record))
+
+        cleared = oj.clear_judgment(repo_root)
+
+        self.assertFalse(cleared)
+        self.assertTrue(oj.is_judgment_active(repo_root))
+        # The tamper must still be reported -- nothing was actually fixed.
+        self.assertEqual(oj.verify_provenance(repo_root).code, "governance_hash_mismatch")
 
     def test_proof_with_a_hash_that_does_not_match_the_referenced_file_is_refused(self):
         repo_root = _tmp_repo()
@@ -177,25 +257,35 @@ class RotateGenesisRecordCannotBypassClearJudgmentTest(unittest.TestCase):
         self.assertTrue(result["rotated"])
 
     def test_rotate_works_again_after_a_properly_proven_clear(self):
+        # (round 2 of this fix) The original version of this test "restored"
+        # with an unrelated restored.txt file, never actually reverting
+        # squad.config.json -- see the ClearJudgment test class above for
+        # the full story on why that no longer counts as proof. Genesis was
+        # established before squad.config.json existed, so restoring to
+        # that baseline means the file goes back to not existing.
         repo_root = _tmp_repo()
         oj.ensure_genesis_record(repo_root, write_enabled=True)
 
         gov_dir = repo_root / "SYSTEM" / "CONFIG"
         gov_dir.mkdir(parents=True, exist_ok=True)
-        (gov_dir / "squad.config.json").write_text('{"legit_change": true}')
+        config_file = gov_dir / "squad.config.json"
+        config_file.write_text('{"legit_change": true}')
 
         status = oj.verify_provenance(repo_root)
         oj.activate_judgment(repo_root, failure=status)
 
-        proof_file = repo_root / "restored.txt"
-        proof_file.write_text("proof of restoration")
+        # Actually restore to the genesis baseline: the file didn't exist
+        # when genesis was established, so remove it.
+        config_file.unlink()
+        proof_file = repo_root / "restoration_record.txt"
+        proof_file.write_text("squad.config.json removed, restoring pre-tamper state")
         sha = hashlib.sha256(proof_file.read_bytes()).hexdigest()
 
         jp = oj.judgment_path(repo_root)
         record = json.loads(jp.read_text())
         record["decision"] = {
             "restoration_required": True,
-            "restoration_proof": {"ref": "restored.txt", "sha256": sha},
+            "restoration_proof": {"ref": "restoration_record.txt", "sha256": sha},
         }
         jp.write_text(json.dumps(record))
 

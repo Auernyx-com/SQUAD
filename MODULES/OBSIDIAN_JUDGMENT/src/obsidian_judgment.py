@@ -398,6 +398,44 @@ def clear_judgment(repo_root: Path) -> bool:
                 )
                 raise RuntimeError("restoration_proof_hash_mismatch")
 
+            # CRITICAL: everything above only proves `ref` is a real file
+            # whose bytes match `sha` -- a tautology, satisfiable by ANY
+            # real file paired with its own real hash. It proves nothing
+            # about whether the actual tampered governance file was
+            # restored. Confirmed directly with a probe before this fix:
+            # tampering with a governance file, activating judgment, then
+            # calling clear_judgment() with an unrelated file (never
+            # touched by the tamper) as "restoration_proof" succeeded --
+            # is_judgment_active() went False while
+            # verify_provenance(repo_root) still reported
+            # governance_hash_mismatch against the SAME tampered content.
+            # The tamper alarm was silenced with the tamper still in place,
+            # and rotate_genesis_record()'s own docstring says it trusts
+            # clear_judgment() having required "a verified restoration_proof"
+            # before it will rotate -- so this bypass could go on to launder
+            # tampered content into a new trusted baseline.
+            #
+            # The only proof that actually proves anything is re-running the
+            # real check: does the governance state match genesis again,
+            # right now? ref/sha are kept as a required audit trail of what
+            # restoration evidence was cited, but they no longer stand in
+            # for verification -- this does.
+            post_restore = verify_provenance(repo_root)
+            if not post_restore.ok:
+                append_audit(
+                    repo_root,
+                    {
+                        "kind": "judgment.clear_refused",
+                        "data": {
+                            "reason": "governance_still_mismatched",
+                            "ref": ref,
+                            "verify_code": post_restore.code,
+                            "verify_details": post_restore.details,
+                        },
+                    },
+                )
+                raise RuntimeError("governance_still_mismatched")
+
         p.unlink()
         append_audit(repo_root, {"kind": "judgment.cleared"})
         return True
