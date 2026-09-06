@@ -498,6 +498,24 @@ def build_coordinator_intake(
         # for why these exist and exactly what they do and don't unlock.
         "need_branches": _map_need_branches(need_list),
         "is_survivor_or_dependent": _is_survivor_or_dependent(q.get("service_status")),
+        # Independent-audit finding (2026-09-06), round 2: this bridge never
+        # set `legal_needs` at all (confirmed: zero references anywhere in
+        # this file), so a veteran routed to LEGAL only ever got the generic
+        # NVLSP/211 fallback -- none of Legal_v0_1.py's need-specific tracks
+        # could fire from real intake. Several of those tracks also accept
+        # an alternate, non-legal_needs trigger, but only `has_denied_claim`
+        # (Track 2, VA appeals -- including the 1-year appeal-deadline note)
+        # has a real signal this bridge can derive: reusing the same
+        # va_history=="denied" signal that already drives `recent_denial`
+        # above. `has_mst`/`civilian_issue` (Legal_v0_1.py's other
+        # alternate triggers) and `legal_needs` itself have NO real signal
+        # anywhere in the current wyerd-squad questionnaire -- no MST or
+        # civilian-legal-issue question exists in tool/index.html's STEPS.
+        # That's a frontend content gap (same shape as the already-
+        # documented transportation/women-veterans gaps), not something
+        # this bridge can honestly translate -- left undone rather than
+        # invented.
+        "has_denied_claim": _is_recent_denial(q.get("va_history")),
     }
 
     return intake
