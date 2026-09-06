@@ -323,6 +323,52 @@ class BuildCoordinatorIntakeEndToEndTest(unittest.TestCase):
         intake = bridge.build_coordinator_intake({}, case_id="CASE_TEST_VA_FACILITY_MISSING")
         self.assertEqual(intake["va_facility_issues"], "")
 
+    def test_need_branches_forwards_the_one_real_overlap_employment(self):
+        # (the fix) va_benefits_router.py reads need_branches directly with
+        # no translation; this bridge never populated it at all, so every
+        # one of VaBenefits_v0_1.py's Tracks that gates on need_branches
+        # (with no other fallback) was unreachable from real intake.
+        # "employment" is the one value the questionnaire's own "need"
+        # vocabulary shares with VaBenefits' need_branches vocabulary.
+        intake = bridge.build_coordinator_intake(
+            {"discharge": "honorable", "need": ["employment"], "service_status": "veteran"},
+            case_id="CASE_TEST_NEED_BRANCHES_EMPLOYMENT",
+        )
+        self.assertEqual(intake["need_branches"], ["employment"])
+        result = coordinator.run_coordinator(intake)
+        va_result = next(r for r in result["division_results"] if r["domain"] == "EMPLOYMENT")
+        self.assertEqual(va_result["status"], "COMPLETED")
+        self.assertIn("employment_track", va_result["flags"])
+
+    def test_need_branches_does_not_invent_values_with_no_real_overlap(self):
+        intake = bridge.build_coordinator_intake(
+            {"discharge": "honorable", "need": ["benefits", "housing", "legal"]},
+            case_id="CASE_TEST_NEED_BRANCHES_NO_OVERLAP",
+        )
+        self.assertEqual(intake["need_branches"], [])
+
+    def test_is_survivor_or_dependent_true_reaches_the_real_survivor_track(self):
+        # (the fix) VaBenefits Track 5 has a real fallback
+        # (profile.is_survivor_or_dependent) independent of need_branches,
+        # but the bridge never set that flag at all -- the questionnaire's
+        # own service_status option "surviving_family" means exactly this.
+        intake = bridge.build_coordinator_intake(
+            {"discharge": "honorable", "need": ["benefits"], "service_status": "surviving_family"},
+            case_id="CASE_TEST_SURVIVOR",
+        )
+        self.assertTrue(intake["is_survivor_or_dependent"])
+        result = coordinator.run_coordinator(intake)
+        va_result = next(r for r in result["division_results"] if r["domain"] == "BENEFITS")
+        self.assertEqual(va_result["status"], "COMPLETED")
+        self.assertIn("survivor_dependent_track", va_result["flags"])
+
+    def test_is_survivor_or_dependent_false_for_ordinary_veteran(self):
+        intake = bridge.build_coordinator_intake(
+            {"discharge": "honorable", "need": ["benefits"], "service_status": "veteran"},
+            case_id="CASE_TEST_NOT_SURVIVOR",
+        )
+        self.assertFalse(intake["is_survivor_or_dependent"])
+
 
 if __name__ == "__main__":
     unittest.main()
