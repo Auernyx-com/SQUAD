@@ -297,10 +297,19 @@ class GuardrailValidator:
                 for keyword in ["fraud", "scam", "verify identity", "don't send money"]
             )
             if not has_fraud_warning:
+                # Independent-audit finding (2026-09-06): this branch used
+                # severity="warning" while the crisis/safety branch of this
+                # SAME check (VAL-006) above uses "error" -- and
+                # SYSTEM/CONFIG/llm_guardrails_v1.json declares VAL-006's
+                # fail_action as "reject", matching only the crisis/safety
+                # severity. Since main() only exits non-zero for
+                # severity=="error" (without --strict), a fraud-risk plan
+                # with zero fraud-caution language passed validation by
+                # default. Confirmed with a probe before this fix.
                 self._add_result(
                     "VAL-006",
                     False,
-                    "warning",
+                    "error",
                     "Fraud risk flagged but no fraud warning in output"
                 )
             else:
