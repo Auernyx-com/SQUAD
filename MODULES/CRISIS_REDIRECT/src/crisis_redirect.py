@@ -136,6 +136,27 @@ def _detect_crisis(text: str, signals: Dict[str, bool]) -> Optional[str]:
             "took all my pills",
             "jump off a bridge",
             "jump off the bridge",
+            "jump off a building",
+            "jump off the building",
+            "jump in front of a train",
+            "jump in front of the train",
+            # Round 2 (2026-09-06), same gap independently found and fixed
+            # in pathfinder-worker's identical JS port: these name a
+            # suicide method directly and are unambiguous on their own --
+            # they don't need the weapon+violence-word AND-gate below the
+            # way a bare "shoot"/"stab" does, since "shoot myself"/"hang
+            # myself" have no other plausible reading. Verified directly:
+            # these fell through both branches before this addition (no
+            # literal weapon noun present, so the weapon AND-gate never
+            # fired for "shoot myself"/"hang myself").
+            "shoot myself",
+            "hang myself",
+            "hanging myself",
+            "cutting myself",
+            "not worth living",
+            "don't want to wake up",
+            "dont want to wake up",
+            "overdosing",
         ],
     ):
         return "Text indicates potential self-harm or suicide intent."

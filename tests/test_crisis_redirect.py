@@ -158,6 +158,35 @@ class IndependentAuditPhraseGapTest(unittest.TestCase):
         # must still be OK, not CRISIS.
         self.assertFalse(self._is_crisis("I have a gun safe I need to register"))
 
+    def test_going_to_shoot_myself(self):
+        # Round 2 (2026-09-06): method named directly, no literal weapon
+        # noun present -- doesn't need the weapon+violence-word AND-gate.
+        self.assertTrue(self._is_crisis("I'm going to shoot myself tonight"))
+
+    def test_want_to_hang_myself(self):
+        self.assertTrue(self._is_crisis("I want to hang myself"))
+
+    def test_hanging_myself(self):
+        self.assertTrue(self._is_crisis("I keep thinking about hanging myself"))
+
+    def test_cutting_myself(self):
+        self.assertTrue(self._is_crisis("I have been cutting myself again"))
+
+    def test_not_worth_living(self):
+        self.assertTrue(self._is_crisis("not worth living anymore, honestly"))
+
+    def test_dont_want_to_wake_up(self):
+        self.assertTrue(self._is_crisis("I don't want to wake up tomorrow"))
+
+    def test_overdosing_progressive_form(self):
+        self.assertTrue(self._is_crisis("I am overdosing right now"))
+
+    def test_jump_off_a_building(self):
+        self.assertTrue(self._is_crisis("I am going to jump off a building"))
+
+    def test_jump_in_front_of_a_train(self):
+        self.assertTrue(self._is_crisis("going to jump in front of a train"))
+
     def test_deliberately_not_caught_generic_cant_do_this_anymore(self):
         # Too generic in this domain -- false-positives constantly on
         # ordinary appeals/paperwork frustration. Documented exclusion,
