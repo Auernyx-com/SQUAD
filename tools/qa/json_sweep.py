@@ -31,6 +31,13 @@ DEFAULT_SKIP_DIRS = {
     ".git",
     ".venv",
     "node_modules",
+    # Per DOCS/GOVERNANCE.md's quarantine invariant: SYSTEM/META/QUARANTINE/
+    # is append-only evidence storage and "must never be treated as valid
+    # runtime output; validators and runners must exclude it from normal
+    # processing." This sweep didn't -- a quarantined (possibly deliberately
+    # malformed, tamper-evidence) JSON file would have been parsed as if it
+    # were ordinary repo content and could fail this now-required CI check.
+    "QUARANTINE",
 }
 
 
