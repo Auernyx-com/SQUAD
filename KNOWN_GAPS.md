@@ -33,16 +33,36 @@ numbers are entered.
 `DATA/US/CO/denver_metro.json` exists in the index but has not been built out.
 Veterans in Denver Metro fall back to the CO statewide shard.
 
+**Local resource database is now wired into all 8 division routers (as of 2026-09).**
+Previously the verified resource shards existed but nothing called them --
+every division's output was national-lines-only regardless of what local data
+was on file. `MODULES/_shared/local_resources.py` now does state-scoped shard
+lookup (exact county match, falling back to fuzzy match via stdlib `difflib`
+for misspellings) and every division merges its results into a dedicated
+`key_resources` field, tagged `Local (verified): ...` so it is never
+confused with AI-generated or national-line text. It only ever reads
+already-`verify_before_production`-cleared records (see "Verified means
+primary source" above), so this does not weaken that guarantee -- it just
+makes the two states with real data (CO, WA) actually reach veterans. A
+crisis/self-harm flag widens the tag set (pulls in more resource categories)
+but never narrows or blocks other results -- additive only, by design. This
+does not reduce the 48-skeleton-state gap above; it makes the fix for that
+gap (adding verified data to a shard) actually take effect once it happens.
+
 ---
 
 ## Technical gaps
 
-**No automated test suite.**
-There are no unit tests, integration tests, or routing regression tests. Routing
-correctness is verified manually through test intakes. This is the largest
-engineering gap. A test suite covering: discharge gate routing, era-specific
-program surfacing, crisis additive behavior, and coverage gap notice accuracy
-would significantly reduce the risk of silent regressions.
+**Automated test suite (as of 2026-09).**
+24 test files now exist under `tests/`, covering: the Pathfinder handshake
+out-of-scope filter, CRA case-ID path traversal, Obsidian Judgment provenance
+enforcement, the shared local-resources helper (`MODULES/_shared/`), and
+per-division routing/resource-wiring tests for all 8 divisions. This closes
+the largest gap previously logged here. Not yet covered: end-to-end coverage
+of discharge-gate routing and era-specific program surfacing across every
+division in one pass — current tests are per-module/per-router, not a single
+full-pipeline regression suite. Still a gap worth closing, just a smaller one
+than "zero tests."
 
 **AI model confidence is not calibrated.**
 The confidence score (0–100) is calculated from a formula in the prompt, not from
