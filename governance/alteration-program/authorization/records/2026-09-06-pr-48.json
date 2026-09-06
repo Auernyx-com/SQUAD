@@ -1,0 +1,9 @@
+{
+  "governance_record": "2026-09-06-pr-48",
+  "authorization_logic": "Ghostwolf101 authorized via allowlist for PR #48: fix: previously-denied veteran got \"file initial claim\" as primary_path (high)",
+  "signature": "Ghostwolf101-2026-09-06-pr48",
+  "authorizedBy": "Ghostwolf101",
+  "authorizedAt": "2026-09-06",
+  "reason": "PR #48: fix: previously-denied veteran got \"file initial claim\" as primary_path (high)",
+  "pullRequest": 48
+}
