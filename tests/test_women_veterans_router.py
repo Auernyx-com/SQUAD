@@ -100,5 +100,49 @@ class HousingStatusFieldNameTest(unittest.TestCase):
         self.assertNotIn("homeless_urgent", result.flags)
 
 
+class NativeVocabularyCliRegressionTest(unittest.TestCase):
+    """women_veterans_cli.py is a real, separate caller of this router that
+    never goes through the bridge at all -- it sends "housing_situation"
+    directly in WomenVeterans_v0_1.py's own native vocabulary (stable/
+    at_risk/homeless/unknown), which is exactly the field/vocabulary this
+    router read before the housing_status fix above. That fix correctly
+    closed the bridge-path bug but, confirmed directly, silently broke the
+    CLI's own housing question in the process: '{"needs": ["housing"],
+    "housing_situation": "homeless"}' produced flags without
+    "homeless_urgent" -- the same bug reintroduced for a different caller.
+    """
+
+    def test_cli_native_homeless_value_still_reaches_the_homeless_urgent_track(self):
+        payload = {"needs": ["housing"], "housing_situation": "homeless"}
+        result = router.run(payload)
+        self.assertEqual(result.status, "OK")
+        self.assertIn("homeless_urgent", result.flags)
+
+    def test_cli_native_at_risk_value_reaches_housing_track_not_homeless(self):
+        payload = {"needs": ["housing"], "housing_situation": "at_risk"}
+        result = router.run(payload)
+        self.assertIn("housing_track", result.flags)
+        self.assertNotIn("homeless_urgent", result.flags)
+
+    def test_cli_native_stable_value_triggers_no_housing_urgency(self):
+        payload = {"needs": [], "housing_situation": "stable"}
+        result = router.run(payload)
+        self.assertNotIn("homeless_urgent", result.flags)
+
+    def test_invalid_native_housing_situation_value_is_rejected(self):
+        payload = {"needs": ["housing"], "housing_situation": "not_a_real_value"}
+        result = router.run(payload)
+        self.assertEqual(result.status, "NEEDS_INPUT")
+
+    def test_housing_status_takes_precedence_if_both_fields_somehow_present(self):
+        payload = {
+            "needs": ["housing"],
+            "housing_status": "at_risk",     # bridge vocab -> would map to at_risk
+            "housing_situation": "homeless",  # native vocab -- should be ignored
+        }
+        result = router.run(payload)
+        self.assertNotIn("homeless_urgent", result.flags)
+
+
 if __name__ == "__main__":
     unittest.main()

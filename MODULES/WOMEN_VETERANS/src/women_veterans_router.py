@@ -62,6 +62,32 @@ def _map_housing_status(raw: str) -> str:
     return _HOUSING_STATUS_TO_INTERNAL.get(raw, "unknown")
 
 
+# Found immediately after the fix above shipped, while auditing
+# women_veterans_cli.py in the same pass: that standalone interactive CLI
+# (a real, separate caller of this router, not going through the bridge at
+# all) sets "housing_situation" directly in WomenVeterans_v0_1.py's own
+# native vocabulary (stable/at_risk/homeless/unknown) -- which is exactly
+# the field/vocabulary this router read BEFORE the fix above. Reading only
+# "housing_status" now (the bridge's field) silently broke the CLI's own
+# housing question: confirmed directly, women_veterans_cli.py
+# '{"needs": ["housing"], "housing_situation": "homeless"}' produced
+# flags=["housing_track", "womens_healthcare_track"] with no
+# "homeless_urgent" -- the exact bug the previous fix was supposed to close,
+# reintroduced for a different caller. Both are legitimate: the bridge
+# needs translation, the CLI's native vocabulary needs none. housing_status
+# takes precedence if a caller somehow sends both.
+VALID_HOUSING_SITUATION_NATIVE = {"stable", "at_risk", "homeless", "unknown"}
+
+
+def _resolve_housing_status(payload: Dict[str, Any]) -> str:
+    if "housing_status" in payload:
+        return _map_housing_status(payload.get("housing_status") or "unknown")
+    raw = payload.get("housing_situation")
+    if raw in VALID_HOUSING_SITUATION_NATIVE:
+        return raw
+    return "unknown"
+
+
 @dataclass(frozen=True)
 class WomenVeteransResult:
     status: str
@@ -92,9 +118,14 @@ def _validate(payload: Dict[str, Any]) -> List[str]:
     if discharge and discharge not in VALID_DISCHARGE:
         errors.append(f"Invalid discharge '{discharge}'. Valid: {sorted(VALID_DISCHARGE)}")
 
-    housing = payload.get("housing_status", "")
-    if housing and housing not in VALID_HOUSING_STATUS:
-        errors.append(f"Invalid housing_status '{housing}'. Valid: {sorted(VALID_HOUSING_STATUS)}")
+    if "housing_status" in payload:
+        housing = payload.get("housing_status") or ""
+        if housing and housing not in VALID_HOUSING_STATUS:
+            errors.append(f"Invalid housing_status '{housing}'. Valid: {sorted(VALID_HOUSING_STATUS)}")
+    elif "housing_situation" in payload:
+        housing = payload.get("housing_situation") or ""
+        if housing and housing not in VALID_HOUSING_SITUATION_NATIVE:
+            errors.append(f"Invalid housing_situation '{housing}'. Valid: {sorted(VALID_HOUSING_SITUATION_NATIVE)}")
 
     rating = payload.get("disability_rating")
     if rating is not None:
@@ -133,7 +164,7 @@ def _build_profile(payload: Dict[str, Any]) -> WomenVetProfile:
         has_mst=_bool("has_mst"),
         has_ptsd=_bool("has_ptsd"),
         has_depression_anxiety=_bool("has_depression_anxiety"),
-        housing_situation=_map_housing_status(payload.get("housing_status", "unknown")),
+        housing_situation=_resolve_housing_status(payload),
         disability_rating=_int_or_none("disability_rating"),
         discharge=(lambda v: v[0] if isinstance(v, list) else v)(payload.get("discharge", "unknown")),
         state=payload.get("state", ""),
