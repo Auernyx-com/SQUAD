@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from ledger_v1 import append_receipt
+from ledger_v1 import append_receipt, verify_chain
 
 
 @dataclass(frozen=True)
@@ -224,8 +224,25 @@ def main() -> None:
     parser.add_argument("--explain-decision", action="store_true")
     parser.add_argument("--write-receipt", action="store_true", help="Append a Level-2 receipt + hash-chain into canon/")
     parser.add_argument("--canon-root", default="./canon", help="Canon root directory for receipts/ledger")
+    parser.add_argument(
+        "--verify-chain", action="store_true",
+        help="Walk the entire receipt ledger under --canon-root end to end and report the first broken link, if any. "
+             "Does not require --input/--input-file.",
+    )
 
     args = parser.parse_args()
+
+    if args.verify_chain:
+        canon_root = Path(args.canon_root).expanduser().resolve()
+        result = verify_chain(canon_root)
+        sys.stdout.write(json.dumps({
+            "ok": result.ok,
+            "entries_checked": result.entries_checked,
+            "error": result.error,
+            "error_index": result.error_index,
+            "details": result.details,
+        }, indent=2, ensure_ascii=False) + "\n")
+        sys.exit(0 if result.ok else 2)
 
     input_source = "unknown"
 
