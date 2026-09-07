@@ -255,7 +255,14 @@ def route_va_benefits(profile: VaBenefitsProfile) -> dict:
                 "If you had a VA loan before, you may have remaining or restored entitlement."
             )
 
-        if "adaptive_housing" in profile.need_branches or rating >= 50:
+        # Independent-audit finding (2026-09-06, round 4, low): this used to be
+        # rating >= 50, while Housing_v0_1.py's identical SAH/SHA mention uses
+        # rating >= 30 -- the same veteran got flagged as a candidate through
+        # one division router but not the other for the exact same program.
+        # Aligned to Housing_v0_1.py's threshold (the more inclusive of the
+        # two); this is a "candidate/mention" heuristic in both files, not a
+        # hard eligibility gate, so under-mentioning is the worse failure mode.
+        if "adaptive_housing" in profile.need_branches or rating >= 30:
             result["secondary_options"].append(
                 "SAH Grant (Specially Adapted Housing) — up to $109,986 to build or modify a home "
                 "for veterans with severe service-connected disability"
