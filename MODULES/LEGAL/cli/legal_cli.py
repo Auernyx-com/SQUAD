@@ -169,10 +169,18 @@ def main():
     if args.interactive:
         payload = interactive_intake()
     elif args.file:
-        with open(args.file) as fh:
-            payload = json.load(fh)
+        try:
+            with open(args.file) as fh:
+                payload = json.load(fh)
+        except (OSError, json.JSONDecodeError) as exc:
+            print(f"Error reading {args.file!r}: {exc}", file=sys.stderr)
+            sys.exit(2)
     elif args.payload:
-        payload = json.loads(args.payload)
+        try:
+            payload = json.loads(args.payload)
+        except json.JSONDecodeError as exc:
+            print(f"Error: payload is not valid JSON: {exc}", file=sys.stderr)
+            sys.exit(2)
     else:
         parser.print_help()
         sys.exit(1)
