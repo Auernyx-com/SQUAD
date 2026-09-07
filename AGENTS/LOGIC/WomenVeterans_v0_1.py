@@ -120,40 +120,18 @@ def route_women_veterans(profile: WomenVetProfile) -> dict:
                 "Ask specifically for women veteran services and whether women-only shelter is available."
             )
 
-    # ── TRACK 1: WOMEN'S HEALTH CARE ──────────────────────────────────────────
-    if "healthcare" in needs or not profile.enrolled_va_healthcare:
-        result["flags"].append("womens_healthcare_track")
-
-        if not profile.enrolled_va_healthcare:
-            result["primary_path"] = result["primary_path"] or "VA Women's Health Care — Enroll First"
-            result["secondary_options"].append(
-                "VA enrollment for women veterans: va.gov/health-care/apply — "
-                "same eligibility rules as all veterans. "
-                "Once enrolled, request a Women's Health primary care provider specifically — "
-                "VA has designated Women's Health PCPs at most facilities."
-            )
-            result["key_forms"].append("VA Form 10-10EZ (VA Health Care Application)")
-            result["next_action"] = result["next_action"] or (
-                "Call the Women Veterans Call Center (1-855-829-6636) to start enrollment — "
-                "they can walk you through the process and connect you to your facility's WVPM."
-            )
-        else:
-            result["primary_path"] = result["primary_path"] or "VA Women's Health Services"
-            result["secondary_options"].append(
-                "VA Women's Health primary care — request a provider trained in women's health specifically. "
-                "VA policy requires that every enrolled woman veteran be offered a designated WHPCP."
-            )
-            result["notes"].append(
-                "You have the right to request a same-sex provider for sensitive exams. "
-                "Ask your WVPM if you experience any barrier to this."
-            )
-
-        result["secondary_options"].append(
-            "Telehealth for women's health — VA's Women's Health Telehealth Hubs connect rural "
-            "women veterans to women's health specialists remotely. Ask your WVPM."
-        )
-
     # ── TRACK 2: MATERNITY & NEWBORN ──────────────────────────────────────────
+    # Independent-audit finding (2026-09-06, round 4, high): Tracks 2-5 used to
+    # run AFTER Track 1 (healthcare enrollment), so Track 1's guarded
+    # `result["primary_path"] or (...)` assignment still won the race for any
+    # unenrolled veteran -- Track 1's condition (`not
+    # profile.enrolled_va_healthcare`) fires for almost everyone. Moved ahead
+    # of Track 1, matching the same "most specific need wins the headline
+    # fields" convention already applied to Housing (Track 6, above): an
+    # unenrolled MST survivor, pregnant veteran, or veteran disclosing PTSD
+    # needs MST/maternity/mental-health-specific guidance as primary_path, not
+    # a generic enrollment nudge -- and per Track 3's own text, MST-related
+    # care under federal law does not actually require VA enrollment first.
     if "maternity" in needs or profile.is_pregnant:
         result["flags"].append("maternity_track")
         result["primary_path"] = result["primary_path"] or "VA Maternity Care"
@@ -272,6 +250,39 @@ def route_women_veterans(profile: WomenVetProfile) -> dict:
                 "Request an appointment with a VA Women's Health Primary Care Provider. "
                 "Call 1-855-829-6636 (Women Veterans Call Center) if you need help getting scheduled."
             )
+
+    # ── TRACK 1: WOMEN'S HEALTH CARE ──────────────────────────────────────────
+    if "healthcare" in needs or not profile.enrolled_va_healthcare:
+        result["flags"].append("womens_healthcare_track")
+
+        if not profile.enrolled_va_healthcare:
+            result["primary_path"] = result["primary_path"] or "VA Women's Health Care — Enroll First"
+            result["secondary_options"].append(
+                "VA enrollment for women veterans: va.gov/health-care/apply — "
+                "same eligibility rules as all veterans. "
+                "Once enrolled, request a Women's Health primary care provider specifically — "
+                "VA has designated Women's Health PCPs at most facilities."
+            )
+            result["key_forms"].append("VA Form 10-10EZ (VA Health Care Application)")
+            result["next_action"] = result["next_action"] or (
+                "Call the Women Veterans Call Center (1-855-829-6636) to start enrollment — "
+                "they can walk you through the process and connect you to your facility's WVPM."
+            )
+        else:
+            result["primary_path"] = result["primary_path"] or "VA Women's Health Services"
+            result["secondary_options"].append(
+                "VA Women's Health primary care — request a provider trained in women's health specifically. "
+                "VA policy requires that every enrolled woman veteran be offered a designated WHPCP."
+            )
+            result["notes"].append(
+                "You have the right to request a same-sex provider for sensitive exams. "
+                "Ask your WVPM if you experience any barrier to this."
+            )
+
+        result["secondary_options"].append(
+            "Telehealth for women's health — VA's Women's Health Telehealth Hubs connect rural "
+            "women veterans to women's health specialists remotely. Ask your WVPM."
+        )
 
     # ── TRACK 7: CHILDCARE ACCESS ─────────────────────────────────────────────
     if "childcare" in needs or profile.has_young_children:
