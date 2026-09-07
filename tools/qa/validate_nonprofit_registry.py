@@ -251,8 +251,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return 0
 
     findings: List[Finding] = []
+    files_scanned = 0
+    stopped_early = False
 
     for f in registry_files:
+        files_scanned += 1
         try:
             payload = _load_json(f)
         except Exception as exc:  # noqa: BLE001
@@ -271,9 +274,20 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         )
 
         if len(findings) >= args.max_failures:
+            stopped_early = files_scanned < len(registry_files)
             break
 
-    print(f"nonprofit registry files scanned: {len(registry_files)}")
+    # Independent-audit finding (2026-09-07, round 7, low): this used to
+    # unconditionally print len(registry_files) here even when the loop above
+    # broke early at the findings cap -- claiming a full scan while silently
+    # having stopped partway through, undercounting the real backlog by as
+    # much as the remaining unscanned files.
+    print(f"nonprofit registry files scanned: {files_scanned} of {len(registry_files)}")
+    if stopped_early:
+        print(
+            f"nonprofit registry validation: stopped early at --max-failures={args.max_failures}; "
+            f"{len(registry_files) - files_scanned} file(s) not yet scanned"
+        )
     if findings:
         print("nonprofit registry validation findings:")
         for finding in findings[: args.max_failures]:

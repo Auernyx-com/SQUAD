@@ -174,6 +174,19 @@ There is no automated alerting if the worker errors, the AI binding returns
 unexpected responses, or KV writes fail. Errors are logged to Cloudflare's
 built-in log stream but not proactively surfaced.
 
+**`validate_nonprofit_registry.py`'s --max-failures cap doesn't apply to
+invalid-JSON shards.**
+Found while fixing the adjacent scan-count bug (independent audit,
+2026-09-07, round 7). The per-file loop's malformed-JSON branch does
+`findings.append(...); continue` — that `continue` skips the
+`len(findings) >= args.max_failures` check at the bottom of the loop
+entirely, so a run of many unparseable shard files keeps scanning past
+the cap (it never breaks early on JSON-parse failures alone, only on
+`_validate_payload` findings). This doesn't undercount anything — if
+anything it over-scans relative to the documented cap — so it wasn't
+fixed as part of this pass's file-count fix, but the cap's behavior is
+inconsistent between the two finding types and should be unified.
+
 ---
 
 ## Design gaps

@@ -297,6 +297,17 @@ def format_local_resource_line(resource: Dict[str, Any]) -> str:
     the agreed design: local, verified data must be visibly distinguished
     from whatever hardcoded national-line text a router adds elsewhere.
 
+    Independent-audit finding (2026-09-07, round 7, medium): a record that
+    reached this function with no phones/urls at all (nothing in
+    verify_before_production to gate it out at load time, e.g. a record
+    that only carries a free-text source_hints note) still got labeled
+    "Local (**verified**)" while the very next words said its contact
+    info was "not yet verified" -- a self-contradicting line. "(verified)"
+    means this came from our own curated local registry, not a hardcoded
+    national line; it was never meant to claim the contact info itself is
+    confirmed, so that claim must not be made when there is no contact
+    info to back it.
+
     Never raises -- a malformed resource dict degrades to a minimal line
     rather than breaking the caller's whole result.
     """
@@ -310,8 +321,8 @@ def format_local_resource_line(resource: Dict[str, Any]) -> str:
         elif urls and isinstance(urls, list):
             contact = str(urls[0])
         else:
-            contact = "contact info not yet verified -- see notes"
+            return f"Local (contact unverified): {name} — see notes before use in production"
 
         return f"Local (verified): {name} — {contact}"
     except Exception:
-        return "Local (verified): a local resource was found but could not be formatted."
+        return "Local (unverified): a local resource was found but could not be formatted."

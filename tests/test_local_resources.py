@@ -81,6 +81,47 @@ class PhoneNormalizationTest(unittest.TestCase):
         self.assertTrue(_COORDINATOR_PHONE_PATTERN.search(line))
 
 
+class FormatLocalResourceLineNoContactTest(unittest.TestCase):
+    """Independent-audit finding (2026-09-07, round 7, medium): a record with
+    no phones/urls at all (nothing for verify_before_production to gate at
+    load time -- e.g. one only carrying a free-text source_hints note, like
+    the real committed Montrose County VSO record) used to render as
+    "Local (**verified**): ... — contact info **not yet verified**" -- a
+    self-contradicting line. Reproduced directly against the real Montrose
+    record below rather than a synthetic stand-in.
+    """
+
+    MONTROSE_VSO = {
+        "provider_id": "US/CO/western_slope/montrose-county-vso",
+        "name": "Montrose County Veterans Service Office",
+        "coverage_counties": ["Montrose", "Ouray", "San Miguel"],
+        "phones": [],
+        "source_hints": ["verify coverage counties and contact before deployment"],
+    }
+
+    def test_no_contact_info_does_not_claim_verified(self):
+        line = format_local_resource_line(self.MONTROSE_VSO)
+        self.assertNotIn("(verified)", line)
+        self.assertIn("Montrose County Veterans Service Office", line)
+
+    def test_no_contact_info_line_is_internally_consistent(self):
+        # Whatever label it gets, it must not simultaneously claim
+        # "verified" and "not yet verified" in the same line.
+        line = format_local_resource_line(self.MONTROSE_VSO)
+        if "not yet verified" in line or "unverified" in line:
+            self.assertNotIn("(verified)", line)
+
+    def test_empty_urls_list_also_falls_through_to_no_contact_case(self):
+        line = format_local_resource_line({"name": "Example Org", "phones": [], "urls": []})
+        self.assertNotIn("(verified)", line)
+
+    def test_real_contact_info_still_claims_verified(self):
+        # Regression guard: this fix must not weaken the case that does
+        # have real contact info.
+        line = format_local_resource_line({"name": "Example Org", "phones": ["970-245-4156"]})
+        self.assertIn("(verified)", line)
+
+
 class NormalizeCountyTest(unittest.TestCase):
     def test_strips_county_suffix(self):
         self.assertEqual(_normalize_county("Mesa County"), "mesa")
