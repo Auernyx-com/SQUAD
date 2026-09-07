@@ -188,10 +188,28 @@ def route_business_opportunity(profile: BusinessOpportunityProfile) -> dict:
         result["flags"].append("oth_limited")
         result["notes"].append(qual["notes"])
 
-    # ── TRACK 1: CERTIFICATION — always runs ─────────────────────────────────
+    # ── TRACK 1: CERTIFICATION ────────────────────────────────────────────────
     # Certification eligibility is fundamental — every veteran business owner
     # should know what they qualify for regardless of what they came in asking.
-    if True:
+    #
+    # Independent-audit finding (2026-09-06), round 3, high: this used to run
+    # unconditionally ("always runs" / `if True:`), and
+    # check_certification_eligibility() never checks discharge either -- only
+    # ownership/control/SC-disability. GATE 1's BLOCKED status correctly sets
+    # primary_path="Discharge Upgrade + Pursue Open Tracks" with a note that
+    # certification "requires honorable conditions discharge... Discharge
+    # upgrade... is the first step" -- but GATE 1 never sets next_action, so
+    # this track's guarded assignment filled it with "Start at vetcert.sba.gov
+    # to apply for VOSB/SDVOSB certification," directly contradicting the
+    # gate's own primary_path/notes. The gate's own "Don't fully block — some
+    # tracks still open" comment only ever meant the non-certification tracks
+    # already listed in its own secondary_options (SBA/SCORE/GSA) -- not this
+    # one. Every part of this track's body is inherently about certification,
+    # so there is no partial content to preserve when certification itself is
+    # the thing BLOCKED means. LIMITED (OTH) is unaffected -- OTH doesn't
+    # categorically bar SDVOSB/VOSB the way dishonorable does, so this track
+    # still runs for that status, same as before.
+    if qual["status"] != "BLOCKED":
         cert_check = check_certification_eligibility(profile)
         result["certifications"] = cert_check["certs"]
         result["flags"].extend(cert_check["flags"])
