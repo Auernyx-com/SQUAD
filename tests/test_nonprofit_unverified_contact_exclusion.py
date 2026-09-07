@@ -117,5 +117,91 @@ class UnverifiedContactExclusionTest(unittest.TestCase):
         self.assertEqual(leaked, [])
 
 
+class UnverifiedMarkerShapeTest(unittest.TestCase):
+    """
+    Independent-audit finding (2026-09-06, round 4, medium): the exclusion
+    above only recognized the exact `list-of-non-empty-strings` shape for
+    verify_before_production. Every other truthy shape for the same marker
+    -- a bare boolean True, a plain string, or a dict -- was silently
+    ignored, and the record (with its unverified phone number) passed
+    through untouched. All real production shard files use the list shape
+    today, so this hasn't manifested in production data, but the field has
+    no schema enforcement, so any future hand-edit or ingestion path using
+    a different (arguably more natural, e.g. boolean) shape defeated the
+    entire verification guarantee silently.
+
+    Confirmed with two probes before fixing: a record with
+    verify_before_production=True (bool) and one with
+    verify_before_production="phone number unconfirmed" (plain string)
+    both passed through load_registry() with their unverified phone
+    numbers intact.
+    """
+
+    def test_boolean_true_marker_is_excluded(self):
+        path = _write_temp_shard([{
+            "provider_id": "TEST/bool-marker-1",
+            "name": "Org With Boolean Marker",
+            "services": ["resource_referral"],
+            "phones": ["555-000-0002"],
+            "verify_before_production": True,
+        }])
+        records = ns.load_registry([path])
+        self.assertEqual(records, [])
+
+    def test_plain_string_marker_is_excluded(self):
+        path = _write_temp_shard([{
+            "provider_id": "TEST/string-marker-1",
+            "name": "Org With String Marker",
+            "services": ["resource_referral"],
+            "phones": ["555-000-0003"],
+            "verify_before_production": "phone number unconfirmed",
+        }])
+        records = ns.load_registry([path])
+        self.assertEqual(records, [])
+
+    def test_dict_marker_is_excluded(self):
+        path = _write_temp_shard([{
+            "provider_id": "TEST/dict-marker-1",
+            "name": "Org With Dict Marker",
+            "services": ["resource_referral"],
+            "phones": ["555-000-0004"],
+            "verify_before_production": {"phone": "unconfirmed"},
+        }])
+        records = ns.load_registry([path])
+        self.assertEqual(records, [])
+
+    def test_boolean_false_marker_does_not_exclude(self):
+        # False is an explicit "nothing flagged" state, same as an absent
+        # key or an empty list -- must not be treated as unresolved.
+        path = _write_temp_shard([{
+            "provider_id": "TEST/bool-false-marker-1",
+            "name": "Org With False Marker",
+            "services": ["resource_referral"],
+            "verify_before_production": False,
+        }])
+        records = ns.load_registry([path])
+        self.assertEqual(len(records), 1)
+
+    def test_empty_string_marker_does_not_exclude(self):
+        path = _write_temp_shard([{
+            "provider_id": "TEST/empty-string-marker-1",
+            "name": "Org With Empty String Marker",
+            "services": ["resource_referral"],
+            "verify_before_production": "",
+        }])
+        records = ns.load_registry([path])
+        self.assertEqual(len(records), 1)
+
+    def test_empty_dict_marker_does_not_exclude(self):
+        path = _write_temp_shard([{
+            "provider_id": "TEST/empty-dict-marker-1",
+            "name": "Org With Empty Dict Marker",
+            "services": ["resource_referral"],
+            "verify_before_production": {},
+        }])
+        records = ns.load_registry([path])
+        self.assertEqual(len(records), 1)
+
+
 if __name__ == "__main__":
     unittest.main()

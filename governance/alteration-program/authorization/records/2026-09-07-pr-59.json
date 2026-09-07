@@ -1,0 +1,9 @@
+{
+  "governance_record": "2026-09-07-pr-59",
+  "authorization_logic": "Ghostwolf101 authorized via allowlist for PR #59: fix: verify_before_production exclusion only recognized one JSON shape (medium)",
+  "signature": "Ghostwolf101-2026-09-07-pr59",
+  "authorizedBy": "Ghostwolf101",
+  "authorizedAt": "2026-09-07",
+  "reason": "PR #59: fix: verify_before_production exclusion only recognized one JSON shape (medium)",
+  "pullRequest": 59
+}
