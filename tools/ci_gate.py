@@ -108,6 +108,10 @@ def get_changed_auth_records(files):
     return [f for f in files if f.startswith(prefix) and f.endswith(".json")]
 
 
+def record_introducing_commit(record_path: str) -> str:
+    return run(["git", "-C", str(GIT_ROOT), "log", "-1", "--format=%H", "--", record_path]).strip()
+
+
 def validate_auth_record(record_path: str) -> None:
     full_path = GIT_ROOT / record_path
     try:
@@ -146,6 +150,40 @@ def validate_auth_record(record_path: str) -> None:
     allowed_logins = allowlist.get("authorizedLogins", [])
     if authorized_by not in allowed_logins:
         fail(f"authorizedBy '{authorized_by}' is not in the allowlist ({ALLOWLIST_PATH}). authorizedLogins: {allowed_logins}")
+
+    # Independent-audit finding (2026-09-07, round 8, critical): every check
+    # above only validates the record's OWN fields are well-formed and
+    # authorizedBy is allowlisted -- none of it verifies the record was
+    # actually produced by the real auto-authorize job rather than a
+    # hand-written file. Reproduced directly: a forged record with a
+    # valid-looking authorizedBy/authorizedAt/reason, committed as part of
+    # an attacker's own PR (no real review, no real approval, zero
+    # involvement from the allowlisted person), passed every check above
+    # with no exception -- a complete bypass of the whole allowlist model.
+    #
+    # Fixed by requiring the commit that introduced this exact record file
+    # to match a SHA the auto-authorize job vouches for via
+    # SQUAD_RECORD_COMMIT_SHA -- a GitHub Actions job output, populated only
+    # when that job's own live, this-run GitHub API-based is_allowed check
+    # was true. An attacker's own PR-branch commit can claim any git author
+    # identity it wants (author/committer metadata is trivially spoofable
+    # locally), but it cannot inject a value into another job's output --
+    # that channel is populated by GitHub's own orchestration engine based
+    # on what that job actually did, not on anything in the PR diff.
+    trusted_sha = os.environ.get("SQUAD_RECORD_COMMIT_SHA", "").strip()
+    if not trusted_sha:
+        fail(
+            f"no trusted record commit reported by auto-authorize for {record_path} "
+            f"(SQUAD_RECORD_COMMIT_SHA is empty) -- refusing to trust a record this run "
+            f"cannot verify was produced by the real authorization job"
+        )
+    actual_sha = record_introducing_commit(record_path)
+    if actual_sha != trusted_sha:
+        fail(
+            f"{record_path} was introduced by commit {actual_sha!r}, which does not match "
+            f"the commit auto-authorize vouched for ({trusted_sha!r}) -- this record was not "
+            f"verifiably created by the real authorization job"
+        )
 
 
 def assert_provenance_verifies() -> None:

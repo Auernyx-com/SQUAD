@@ -105,5 +105,43 @@ class AssigneeAndRequestedReviewerNoLongerAuthorizeTest(unittest.TestCase):
         self.assertIn('reviewer_logins = parse_logins("REVIEWERS_JSON")', self.content)
 
 
+class RecordCommitProvenancePlumbingTest(unittest.TestCase):
+    """Round 8 (2026-09-07, critical): tools/ci_gate.py's validate_auth_record()
+    used to accept any well-formed authorization record with an allowlisted
+    authorizedBy, with no check that it was actually produced by this
+    workflow. The real fix lives in tests/test_ci_gate_auth_record_
+    provenance.py (which exercises ci_gate.py directly); this file only
+    checks that the workflow actually wires the trust signal through --
+    auto-authorize exposes a job output populated from its own live
+    is_allowed check, and gate passes it to ci_gate.py as an env var.
+    """
+
+    def setUp(self):
+        self.content = WORKFLOW.read_text(encoding="utf-8")
+
+    def test_auto_authorize_exposes_is_allowed_and_record_commit_sha_as_job_outputs(self):
+        self.assertIn("is_allowed: ${{ steps.check-allowlist.outputs.is_allowed }}", self.content)
+        self.assertIn(
+            "record_commit_sha: ${{ steps.record-commit.outputs.record_commit_sha }}",
+            self.content,
+        )
+
+    def test_record_commit_step_only_runs_when_currently_allowed(self):
+        self.assertIn("id: record-commit", self.content)
+        self.assertIn(
+            "if: steps.check-allowlist.outputs.is_allowed == 'true'",
+            self.content,
+        )
+        # The step itself derives the SHA from git history, not from
+        # anything in the record file or the PR diff content.
+        self.assertIn('git log -1 --format=%H -- "$RECORD_FILE"', self.content)
+
+    def test_gate_job_forwards_the_trusted_sha_to_ci_gate(self):
+        self.assertIn(
+            "SQUAD_RECORD_COMMIT_SHA: ${{ needs.auto-authorize.outputs.record_commit_sha }}",
+            self.content,
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
