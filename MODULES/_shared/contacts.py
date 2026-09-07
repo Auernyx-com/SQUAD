@@ -82,6 +82,17 @@ BRANCH_EMERGENCY: Dict[str, List[str]] = {
     ],
     "navy": [
         "Navy-Marine Corps Relief Society — 1-800-654-8364 — emergency financial assistance.",
+        # Independent-audit finding (2026-09-08, round 6, medium): this number
+        # is IDENTICAL to the Marine Corps Wounded Warrior Regiment entry
+        # above, under a different org name ("Navy component"). Confirmed as
+        # a literal duplicate -- but this environment cannot verify by phone
+        # which org, if either, the number actually reaches, so it is
+        # deliberately NOT being silently changed to a guessed replacement
+        # (that would violate this file's own "never guess/fabricate a
+        # number" policy). VERIFY_BEFORE_PRODUCTION: confirm whether the
+        # Navy's actual recovery-support program (conventionally a distinct
+        # "Navy Wounded Warrior – Safe Harbor" program) has its own separate
+        # verified number, and correct this entry if so.
         "Wounded Warrior Regiment (Navy component) — 1-877-487-6299",
     ],
     "air_force": [
