@@ -529,6 +529,16 @@ def run_crisis_response(intake: dict[str, Any]) -> dict[str, Any]:
     Crisis response is additive, never a gate.
     """
     crisis = intake.get("crisis", {})
+    # Independent-audit finding (2026-09-07, round 5, high): a non-dict
+    # crisis field (a bug upstream, or a hostile client) crashed this on
+    # crisis.get(...) with an uncaught AttributeError -- the one function in
+    # this file that exists specifically to make sure a veteran in crisis
+    # gets resources no matter what else is wrong with their intake. Per
+    # this module's own founding law, nothing about the veteran ever
+    # triggers fail-closed -- malformed shape here routes as "not flagged,"
+    # the same safe default as the key being absent.
+    if not isinstance(crisis, dict):
+        crisis = {}
     if not crisis.get("flagged", False):
         return {"flagged": False}
 
@@ -738,14 +748,36 @@ def run_coordinator(intake: dict[str, Any]) -> dict[str, Any]:
     if intake.get("founding_law_sha256") != _FOUNDING_LAW_SHA256:
         _fail_closed("Intake founding_law_sha256 mismatch — intake rejected.")
 
+    # Independent-audit finding (2026-09-07, round 5, high): a non-dict
+    # `crisis` field (e.g. a bare string) crashed both run_crisis_response()
+    # and detect_edge_cases()'s MULTI_DOMAIN_CRISIS check with an uncaught
+    # AttributeError -- two separate call sites hit the same shape
+    # assumption. Normalized once, here, on a shallow-copied intake, so
+    # every downstream consumer sees a guaranteed dict rather than needing
+    # its own defensive check repeated (and possibly missed a third time).
+    if not isinstance(intake.get("crisis"), dict):
+        intake = {**intake, "crisis": {}}
+
     registry      = load_division_registry()
     divisions_cfg = load_divisions_config()
 
-    domains = intake.get("domains", [])
-    matched_divisions, gaps = resolve_divisions_for_domains(domains, registry, divisions_cfg)
-
-    # Crisis response — additive, never blocking
+    # Independent-audit finding (2026-09-07, round 5, high): crisis response
+    # is computed FIRST, before anything that touches `domains`, and
+    # `domains` itself is defended against a non-list value (None crashed
+    # `for domain in domains:` with an uncaught TypeError). Previously this
+    # ran BEFORE run_crisis_response(), so a veteran with `crisis.flagged:
+    # True` and a malformed `domains` field got an unhandled Python
+    # traceback instead of crisis resources -- the worst-case version of
+    # the "masked crisis path" bug shape found repeatedly in division
+    # routers in prior rounds. Computing crisis response first, and
+    # defending domain resolution independently, means a bug in domain
+    # resolution can never again take the crisis path down with it.
     crisis_response = run_crisis_response(intake)
+
+    domains = intake.get("domains", [])
+    if not isinstance(domains, list):
+        domains = []
+    matched_divisions, gaps = resolve_divisions_for_domains(domains, registry, divisions_cfg)
 
     # Edge case detection — affects confidence ceiling, surfaces human handoff
     edge_cases = detect_edge_cases(intake)
@@ -776,7 +808,13 @@ def run_coordinator(intake: dict[str, Any]) -> dict[str, Any]:
 
     result: dict[str, Any] = {
         "schema":             _RESULT_SCHEMA,
-        "case_id":            intake["case_id"],
+        # Independent-audit finding (2026-09-07, round 5, high): a missing
+        # case_id crashed with an uncaught KeyError. case_id is a caller
+        # contract (build_coordinator_intake's own docstring says it "does
+        # not generate or validate one"), not veteran data -- but crashing
+        # on it is still a raw traceback instead of a routed, honest
+        # response, so it defaults rather than raises.
+        "case_id":            intake.get("case_id") or "UNKNOWN_CASE",
         "timestamp":          datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "founding_law_sha256": _FOUNDING_LAW_SHA256,
         "coordinator_status": coordinator_status,

@@ -1,0 +1,81 @@
+{
+  "schema": "squad-bat.coordinator-result.v1",
+  "case_id": "schema-probe-1",
+  "timestamp": "2026-09-07T14:50:00Z",
+  "founding_law_sha256": "dc0fcb428e24948c5471798bf3c0b77cafade1c68e1aecb39aa13eef264f2f87",
+  "coordinator_status": "WITHIN_TOLERANCE",
+  "crisis_response": {
+    "flagged": false
+  },
+  "edge_cases": [
+    {
+      "id": "DISCHARGE_UNKNOWN",
+      "description": "Discharge status unknown \u2014 eligibility cannot be determined reliably"
+    },
+    {
+      "id": "SERVICE_STATUS_UNKNOWN",
+      "description": "Service status not established \u2014 routing may be inaccurate"
+    },
+    {
+      "id": "NO_LOCATION",
+      "description": "No location data \u2014 local resources cannot be identified"
+    }
+  ],
+  "division_results": [
+    {
+      "division_id": "housing-division",
+      "domain": "HOUSING",
+      "status": "COMPLETED",
+      "confidence": 10,
+      "result_summary": "VA Housing Resources \u2014 Multiple Paths Available",
+      "next_action": "Call VA main line: 1-800-827-1000 \u2014 ask for housing assistance. Or call 211 for local veteran housing resources.",
+      "next_actions": [
+        "Call VA main line 1-800-827-1000 and ask for housing assistance. They can connect to the right program for your situation.",
+        "211.org \u2014 local housing resources and veteran-specific programs."
+      ],
+      "immediate_contacts": [
+        "VA National Call Center for Homeless Veterans \u2014 1-877-4AID-VET (1-877-424-3838) (24/7)"
+      ],
+      "flags": [],
+      "duration_ms": 2
+    }
+  ],
+  "synthesis": {
+    "primary_path": "VA Housing Resources \u2014 Multiple Paths Available IMPORTANT \u2014 unusual circumstances detected: Discharge status unknown \u2014 eligibility cannot be determined reliably; Service status not established \u2014 routing may be inaccurate; No location data \u2014 local resources cannot be identified. Results may be incomplete. Verify with a VSO or VA navigator before acting.",
+    "confidence": 10,
+    "confidence_label": "Low \u2014 incomplete intake and 3 unusual circumstances; VSO or human navigator review required",
+    "next_actions": [
+      "Call VA main line 1-800-827-1000 and ask for housing assistance. They can connect to the right program for your situation.",
+      "211.org \u2014 local housing resources and veteran-specific programs."
+    ],
+    "immediate_contacts": [
+      "VA National Call Center for Homeless Veterans \u2014 1-877-4AID-VET (1-877-424-3838) (24/7)",
+      "VA main line \u2014 1-800-827-1000",
+      "Veterans Crisis Line \u2014 988, press 1"
+    ],
+    "domain_summaries": {
+      "HOUSING": "VA Housing Resources \u2014 Multiple Paths Available"
+    },
+    "if_blocked": [
+      "Contact your local Veterans Service Organization (VSO)",
+      "Call VA main line: 1-800-827-1000"
+    ],
+    "quorum_met": true,
+    "edge_cases": [
+      {
+        "id": "DISCHARGE_UNKNOWN",
+        "description": "Discharge status unknown \u2014 eligibility cannot be determined reliably"
+      },
+      {
+        "id": "SERVICE_STATUS_UNKNOWN",
+        "description": "Service status not established \u2014 routing may be inaccurate"
+      },
+      {
+        "id": "NO_LOCATION",
+        "description": "No location data \u2014 local resources cannot be identified"
+      }
+    ]
+  },
+  "gaps": [],
+  "receipt_ref": ""
+}

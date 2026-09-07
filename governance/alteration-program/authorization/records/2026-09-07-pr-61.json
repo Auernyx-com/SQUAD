@@ -1,0 +1,9 @@
+{
+  "governance_record": "2026-09-07-pr-61",
+  "authorization_logic": "Ghostwolf101 authorized via allowlist for PR #61: fix: coordinator crashed on malformed intake, could take crisis path down with it (high)",
+  "signature": "Ghostwolf101-2026-09-07-pr61",
+  "authorizedBy": "Ghostwolf101",
+  "authorizedAt": "2026-09-07",
+  "reason": "PR #61: fix: coordinator crashed on malformed intake, could take crisis path down with it (high)",
+  "pullRequest": 61
+}
