@@ -100,7 +100,13 @@ _DISCHARGE_MAP: Dict[str, str] = {
 
 
 def _map_discharge(raw: Optional[str]) -> str:
-    if not raw:
+    # Independent-audit finding (2026-09-07, round 5, high): `if not raw`
+    # only guards the falsy case -- a non-string, non-falsy value (e.g. a
+    # list or dict from a malformed/hostile payload) crashed the dict
+    # lookup below with an uncaught TypeError (unhashable type). MST's
+    # sibling INTAKE_DO_NOT_GUESS module already fixes this exact pattern
+    # with an isinstance check; applied the same way here.
+    if not isinstance(raw, str) or not raw:
         return "unknown"
     return _DISCHARGE_MAP.get(raw, "unknown")
 
@@ -428,7 +434,13 @@ def build_coordinator_intake(
 
     era_list = q.get("era")
     need_list = q.get("need")
-    location = q.get("location") or {}
+    # Independent-audit finding (2026-09-07, round 5, high): `or {}` only
+    # guards the falsy case (None/""/missing) -- a non-dict truthy value
+    # (a bare string, a list, an int) passed through untouched and crashed
+    # the very next line's location.get(...) call with an uncaught
+    # AttributeError. Matches the same isinstance-guard fix already applied
+    # to this exact pattern in the sibling INTAKE_DO_NOT_GUESS module.
+    location = q.get("location") if isinstance(q.get("location"), dict) else {}
 
     domains = _map_needs_to_domains(need_list)
     crisis_flagged = _needs_flag_crisis(need_list)
