@@ -1,0 +1,9 @@
+{
+  "governance_record": "2026-09-07-pr-65",
+  "authorization_logic": "Ghostwolf101 authorized via allowlist for PR #65: fix: Transportation hardcoded a DAV number conflicting with contacts.py (high)",
+  "signature": "Ghostwolf101-2026-09-07-pr65",
+  "authorizedBy": "Ghostwolf101",
+  "authorizedAt": "2026-09-07",
+  "reason": "PR #65: fix: Transportation hardcoded a DAV number conflicting with contacts.py (high)",
+  "pullRequest": 65
+}

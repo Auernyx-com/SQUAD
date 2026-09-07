@@ -13,8 +13,30 @@ Tracks:
 Gate: Transportation barriers never block access to care.
 """
 
+import os
+import sys
 from dataclasses import dataclass, field
 from typing import List, Optional
+
+# ---------------------------------------------------------------------------
+# Shared verified contacts — single source of truth
+#
+# Independent-audit finding (2026-09-08, round 6, high): this file used to
+# hardcode "1-800-424-3838" for the DAV Transportation Network, conflicting
+# with contacts.py's DAV_SERVICE_LINE ("1-800-741-4990") for the same
+# organization -- confirmed only 2 of 8 division routers (Housing, Legal)
+# actually imported contacts.py, directly contradicting its own documented
+# policy: "When a number changes, fix it here only. One edit, all
+# divisions update." Matched here.
+# ---------------------------------------------------------------------------
+
+_SHARED_PATH = os.path.normpath(
+    os.path.join(os.path.dirname(__file__), '..', '..', 'MODULES', '_shared')
+)
+if _SHARED_PATH not in sys.path:
+    sys.path.insert(0, _SHARED_PATH)
+
+from contacts import DAV_SERVICE_LINE as _DAV_SERVICE_LINE  # type: ignore
 
 
 @dataclass
@@ -146,14 +168,14 @@ def route_transportation(profile: VetTransportProfile) -> dict:
             "DAV (Disabled American Veterans) Transportation Network — "
             "free rides to and from VA medical appointments. "
             "Volunteer drivers, no cost to veteran. "
-            "Contact your local DAV chapter: dav.org/find-a-chapter or call 1-800-424-3838."
+            f"Contact your local DAV chapter: dav.org/find-a-chapter or call {_DAV_SERVICE_LINE}."
         )
         result["key_resources"].append("DAV Transportation Network — dav.org/find-a-chapter")
         result["flags"].append("dav_transport_option")
         if not result["next_action"]:
             result["next_action"] = (
                 "Call your local DAV chapter to schedule a ride: "
-                "find chapters at dav.org/find-a-chapter or call 1-800-424-3838. "
+                f"find chapters at dav.org/find-a-chapter or call {_DAV_SERVICE_LINE}. "
                 "Schedule at least 48–72 hours in advance."
             )
 
