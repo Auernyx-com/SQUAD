@@ -18,7 +18,7 @@
   "entrypoints": {
     "python_api": "src/med_disability_router.py",
     "cli": "cli/med_disability_cli.py",
-    "logic": "../../AGENTS/LOGIC/MedDisability_v0.1.py"
+    "logic": "../../AGENTS/LOGIC/MedDisability_v0_1.py"
   },
   "governing_law": "GOVERNANCE/LAWS/veteran_data_sovereignty.v1.md",
   "intake_fields_required": [

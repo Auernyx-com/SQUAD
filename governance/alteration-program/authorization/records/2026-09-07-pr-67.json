@@ -1,0 +1,9 @@
+{
+  "governance_record": "2026-09-07-pr-67",
+  "authorization_logic": "Ghostwolf101 authorized via allowlist for PR #67: fix: module.json metadata drift; flag contacts.py duplicate number; log gaps (low/medium)",
+  "signature": "Ghostwolf101-2026-09-07-pr67",
+  "authorizedBy": "Ghostwolf101",
+  "authorizedAt": "2026-09-07",
+  "reason": "PR #67: fix: module.json metadata drift; flag contacts.py duplicate number; log gaps (low/medium)",
+  "pullRequest": 67
+}

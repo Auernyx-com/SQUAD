@@ -2,7 +2,7 @@
 
 This document tracks what we know is incomplete, unverified, or not yet built.
 It exists so that anyone reviewing this project sees the honest state before they
-have to dig for it. Last updated: 2026-09-07.
+have to dig for it. Last updated: 2026-09-08.
 
 ---
 
@@ -52,6 +52,33 @@ gap (adding verified data to a shard) actually take effect once it happens.
 ---
 
 ## Technical gaps
+
+**Only 2 of 8 division routers use `MODULES/_shared/contacts.py`.**
+Found via independent audit (2026-09-08): `contacts.py`'s own documented
+policy is "When a number changes, fix it here only. One edit, all
+divisions update" — but only `Housing_v0_1.py` and `Legal_v0_1.py`
+actually `from contacts import ...`; the other 6
+(`BusinessOpportunity`/`MedDisability`/`ToxicExposure`/`Transportation`/
+`VaBenefits`/`WomenVeterans`) hardcode their own copies of national
+numbers. This already caused one confirmed, fixed drift (Transportation's
+DAV number diverged from `contacts.py`'s `DAV_SERVICE_LINE` — see PR
+history). Fixed for that one instance; the broader gap (5 remaining
+divisions still hardcode rather than import) is not fixed here — auditing
+and migrating every hardcoded number across 5 files is a larger effort
+than this pass covers. Logged so future drift is tracked as a known risk
+class, not rediscovered from scratch.
+
+**Housing division has no `cli/` directory.**
+Every other division (`VA_BENEFITS`, `LEGAL`, `TRANSPORTATION`,
+`TOXIC_EXPOSURE`, `WOMEN_VETERANS`, `MEDICAL_DISABILITY`,
+`BUSINESS_OPPORTUNITY`) has a `cli/*.py` entry point alongside its
+`module.json`; Housing has neither a working command-line entry point
+for manual/ops use, matching its siblings. `module.json` was added in
+this pass (bringing Housing to parity on that front), but writing an
+actual CLI wrapper is a small feature addition, not a bug fix, so it's
+logged here rather than done silently. No runtime effect — the
+coordinator resolves entrypoints from `config/divisions.json` directly,
+never from `module.json`/CLI.
 
 **Automated test suite (as of 2026-09).**
 24 test files now exist under `tests/`, covering: the Pathfinder handshake

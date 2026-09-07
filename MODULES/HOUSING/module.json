@@ -1,0 +1,36 @@
+{
+  "module_id": "HOUSING",
+  "version": "0.1.0",
+  "status": "framework",
+  "purpose": "Route veterans to the correct housing track based on current housing status, chronicity, DV/criminal-record barriers, and adaptive/home-loan needs. Covers: chronic homelessness (HUD-VASH), at-risk/unstable housing (SSVF), DV-aware housing, criminal-record housing barriers, VA adaptive housing grants, VA home loans, and housing legal protection.",
+  "tracks": [
+    "chronically_homeless",
+    "at_risk_unstable",
+    "domestic_violence_housing",
+    "criminal_record_barrier",
+    "adaptive_housing",
+    "va_home_loan",
+    "housing_legal_protection"
+  ],
+  "entrypoints": {
+    "python_api": "src/housing_router.py",
+    "logic": "../../AGENTS/LOGIC/Housing_v0_1.py"
+  },
+  "governing_law": "GOVERNANCE/LAWS/veteran_data_sovereignty.v1.md",
+  "intake_fields_required": [
+    "housing_status"
+  ],
+  "intake_fields_optional": [
+    "homelessness_months",
+    "is_chronically_homeless",
+    "has_dv_situation",
+    "has_active_criminal_case",
+    "disability_rating",
+    "has_va_loan_interest",
+    "discharge",
+    "branch",
+    "facing_eviction",
+    "state",
+    "county"
+  ]
+}
