@@ -603,19 +603,30 @@ def _require_json_path(raw: str) -> Path:
 def run(input_path: Path, output_path: Optional[Path] = None) -> Dict[str, Any]:
     payload = json.loads(input_path.read_text(encoding="utf-8-sig"))
 
-    # Authorized JSON: validate the full contract schema before any processing.
-    _validate_contract_schema(payload)
-
-    contract_id = payload.get("contract_id")
-    schema_version = payload.get("schema_version")
-    if contract_id != _CONTRACT_ID or schema_version != 1:
-        raise ValueError(f"Input is not {_CONTRACT_ID}")
-
-    input_env = payload.get("input") or {}
+    # Independent-audit finding (2026-09-08, round 6, low): schema-validation
+    # failure and the contract_id/schema_version mismatch check below used to
+    # raise uncaught, OUTSIDE the try/except that gracefully degrades every
+    # other processing failure to this module's own _closed_output()
+    # envelope -- so a malformed/unauthorized contract produced no output
+    # file at all, not even the fail-closed one this module's whole design
+    # is built around. Confirmed directly: a payload missing contract_id, or
+    # with a schema-invalid input.case shape, crashed run() uncaught before
+    # this fix. Computing input_env/stage defensively up front (before
+    # validation) and widening the try/except to also cover the
+    # authorization step means ANY failure -- authorization or processing --
+    # now produces the same graceful envelope, never an uncaught crash.
+    input_env = (payload.get("input") or {}) if isinstance(payload, dict) else {}
     stage = _stage(input_env)
 
-    # Fail closed: any unexpected processing error emits a safe VERIFY_REQUIRED output.
+    # Fail closed: any unexpected authorization or processing error emits a
+    # safe VERIFY_REQUIRED output.
     try:
+        _validate_contract_schema(payload)
+        contract_id = payload.get("contract_id")
+        schema_version = payload.get("schema_version")
+        if contract_id != _CONTRACT_ID or schema_version != 1:
+            raise ValueError(f"Input is not {_CONTRACT_ID}")
+
         mode = _review_mode(input_env)
         if mode:
             plan, truth, warnings, mode_updates = build_case_review_plan(input_env=input_env, mode=mode)
