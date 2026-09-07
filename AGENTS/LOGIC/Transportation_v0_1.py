@@ -66,10 +66,36 @@ def route_transportation(profile: VetTransportProfile) -> dict:
     needs = [n.lower() for n in profile.transport_needs]
     rating = profile.disability_rating or 0
 
+    # Independent-audit finding (2026-09-06), round 3, critical: TRACK 6
+    # (crisis, below) is correctly guarded (`result["primary_path"] or
+    # (...)`, `if not result["next_action"]`) specifically so it never
+    # clobbers whatever ran first -- but every earlier track (TRACK 1's
+    # BTSSS guidance, and TRACK 2's DAV guidance once TRACK 1 stepped aside)
+    # claims those same two fields unconditionally or with the same "first
+    # to run wins" guard, so a veteran who also selected "crisis" got
+    # ordinary transportation guidance as their primary_path/next_action,
+    # with the crisis guidance ("Call 988 press 1... or 911. Do not wait.")
+    # never reaching those two fields at all -- even though
+    # crisis_transport_track correctly fired and crisis text was added to
+    # secondary_options/key_resources further down. Confirmed with two
+    # separate scenarios before this fix; patching TRACK 1 alone wasn't
+    # enough (TRACK 2 has the identical latent bug, only masked by TRACK 1
+    # until TRACK 1 was fixed). Fixed structurally instead of track-by-track:
+    # crisis claims primary_path/next_action FIRST, before any other track
+    # runs, so every later track's existing "don't clobber" guard correctly
+    # no-ops on these two fields exactly as it was already written to.
+    # TRACK 6 below still runs at its original position for its other
+    # contributions (secondary_options/key_resources/notes/flags) -- this
+    # does not change where those are added, only which track wins the
+    # headline fields.
+    if "crisis" in needs:
+        result["primary_path"] = "Crisis Transport — Immediate Resources"
+        result["next_action"] = "Call 988 press 1 (Veterans Crisis Line) or 911. Do not wait."
+
     # ── TRACK 1: VA BENEFICIARY TRAVEL (BTSSS) ────────────────────────────────
     if "va_appointment" in needs or profile.enrolled_va_healthcare:
         result["flags"].append("va_beneficiary_travel")
-        result["primary_path"] = "VA Beneficiary Travel — BTSSS Mileage Reimbursement"
+        result["primary_path"] = result["primary_path"] or "VA Beneficiary Travel — BTSSS Mileage Reimbursement"
 
         # Eligibility determination
         eligible_travel = (
@@ -88,7 +114,7 @@ def route_transportation(profile: VetTransportProfile) -> dict:
             result["key_forms"].append("VA Form 10-3542 (Beneficiary Travel Claim — paper fallback)")
             result["key_resources"].append("BTSSS Portal — va.gov/health-care/get-reimbursed-for-travel-pay")
             result["flags"].append("btsss_eligible")
-            result["next_action"] = (
+            result["next_action"] = result["next_action"] or (
                 "Register for BTSSS at va.gov/health-care/get-reimbursed-for-travel-pay. "
                 "Submit claims within 30 days of each appointment. "
                 "You can submit at the VA facility kiosk or online."
