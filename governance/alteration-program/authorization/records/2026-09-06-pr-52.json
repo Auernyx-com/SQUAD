@@ -1,0 +1,9 @@
+{
+  "governance_record": "2026-09-06-pr-52",
+  "authorization_logic": "Ghostwolf101 authorized via allowlist for PR #52: fix: ToxicExposure never disclosed discharge limits on VA compensation (high)",
+  "signature": "Ghostwolf101-2026-09-06-pr52",
+  "authorizedBy": "Ghostwolf101",
+  "authorizedAt": "2026-09-06",
+  "reason": "PR #52: fix: ToxicExposure never disclosed discharge limits on VA compensation (high)",
+  "pullRequest": 52
+}
