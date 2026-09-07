@@ -1,0 +1,9 @@
+{
+  "governance_record": "2026-09-07-pr-63",
+  "authorization_logic": "Ghostwolf101 authorized via allowlist for PR #63: fix: bridge crashed on malformed location/discharge shapes (high)",
+  "signature": "Ghostwolf101-2026-09-07-pr63",
+  "authorizedBy": "Ghostwolf101",
+  "authorizedAt": "2026-09-07",
+  "reason": "PR #63: fix: bridge crashed on malformed location/discharge shapes (high)",
+  "pullRequest": 63
+}
