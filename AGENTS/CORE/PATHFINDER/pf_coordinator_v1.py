@@ -268,8 +268,25 @@ def resolve_divisions_for_domains(
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     """
     Returns (matched, gaps).
-    matched: list of {division_id, domain, entry, ...} for active Divisions.
+    matched: list of {division_id, domain, all_requested_domains, entry, ...}
+             for active Divisions. `domain` is a deterministic representative
+             label (the division's own declared domain order, not the
+             caller's input order); `all_requested_domains` lists every
+             requested domain this division call is actually covering.
     gaps: list of {domain, reason} for domains with no active Division.
+
+    Independent-audit finding (2026-09-07, round 5, high): a division that
+    serves more than one Domain (e.g. medical-disability-division serves
+    MEDICAL, CLAIMS, and MENTAL_HEALTH; va-benefits-division serves BENEFITS
+    and EMPLOYMENT) used to dedupe on division_id alone -- a later requested
+    domain that mapped to an already-matched division was silently dropped:
+    not in `matched`, not in `gaps` either, violating this module's own
+    founding law #3 ("Every Division result... is recorded. Nothing
+    dropped"). It also meant the SAME division call scored a different
+    confidence purely depending on which colliding domain happened to come
+    first in the caller's array (see calculate_division_confidence's
+    all_domains parameter). Fixed by grouping every requested domain by the
+    division it resolves to, so a collision no longer drops anything.
     """
     active_divisions = divisions_cfg.get("divisions", {})
     reg_divisions = {d["id"]: d for d in registry.get("divisions", [])}
@@ -280,27 +297,44 @@ def resolve_divisions_for_domains(
             if domain not in domain_to_division:
                 domain_to_division[domain] = div_id
 
-    matched: list[dict[str, Any]] = []
+    division_to_requested_domains: dict[str, list[str]] = {}
     gaps: list[dict[str, Any]] = []
-    seen_divisions: set[str] = set()
+    seen_domains: set[str] = set()
 
     for domain in domains:
+        if domain in seen_domains:
+            continue  # exact duplicate in the input -- not a collision, just redundant
+        seen_domains.add(domain)
         div_id = domain_to_division.get(domain)
-        if div_id and div_id not in seen_divisions:
-            div_reg = reg_divisions[div_id]
-            div_cfg = active_divisions.get(div_id, {})
-            entry = div_cfg.get("entry", "")
-            matched.append({
-                "division_id": div_id,
-                "domain": domain,
-                "entry": entry,
-                "entry_configured": bool(entry),
-                "status": div_reg.get("status", "unknown"),
-                "founding_law_sha256": registry.get("founding_law_sha256", ""),
-            })
-            seen_divisions.add(div_id)
-        elif not div_id:
+        if div_id:
+            division_to_requested_domains.setdefault(div_id, []).append(domain)
+        else:
             gaps.append({"domain": domain, "reason": "No Division registered for this domain"})
+
+    matched: list[dict[str, Any]] = []
+    for div_id, requested_domains in division_to_requested_domains.items():
+        div_reg = reg_divisions[div_id]
+        div_cfg = active_divisions.get(div_id, {})
+        entry = div_cfg.get("entry", "")
+        # Deterministic representative label: the division's OWN declared
+        # domain order (registry), never the caller's input order -- so the
+        # displayed domain, the confidence-fields base, and any messaging
+        # keyed on it never flips based on which domain a veteran happened
+        # to select first.
+        registry_domain_order = div_reg.get("domains", [])
+        primary_domain = next(
+            (d for d in registry_domain_order if d in requested_domains),
+            requested_domains[0],
+        )
+        matched.append({
+            "division_id": div_id,
+            "domain": primary_domain,
+            "all_requested_domains": sorted(requested_domains),
+            "entry": entry,
+            "entry_configured": bool(entry),
+            "status": div_reg.get("status", "unknown"),
+            "founding_law_sha256": registry.get("founding_law_sha256", ""),
+        })
 
     return matched, gaps
 
@@ -314,6 +348,7 @@ def calculate_division_confidence(
     intake: dict[str, Any],
     status: str,
     flags: list[str],
+    all_domains: list[str] | None = None,
 ) -> int:
     """
     Returns routing confidence as integer 0–100, derived from known facts.
@@ -326,11 +361,23 @@ def calculate_division_confidence(
       - COMPLETED → no ceiling (base holds)
       - Each uncertain flag (unknown/candidate/check/verify) → -5, floor 10
       - Rounded to nearest 5
+
+    `all_domains`, when a single Division call is actually covering more
+    than one requested Domain (see resolve_divisions_for_domains' collision
+    handling), is the full set — confidence is based on the UNION of every
+    covered domain's relevant fields, not just the single representative
+    `domain` label, so the score doesn't depend on which colliding domain
+    happened to be picked as that label.
     """
     if status == "SKIPPED":
         return 0
 
-    fields = _CONFIDENCE_FIELDS.get(domain, ["discharge", "state"])
+    domains_for_fields = all_domains or [domain]
+    fields: list[str] = []
+    for d in domains_for_fields:
+        for f in _CONFIDENCE_FIELDS.get(d, ["discharge", "state"]):
+            if f not in fields:
+                fields.append(f)
 
     # Resolve location fields — intake may nest state/county under "location"
     location = intake.get("location") or {}
@@ -400,6 +447,7 @@ def invoke_division(
 
     division_id = division["division_id"]
     domain = division["domain"]
+    all_domains = division.get("all_requested_domains") or [domain]
     entry = division.get("entry", "")
     start_ms = int(time.monotonic() * 1000)
 
@@ -473,7 +521,7 @@ def invoke_division(
         else:
             coord_status = "FAILED"
 
-        confidence = calculate_division_confidence(domain, intake, coord_status, flags)
+        confidence = calculate_division_confidence(domain, intake, coord_status, flags, all_domains=all_domains)
 
         result_dict: dict[str, Any] = {
             "division_id":        division_id,
