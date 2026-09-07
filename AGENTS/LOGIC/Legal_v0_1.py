@@ -142,58 +142,6 @@ def route_legal(profile: VetLegalProfile) -> dict:
 
     needs = [n.lower() for n in profile.legal_needs]
 
-    # ── TRACK 1: DISCHARGE UPGRADE ────────────────────────────────────────────
-    if "discharge_upgrade" in needs or profile.discharge in ("other_than_honorable", "dishonorable"):
-        discharge = (profile.discharge or "").lower()
-        years = profile.years_since_discharge
-
-        result["primary_path"] = "Discharge Upgrade — DRB or BCMR/BCNR"
-        result["flags"].append("discharge_upgrade_track")
-
-        # DRB — available within 15 years
-        if years is None or years <= 15:
-            result["secondary_options"].append(
-                "Discharge Review Board (DRB) — available within 15 years of discharge. "
-                "Can upgrade character of discharge. Cannot change reason for separation. "
-                "Free to file. Apply at milconnect.dmdc.osd.mil or mail DD Form 293."
-            )
-            result["key_forms"].append("DD Form 293 (DRB Application)")
-
-        # BCMR/BCNR — available any time
-        result["secondary_options"].append(
-            "Board for Correction of Military/Naval Records (BCMR/BCNR) — available ANY time after discharge. "
-            "Can correct errors, change reason for separation, upgrade character. "
-            "Stronger board — use this if DRB is unavailable or denied. "
-            "Apply at DD Form 149."
-        )
-        result["key_forms"].append("DD Form 149 (BCMR/BCNR Application)")
-
-        # MST connection
-        if profile.has_mst or "mst" in needs:
-            result["notes"].append(
-                "MST-related discharges are subject to heightened scrutiny under DoD policy. "
-                "Boards must give 'liberal consideration' to upgrade requests connected to MST, PTSD, or TBI. "
-                "Document the connection clearly in your application."
-            )
-            result["flags"].append("mst_discharge_upgrade")
-
-        result["key_resources"].extend([
-            "National Veterans Legal Services Program (NVLSP) — nvlsp.org — free legal help",
-            "Swords to Plowshares — swords-to-plowshares.org — West Coast focus",
-            "National Lawyers Guild Military Law Task Force — nlg-mltf.org",
-            "Your state's Legal Aid organization — search at lawhelp.org",
-        ])
-        result["next_action"] = (
-            "Contact NVLSP or a veterans law clinic before filing — "
-            "a lawyer reviewing your records can significantly improve your outcome. "
-            "All listed resources are free to veterans."
-        )
-        result["notes"].append(
-            "Discharge upgrade is not just about VA benefits — it affects housing, employment, "
-            "and federal contracting eligibility. Even a partial upgrade (reason for separation) "
-            "can restore access to programs."
-        )
-
     # ── TRACK 2: VA BENEFITS APPEALS ──────────────────────────────────────────
     if "va_appeal" in needs or "benefits_denial" in needs or profile.has_denied_claim:
         lane = (profile.appeals_lane or "none").lower()
@@ -644,6 +592,73 @@ def route_legal(profile: VetLegalProfile) -> dict:
             "Filing an OIG complaint does not require a lawyer. "
             "Filing formal VAOIG complaint form online: va.gov/oig/hotline.asp",
         ])
+
+    # ── TRACK 1: DISCHARGE UPGRADE ────────────────────────────────────────────
+    # Independent-audit finding (2026-09-06, round 4, high): this track used to
+    # run FIRST and claim result["primary_path"]/result["next_action"] with a
+    # plain, unconditional `=` -- the same bug shape already fixed in
+    # MedDisability_v0_1.py/Transportation_v0_1.py/BusinessOpportunity_v0_1.py.
+    # Because it ran first, even a guarded `or` assignment would have "won" by
+    # default, masking Track 7's time-sensitive VTC diversion guidance and
+    # Track 2's appeal-deadline guidance behind a generic "contact NVLSP about
+    # a discharge upgrade" headline for any OTH/dishonorable veteran. A
+    # discharge upgrade has generous, non-urgent timelines (DRB: 15 years:
+    # BCMR/BCNR: any time) compared to a pending court date or a 1-year appeal
+    # deadline, so this track is moved to run LAST among the substantive
+    # tracks (after Track 10) and its primary_path/next_action assignments
+    # are guarded to match every other track in this file -- it only claims
+    # the headline fields when nothing more time-sensitive already has.
+    if "discharge_upgrade" in needs or profile.discharge in ("other_than_honorable", "dishonorable"):
+        discharge = (profile.discharge or "").lower()
+        years = profile.years_since_discharge
+
+        result["primary_path"] = result["primary_path"] or "Discharge Upgrade — DRB or BCMR/BCNR"
+        result["flags"].append("discharge_upgrade_track")
+
+        # DRB — available within 15 years
+        if years is None or years <= 15:
+            result["secondary_options"].append(
+                "Discharge Review Board (DRB) — available within 15 years of discharge. "
+                "Can upgrade character of discharge. Cannot change reason for separation. "
+                "Free to file. Apply at milconnect.dmdc.osd.mil or mail DD Form 293."
+            )
+            result["key_forms"].append("DD Form 293 (DRB Application)")
+
+        # BCMR/BCNR — available any time
+        result["secondary_options"].append(
+            "Board for Correction of Military/Naval Records (BCMR/BCNR) — available ANY time after discharge. "
+            "Can correct errors, change reason for separation, upgrade character. "
+            "Stronger board — use this if DRB is unavailable or denied. "
+            "Apply at DD Form 149."
+        )
+        result["key_forms"].append("DD Form 149 (BCMR/BCNR Application)")
+
+        # MST connection
+        if profile.has_mst or "mst" in needs:
+            result["notes"].append(
+                "MST-related discharges are subject to heightened scrutiny under DoD policy. "
+                "Boards must give 'liberal consideration' to upgrade requests connected to MST, PTSD, or TBI. "
+                "Document the connection clearly in your application."
+            )
+            result["flags"].append("mst_discharge_upgrade")
+
+        result["key_resources"].extend([
+            "National Veterans Legal Services Program (NVLSP) — nvlsp.org — free legal help",
+            "Swords to Plowshares — swords-to-plowshares.org — West Coast focus",
+            "National Lawyers Guild Military Law Task Force — nlg-mltf.org",
+            "Your state's Legal Aid organization — search at lawhelp.org",
+        ])
+        if not result["next_action"]:
+            result["next_action"] = (
+                "Contact NVLSP or a veterans law clinic before filing — "
+                "a lawyer reviewing your records can significantly improve your outcome. "
+                "All listed resources are free to veterans."
+            )
+        result["notes"].append(
+            "Discharge upgrade is not just about VA benefits — it affects housing, employment, "
+            "and federal contracting eligibility. Even a partial upgrade (reason for separation) "
+            "can restore access to programs."
+        )
 
     # ── FALLBACK ──────────────────────────────────────────────────────────────
     if not result["primary_path"]:
