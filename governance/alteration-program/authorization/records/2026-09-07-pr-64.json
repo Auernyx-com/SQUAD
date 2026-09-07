@@ -1,0 +1,9 @@
+{
+  "governance_record": "2026-09-07-pr-64",
+  "authorization_logic": "Ghostwolf101 authorized via allowlist for PR #64: docs: log INTAKE_DO_NOT_GUESS/coordinator-schema drift, correct stale JWT gap (medium)",
+  "signature": "Ghostwolf101-2026-09-07-pr64",
+  "authorizedBy": "Ghostwolf101",
+  "authorizedAt": "2026-09-07",
+  "reason": "PR #64: docs: log INTAKE_DO_NOT_GUESS/coordinator-schema drift, correct stale JWT gap (medium)",
+  "pullRequest": 64
+}

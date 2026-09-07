@@ -2,7 +2,7 @@
 
 This document tracks what we know is incomplete, unverified, or not yet built.
 It exists so that anyone reviewing this project sees the honest state before they
-have to dig for it. Last updated: 2026-05-25.
+have to dig for it. Last updated: 2026-09-07.
 
 ---
 
@@ -92,13 +92,55 @@ atomically and are not lost — only the index entry could be missed. Rate
 limiting makes this unlikely in practice. Fix at production scale: use
 Durable Objects for the index, or drop the index entirely and use KV list().
 
-**CF_Authorization JWT is parsed without signature verification.**
-The `parseAccessJWT` helper reads the CF Access session cookie and trusts
-the payload to display session expiry info. The signature is not verified
-against Cloudflare's public keys. This does not gate any access — it only
-surfaces a session expiry notice to the user — so the security impact is
-minimal. A spoofed JWT payload could only change what expiry message the
-user sees. Noted for completeness.
+**CF_Authorization JWT verification — RESOLVED.**
+Previously noted here: the `parseAccessJWT` helper read the CF Access
+session cookie without verifying its signature against Cloudflare's public
+keys. As of the pathfinder-worker repo's `access-verify.js`, this has been
+replaced entirely with real signature verification (JWKS fetch, RSASSA-
+PKCS1-v1_5 signature check, issuer/audience/expiry validation, fails closed
+on any error). Confirmed via repo-wide grep in both wyerd-squad and
+pathfinder-worker: `parseAccessJWT` no longer exists in either codebase.
+Left here, corrected, rather than deleted outright, so anyone who searched
+for this specific gap by name still finds it and its resolution.
+
+**`MODULES/INTAKE_DO_NOT_GUESS` is built and tested but not wired into the
+live coordinator path.**
+Found via independent audit (2026-09-07): the module (a gate meant to
+"force missing basics" before routing proceeds) has its own working
+Python API, CLI, and test suite (`tests/test_intake_gate.py`), but
+`pf_coordinator_v1.py`, `questionnaire_intake_bridge_v1.py`,
+`pf_core_runner_v1.py`, and all 8 division routers never import it —
+confirmed via repo-wide grep. In the live path, the bridge instead
+silently defaults missing fields (e.g. `housing_status`/`claim_stage`/
+`employment_status` → `"unknown"`, `county` → `""`) rather than routing
+to this module's clarifying-question gate. Not fixed by wiring it in as
+part of that same audit pass — doing so would change what response a
+veteran with an incomplete intake actually receives (a clarifying-
+question gate instead of a routed-with-caveats result), which is a
+product decision, not a narrow bug fix. Logged here so it's tracked as a
+real, known gap rather than silently discovered again next round.
+
+**Coordinator result/intake JSON schemas have drifted from what the code
+actually produces/consumes.**
+Found via independent audit (2026-09-07): validating a real
+`build_coordinator_intake()` output against
+`AGENTS/SCHEMAS/Pathfinder_Coordinator_Intake_v1.schema.json` produces
+violations (the schema's `Domain` enum is missing 7 of the ~12 domains
+actually in use — `EMPLOYMENT`, `MEDICAL`, `CLAIMS`, `BUSINESS`,
+`TRANSPORTATION`, `WOMEN_VETERANS`, `TOXIC_EXPOSURE`). Validating a real
+`run_coordinator()` output against
+`Pathfinder_Coordinator_Result_v1.schema.json` produces 9+ violations
+(missing/renamed required keys, `confidence` typed as an int where the
+schema wants an enum string, several unexpected top-level keys). Confirmed
+via repo-wide grep that neither schema file is ever passed to
+`jsonschema` anywhere in the codebase (the one real-validation tool,
+`tools/qa/validate_pathfinder_contracts.py`, validates a *different*
+schema, `Pathfinder_Contract_v1.schema.json`) — so this drift causes no
+active bug today, but the two files provide zero real contract
+protection and would reject virtually all real coordinator input/output
+if validation were ever wired to them. Not fixed here — regenerating the
+schemas from real output/input is straightforward but out of scope for
+this pass; logged so it isn't silently rediscovered.
 
 **No monitoring or alerting.**
 There is no automated alerting if the worker errors, the AI binding returns
