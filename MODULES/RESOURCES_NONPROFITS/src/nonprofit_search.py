@@ -34,6 +34,33 @@ def _normalize_str(s: str) -> str:
     return " ".join(s.strip().lower().split())
 
 
+def _is_unresolved_verify_marker(value: Any) -> bool:
+    """Broad, fail-closed check for whether a verify_before_production marker
+    means "something here is still unverified" -- whatever shape it was
+    written in.
+
+    Independent-audit finding (2026-09-06, round 4, medium): the previous
+    check only recognized the exact list-of-non-empty-strings shape (the
+    shape every real production shard happens to use today). Any other
+    truthy shape -- a bare boolean True, a plain string, or a dict -- was
+    silently ignored, letting the unverified record it was flagging pass
+    through untouched. Since this field has no schema enforcement, any
+    future hand-edit or ingestion path writing a different shape must not
+    be able to defeat the guarantee. Only clearly-empty values (missing,
+    None, False, "", [], {}, or a collection of only blank/falsy entries)
+    are treated as "nothing currently flagged."
+    """
+    if value is None or value is False:
+        return False
+    if isinstance(value, str):
+        return bool(value.strip())
+    if isinstance(value, (list, tuple, set)):
+        return any(_is_unresolved_verify_marker(x) for x in value)
+    if isinstance(value, dict):
+        return bool(value)
+    return bool(value)
+
+
 def _walk_keys(obj: Any) -> Iterable[str]:
     if isinstance(obj, dict):
         for k, v in obj.items():
@@ -122,7 +149,7 @@ def _sanitize_and_validate_record(record: Dict[str, Any], rules: ScopeRules, *, 
     # closed would simply not appear, so one pending phone-number check
     # doesn't take the rest of a state's registry down with it.
     unverified = record.get("verify_before_production")
-    if isinstance(unverified, list) and any(isinstance(x, str) and x.strip() for x in unverified):
+    if _is_unresolved_verify_marker(unverified):
         return None
 
     # Validate services are controlled vocab.
