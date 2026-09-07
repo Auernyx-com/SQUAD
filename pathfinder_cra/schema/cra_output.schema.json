@@ -121,7 +121,8 @@
           "continuity_gaps_can_block_service_connection",
           "service_records_requests_can_take_time",
           "appeal_lane_choice_has_deadlines",
-          "representation_can_reduce_process_friction"
+          "representation_can_reduce_process_friction",
+          "appeal_deadline_may_apply"
         ]
       }
     },
@@ -143,6 +144,7 @@
               "seek_accredited_representation",
               "confirm_appeal_lane_and_deadlines",
               "collect_lay_statements",
+              "confirm_appeal_deadline",
               "build_one_page_timeline"
             ]
           },
