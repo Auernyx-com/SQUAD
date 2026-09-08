@@ -393,5 +393,75 @@ class RestorationProofCoversAllTamperCodesTest(unittest.TestCase):
         self.assertFalse(oj._restoration_required(judgment))
 
 
+class AllowlistJsonIsGovernanceHashProtectedTest(unittest.TestCase):
+    """Independent-audit finding (2026-09-08, round 10, critical): the
+    governance-hash's protected file set -- the whole tamper-detection
+    surface tools/ci_gate.py's provenance check relies on -- never included
+    governance/alteration-program/authorization/allowlist.json, the one
+    file that decides who can self-authorize a PR merge. Confirmed
+    directly: a PR that modifies allowlist.json to add an attacker's own
+    GitHub login produced the IDENTICAL governance hash as before, so
+    verify_provenance() reported ok=True. Combined with the workflow's
+    auto-authorize job reading allowlist.json live from that same PR's own
+    checkout, this was a complete, self-contained bypass: a single PR that
+    adds itself to the allowlist gets a genuinely legitimate
+    is_allowed=true via self-authorship, with a real matching commit SHA --
+    nothing forged, so round 8's commit-SHA fix did not catch it either.
+
+    Mk2's own equivalent (computeGovernanceHash in core/provenance.ts)
+    already hashes its analogous config/allowlist.json and config/
+    auernyx.config.json (which holds governance.approverIdentity) -- this
+    omission was specific to SQUAD's adaptation of the pattern.
+    """
+
+    ALLOWLIST_REL = "governance/alteration-program/authorization/allowlist.json"
+
+    def _write_allowlist(self, repo_root: Path, logins: list) -> None:
+        p = repo_root / self.ALLOWLIST_REL
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(json.dumps({"authorizedLogins": logins}))
+
+    def test_allowlist_json_is_included_in_the_hashed_governance_inputs(self):
+        repo_root = _tmp_repo()
+        self.assertIn(self.ALLOWLIST_REL, oj._governance_inputs(repo_root))
+
+    def test_modifying_allowlist_json_changes_the_governance_hash(self):
+        repo_root = _tmp_repo()
+        self._write_allowlist(repo_root, ["Ghostwolf101"])
+        hash_before = oj.compute_governance_hash(repo_root)
+
+        self._write_allowlist(repo_root, ["Ghostwolf101", "attacker-controlled-login"])
+        hash_after = oj.compute_governance_hash(repo_root)
+
+        self.assertNotEqual(hash_before, hash_after)
+
+    def test_adding_an_attacker_login_to_allowlist_trips_governance_hash_mismatch(self):
+        # End-to-end: a genesis record established against the real
+        # allowlist, then the exact attack -- a PR appending its own login
+        # to the allowlist -- must be caught as tamper, not silently pass.
+        repo_root = _tmp_repo()
+        self._write_allowlist(repo_root, ["Ghostwolf101"])
+        oj.ensure_genesis_record(repo_root, write_enabled=True)
+
+        self.assertTrue(oj.verify_provenance(repo_root).ok, "sanity: clean state must verify before the attack")
+
+        self._write_allowlist(repo_root, ["Ghostwolf101", "attacker-controlled-login"])
+
+        status = oj.verify_provenance(repo_root)
+        self.assertFalse(status.ok)
+        self.assertEqual(status.code, "governance_hash_mismatch")
+
+    def test_restoring_the_original_allowlist_verifies_clean_again(self):
+        repo_root = _tmp_repo()
+        self._write_allowlist(repo_root, ["Ghostwolf101"])
+        oj.ensure_genesis_record(repo_root, write_enabled=True)
+
+        self._write_allowlist(repo_root, ["Ghostwolf101", "attacker-controlled-login"])
+        self.assertFalse(oj.verify_provenance(repo_root).ok)
+
+        self._write_allowlist(repo_root, ["Ghostwolf101"])
+        self.assertTrue(oj.verify_provenance(repo_root).ok)
+
+
 if __name__ == "__main__":
     unittest.main()
