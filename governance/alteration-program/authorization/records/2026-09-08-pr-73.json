@@ -1,0 +1,9 @@
+{
+  "governance_record": "2026-09-08-pr-73",
+  "authorization_logic": "Ghostwolf101 authorized via allowlist for PR #73: docs: sync governance-hash file list and KNOWN_GAPS with rounds 8-12 fixes",
+  "signature": "Ghostwolf101-2026-09-08-pr73",
+  "authorizedBy": "Ghostwolf101",
+  "authorizedAt": "2026-09-08",
+  "reason": "PR #73: docs: sync governance-hash file list and KNOWN_GAPS with rounds 8-12 fixes",
+  "pullRequest": 73
+}
