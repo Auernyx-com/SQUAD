@@ -71,7 +71,19 @@ def gate_intake(payload: Dict[str, Any]) -> IntakeGateResult:
         if nn and nn in NEED_BRANCHES and nn not in needs:
             needs.append(nn)
     if len(needs) > 2:
-        needs = needs[:2]
+        # Independent-audit finding (2026-09-08, round 12, high): this used
+        # to be a blind `needs[:2]` -- a veteran who named 3+ needs in any
+        # order (e.g. ["housing", "legal", "crisis"]) silently lost
+        # whichever ones landed past position 2. Confirmed directly: that
+        # exact input normalized to needs=["housing", "legal"] with
+        # "crisis" -- the single highest-priority need branch this module
+        # defines -- discarded with no trace. "crisis" must never be
+        # silently dropped by this cap; keep it (first, to signal
+        # priority) plus one other explicitly named need instead.
+        if "crisis" in needs:
+            needs = ["crisis"] + [n for n in needs if n != "crisis"][:1]
+        else:
+            needs = needs[:2]
 
     # Same non-dict-value gap as `location` above: `(p.get("status") or {})`
     # protects against None/falsy but a truthy non-dict value (a stray

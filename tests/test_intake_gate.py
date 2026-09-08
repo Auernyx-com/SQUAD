@@ -89,5 +89,49 @@ class ValidIntakeStillWorksTest(unittest.TestCase):
         self.assertEqual(result.normalized["location"]["state"], "CO")
 
 
+class CrisisNeverSilentlyDroppedByTheTwoNeedCapTest(unittest.TestCase):
+    """Independent-audit finding (2026-09-08, round 12, high): needs beyond
+    the first two named were silently discarded by a blind `needs[:2]`, with
+    no regard for which ones. Confirmed directly: a veteran naming
+    ["housing", "legal", "crisis"] -- in that order -- normalized to
+    needs=["housing", "legal"], with "crisis" (the single highest-priority
+    need branch this module defines) dropped with no trace. Fixed so
+    "crisis" is always kept (and surfaced first) when present, regardless
+    of where it fell in the caller's own ordering.
+    """
+
+    BASE = {
+        "state": "CO",
+        "county": "Mesa",
+        "housing_status": "unhoused",
+        "claim_stage": "not_filed",
+        "employment_status": "unemployed",
+        "contact_preference": "phone",
+    }
+
+    def test_crisis_survives_even_when_named_last_of_three(self):
+        result = gate_intake({**self.BASE, "need": ["housing", "legal", "crisis"]})
+        self.assertEqual(result.status, "OK")
+        self.assertIn("crisis", result.normalized["needs"])
+
+    def test_crisis_kept_first_to_signal_priority(self):
+        result = gate_intake({**self.BASE, "need": ["housing", "legal", "crisis"]})
+        self.assertEqual(result.normalized["needs"][0], "crisis")
+
+    def test_crisis_named_first_still_works_no_regression(self):
+        result = gate_intake({**self.BASE, "need": ["crisis", "housing", "legal"]})
+        self.assertIn("crisis", result.normalized["needs"])
+
+    def test_no_crisis_present_the_original_two_cap_still_applies(self):
+        # Must not regress the ordinary case -- no crisis in the list, so
+        # plain first-two-named behavior is unchanged.
+        result = gate_intake({**self.BASE, "need": ["housing", "legal", "education"]})
+        self.assertEqual(result.normalized["needs"], ["housing", "legal"])
+
+    def test_only_crisis_named_returns_just_crisis(self):
+        result = gate_intake({**self.BASE, "need": ["crisis"]})
+        self.assertEqual(result.normalized["needs"], ["crisis"])
+
+
 if __name__ == "__main__":
     unittest.main()
