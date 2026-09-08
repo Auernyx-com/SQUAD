@@ -197,5 +197,53 @@ class IndependentAuditPhraseGapTest(unittest.TestCase):
         self.assertFalse(self._is_crisis("loaded my father's rifle, this is it for me"))
 
 
+class CombatNarrativeFalsePositiveTest(unittest.TestCase):
+    """Independent-audit finding (2026-09-08, round 12, medium, also found
+    and fixed in pathfinder-worker's identical JS port of this list): the
+    weapon+violence-word AND-gate had no way to tell a genuine current/
+    future threat ("I have a gun and I'm going to shoot someone") apart
+    from ordinary past-tense combat narrative a veteran might type
+    describing their own service history -- exactly the kind of context
+    this app's own population routinely provides (PTSD triggers, MOS
+    background, deployment history). Confirmed directly before this fix:
+    each message below triggered a false "Text indicates potential
+    immediate violence risk" CRISIS status.
+    """
+
+    def _is_crisis(self, text):
+        result = crisis_redirect({"text": text})
+        return result.status == "CRISIS" and bool(result.resources)
+
+    def test_sniper_protecting_team_not_a_false_positive(self):
+        self.assertFalse(self._is_crisis(
+            "I was a sniper and had to shoot the enemy with my rifle to protect my team."
+        ))
+
+    def test_ambush_narrative_not_a_false_positive(self):
+        self.assertFalse(self._is_crisis(
+            "During the ambush I had to shoot at them with my rifle."
+        ))
+
+    def test_convoy_narrative_not_a_false_positive(self):
+        self.assertFalse(self._is_crisis(
+            "My job as a gunner meant I had to shoot at anyone who threatened the convoy."
+        ))
+
+    def test_in_combat_narrative_not_a_false_positive(self):
+        self.assertFalse(self._is_crisis(
+            "In combat I had to kill people with my rifle, and I still have nightmares."
+        ))
+
+    def test_genuine_threat_still_triggers_despite_the_exclusion(self):
+        # The combat-narrative exclusion must not weaken real detection.
+        self.assertTrue(self._is_crisis("I have a gun and I'm going to shoot someone right now"))
+        self.assertTrue(self._is_crisis("I have a weapon and I'm going to kill them"))
+
+    def test_existing_bare_weapon_plus_self_target_still_triggers(self):
+        # No regression on the case this module's own earlier test already
+        # covers -- present-tense, self-directed, no combat-narrative words.
+        self.assertTrue(self._is_crisis("i've got my dad's pistol and i'm ready to use it on myself"))
+
+
 if __name__ == "__main__":
     unittest.main()
