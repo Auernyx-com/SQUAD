@@ -171,7 +171,33 @@ def _detect_crisis(text: str, signals: Dict[str, bool]) -> Optional[str]:
     ):
         # Still conservative: only trigger if combined with self-harm/violence language.
         if _contains_any(text, ["myself", "them", "someone", "anyone", "kill", "shoot", "stab"]):
-            return "Text indicates potential immediate violence risk."
+            # Independent-audit finding (2026-09-08, round 12, medium): this
+            # AND-gate has no way to tell a genuine current/future threat
+            # ("I have a gun and I'm going to shoot someone") apart from
+            # ordinary past-tense combat narrative a veteran might type
+            # describing their own service history -- exactly the kind of
+            # context this app's own population routinely provides (PTSD
+            # triggers, MOS background, deployment history). Confirmed
+            # directly: realistic, entirely benign sentences like "I was a
+            # sniper and had to shoot the enemy with my rifle to protect my
+            # team" and "During the ambush I had to shoot at them with my
+            # rifle" triggered a false CRISIS status with "Text indicates
+            # potential immediate violence risk" -- exactly the
+            # false-positive cost this file's own comments already say
+            # matters here ("a banner people learn to tune out"). Does not
+            # weaken the self-harm phrase list above, which still catches
+            # genuine intent regardless of combat wording elsewhere in the
+            # same text -- it runs first and returns before this branch is
+            # ever reached.
+            if not _contains_any(
+                text,
+                [
+                    "had to shoot", "had to kill", "had to fire",
+                    "the enemy", "ambush", "firefight", "convoy",
+                    "in combat", "during combat", "deployment", "deployed",
+                ],
+            ):
+                return "Text indicates potential immediate violence risk."
 
     return None
 
