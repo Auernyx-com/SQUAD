@@ -27,6 +27,18 @@ The governance hash is computed from the literal contents of a small allowlist o
 - `DOCS/GOVERNANCE.md`
 - `PIPELINE_README.md`
 - `AGENTS/SCHEMAS/Pathfinder_Contract_v1.schema.json`
+- `governance/alteration-program/authorization/allowlist.json` — added
+  2026-09-08 (round-10 independent audit): this file decides who can
+  self-authorize a PR merge in `.github/workflows/squad-alteration-gate.yml`,
+  and was not originally in this hashed set. A PR that modified it to add an
+  attacker's own login produced the identical governance hash as before, so
+  `verify_provenance()` reported `ok=True` -- combined with the workflow's
+  auto-authorize job reading this same file live from the PR's own
+  checkout, that was a complete, self-contained authorization bypass. Fixed
+  by adding it here and rotating `genesis.v1.json` to the new baseline hash
+  (PR #70). Mk2's own equivalent (`config/allowlist.json` +
+  `config/auernyx.config.json` in `core/provenance.ts`) already covered
+  this class of file -- the gap was specific to SQUAD's adaptation.
 
 ## CLI
 - Status (JSON): `python MODULES/OBSIDIAN_JUDGMENT/cli/obsidian_judgment_cli.py status`

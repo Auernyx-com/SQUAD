@@ -147,6 +147,14 @@ question gate instead of a routed-with-caveats result), which is a
 product decision, not a narrow bug fix. Logged here so it's tracked as a
 real, known gap rather than silently discovered again next round.
 
+Update (2026-09-08, round 12): a real bug was found and fixed in this
+module while it still sits unwired — `gate_intake()`'s 2-need cap
+(`needs[:2]`) silently dropped `"crisis"` whenever it wasn't named among
+the first two needs, with zero prioritization (PR #72). Fixed to always
+keep `crisis` when present, regardless of ordering. Noted here so
+whoever eventually wires this module in knows that specific landmine is
+already cleared — the wiring decision above is still open.
+
 **Coordinator result/intake JSON schemas have drifted from what the code
 actually produces/consumes.**
 Found via independent audit (2026-09-07): validating a real
