@@ -1,0 +1,9 @@
+{
+  "governance_record": "2026-09-08-pr-72",
+  "authorization_logic": "Ghostwolf101 authorized via allowlist for PR #72: fix: intake gate silently dropped the crisis need when 3+ needs named (high)",
+  "signature": "Ghostwolf101-2026-09-08-pr72",
+  "authorizedBy": "Ghostwolf101",
+  "authorizedAt": "2026-09-08",
+  "reason": "PR #72: fix: intake gate silently dropped the crisis need when 3+ needs named (high)",
+  "pullRequest": 72
+}
