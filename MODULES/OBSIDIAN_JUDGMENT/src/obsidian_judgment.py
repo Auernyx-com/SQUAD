@@ -111,6 +111,24 @@ def _governance_inputs(repo_root: Path) -> Dict[str, str]:
         "DOCS/GOVERNANCE.md",
         "PIPELINE_README.md",
         "AGENTS/SCHEMAS/Pathfinder_Contract_v1.schema.json",
+        # Independent-audit finding (2026-09-08, round 10, critical): this
+        # hashed set -- the whole tamper-detection surface ci_gate.py's
+        # provenance check relies on -- never included the one file that
+        # decides who can self-authorize a PR merge. Confirmed directly: a
+        # PR that modifies allowlist.json to add an attacker's own GitHub
+        # login produces the IDENTICAL governance hash as before, so
+        # verify_provenance() reports ok=True. Combined with the workflow's
+        # auto-authorize job reading allowlist.json live from that same PR's
+        # own checkout, this is a complete, self-contained bypass: a single
+        # PR that adds itself to the allowlist gets a genuinely legitimate
+        # is_allowed=true via self-authorship, with a real matching commit
+        # SHA -- nothing forged, so round 8's commit-SHA fix does not catch
+        # it either. Mk2's own equivalent (computeGovernanceHash in
+        # core/provenance.ts) already hashes its analogous config/
+        # allowlist.json and config/auernyx.config.json (which holds
+        # governance.approverIdentity) -- this omission is specific to
+        # SQUAD's adaptation, not present in the original pattern.
+        "governance/alteration-program/authorization/allowlist.json",
     ]
 
     out: Dict[str, str] = {}
