@@ -103,6 +103,17 @@ method and encryption algorithm have not been audited externally. Veterans are
 told their data stays on-device — this claim is structurally correct but has not
 been verified by an independent security review.
 
+Update (2026-09-08): the encryption itself (Web Crypto AES-GCM, PBKDF2 key
+derivation) still hasn't had a dedicated cryptographic review, but an
+independent audit did find and fix a real vault-exfiltration path in the
+wyerd-squad repo — `fmt()` passed unescaped HTML from AI responses straight
+into `.innerHTML`, so a model echoing attacker-supplied markup could run
+script in the same scope as the decrypted vault, defeating the on-device
+promise regardless of how sound the encryption was. Fixed by routing every
+sink through `escapeHtml()` (wyerd-squad#2). Noted here because it's the
+same "stays on-device" claim this gap entry already tracks, even though the
+bug wasn't in the encryption code itself.
+
 **Rate limiting uses KV, not Durable Objects.**
 The rate limiter is IP-based with sliding windows stored in KV. Under high
 concurrent load from a single IP, there is a small race window where more than
